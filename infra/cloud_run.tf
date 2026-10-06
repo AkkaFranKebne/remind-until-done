@@ -75,12 +75,14 @@ resource "google_cloud_run_v2_service" "api" {
     }
   }
 
-  # CI deploys new images; Terraform must not roll them back
+  # CI deploys new images; Terraform must not roll them back.
+  # Service-level scaling is filled in by Google (all zeros) and would show as a diff on every plan.
   lifecycle {
     ignore_changes = [
       template[0].containers[0].image,
       client,
       client_version,
+      scaling,
     ]
   }
 

@@ -1,0 +1,88 @@
+resource "google_cloud_run_v2_service" "api" {
+  name     = "rud-api"
+  location = var.region
+  ingress  = "INGRESS_TRAFFIC_ALL"
+
+  template {
+    service_account = google_service_account.api.email
+
+    scaling {
+      min_instance_count = 0
+      max_instance_count = var.max_instances
+    }
+
+    containers {
+      image = var.image
+
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi"
+        }
+      }
+
+      env {
+        name  = "ENV"
+        value = var.env
+      }
+      env {
+        name  = "GCP_PROJECT"
+        value = var.project_id
+      }
+      env {
+        name  = "TASKS_LOCATION"
+        value = var.tasks_region
+      }
+      env {
+        name  = "TASKS_QUEUE"
+        value = google_cloud_tasks_queue.reminders.name
+      }
+      env {
+        name  = "INVOKER_SA_EMAIL"
+        value = google_service_account.invoker.email
+      }
+      env {
+        name  = "SERVICE_URL"
+        value = var.service_url
+      }
+      env {
+        name = "DATABASE_URL"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.app["database-url"].secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "ALLOWED_EMAILS"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.app["allowed-emails"].secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "ACTION_TOKEN_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.app["action-token-key"].secret_id
+            version = "latest"
+          }
+        }
+      }
+    }
+  }
+
+  # CI deploys new images; Terraform must not roll them back
+  lifecycle {
+    ignore_changes = [
+      template[0].containers[0].image,
+      client,
+      client_version,
+    ]
+  }
+
+  depends_on = [google_project_service.enabled]
+}

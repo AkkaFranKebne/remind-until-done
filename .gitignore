@@ -1,0 +1,14 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+
+# Downloaded tool archives
+*.zip
+
+# OS / editor
+.DS_Store
+.env
+.env.*

@@ -4,4 +4,4 @@ region     = "europe-north2" # Stockholm: Cloud Run, Artifact Registry
 # tasks_region     = "europe-west1"   # Cloud Tasks queue
 # scheduler_region = "europe-west1"   # Cloud Scheduler job
 github_repo = "AkkaFranKebne/remind-until-done"
-# service_url = "https://rud-api-xxxxx.a.run.app"   # set after first deploy
+service_url = "https://rud-api-q623gdpgbq-ma.a.run.app" # api_url output from the first apply

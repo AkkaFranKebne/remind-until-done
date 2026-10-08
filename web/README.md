@@ -43,5 +43,7 @@ Start the API too (`make run` in `api/`), or the page shows "API unreachable".
 - **Prettier** formats code (`.prettierrc.json`). Zed formats on save (`.zed/settings.json`).
 - **oxlint** (`.oxlintrc.json`) checks for bugs, accessibility problems, import cycles and test mistakes.
 - **TypeScript** runs in strict mode, with `noUncheckedIndexedAccess` (`list[0]` may be `undefined`).
-- **Pre-commit hook** (husky + lint-staged): formats and lints the staged files before each commit.
-  `npm install` sets it up. Skip once with `git commit --no-verify` (use sparingly).
+- **Git hooks** (husky), set up by `npm install`:
+  - **pre-commit** (lint-staged): formats and lints the staged files. Fast.
+  - **pre-push**: type check + Jest tests for the whole web app.
+  - Skip once with `--no-verify` (use sparingly; CI still checks everything).

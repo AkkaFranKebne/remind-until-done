@@ -6,6 +6,7 @@ locals {
     "secretmanager.googleapis.com",
     "artifactregistry.googleapis.com",
     "iam.googleapis.com",
+    "iamcredentials.googleapis.com", # GitHub login (WIF) exchanges its token here
     "firebase.googleapis.com",
     "firebasehosting.googleapis.com",
     "identitytoolkit.googleapis.com",

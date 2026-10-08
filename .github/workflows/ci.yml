@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # event_name keeps a dev deploy (push) and a prod deploy (manual run) from cancelling each other.
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,6 +24,8 @@ jobs:
       HUSKY: 0 # no Git hooks on CI machines
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -42,6 +45,8 @@ jobs:
         working-directory: api
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@v7
         with:
           go-version-file: api/go.mod
@@ -62,6 +67,8 @@ jobs:
         working-directory: infra
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.12.0

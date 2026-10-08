@@ -37,6 +37,8 @@ jobs:
       HUSKY: 0
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # don't leave the GitHub token on disk
 
       - name: Build the API image
         run: |
@@ -73,16 +75,24 @@ jobs:
       IMAGE: ${{ vars.IMAGE }}:${{ github.sha }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # don't leave the GitHub token on disk
 
+      # Unpack into a separate folder, so the build can't overwrite checked-out files
+      # (like package-lock.json). Only the two expected outputs are used.
       - uses: actions/download-artifact@v8
         with:
           name: build
+          path: ${{ runner.temp }}/build
 
+      - name: Take the built web app
+        run: cp -R "$RUNNER_TEMP/build/web/dist" web/dist
+
+      # No npm cache in this job: other jobs write that cache. Packages come fresh
+      # from the registry, checked against the lockfile.
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-          cache-dependency-path: web/package-lock.json
 
       # Installed BEFORE logging in, with install scripts off: no package code runs here.
       # After the login, only firebase-tools runs (pinned by package-lock.json).
@@ -100,7 +110,7 @@ jobs:
 
       - name: Push the API image
         run: |
-          gunzip -c api-image.tar.gz | docker load
+          gunzip -c "$RUNNER_TEMP/build/api-image.tar.gz" | docker load
           docker tag rud-api:${{ github.sha }} "$IMAGE"
           gcloud auth configure-docker ${{ vars.REGION }}-docker.pkg.dev --quiet
           docker push "$IMAGE"

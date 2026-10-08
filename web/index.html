@@ -5,7 +5,25 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- viewport-fit=cover lets the app use the full screen around the iPhone notch (design doc 5.9) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#6d28d9" />
+    <meta
+      name="description"
+      content="Remind Until Done: reminders that keep nagging until you tap Done."
+    />
+
+    <!-- The app supports light and dark mode, so the browser draws its own parts
+         (form fields, scrollbars) to match the phone's setting. -->
+    <meta name="color-scheme" content="light dark" />
+    <!-- Browser bar colour (Android), one per mode. Dark value is a placeholder until the dark palette is designed. -->
+    <meta name="theme-color" content="#6d28d9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)" />
+
+    <!-- iPhone home screen app -->
+    <meta name="apple-mobile-web-app-title" content="rud." />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Stop iOS turning numbers (like times) into phone links -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Coming in M3 (PWA): web app manifest, apple-touch-icon and app icons -->
     <title>rud.</title>
   </head>
   <body>

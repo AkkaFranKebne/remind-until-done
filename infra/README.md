@@ -61,5 +61,7 @@ laptop in v1; the CI identity cannot change infrastructure.
 
 ## Notes
 - The Cloud Run service allows unauthenticated invocation, because the browser reaches it through the Firebase Hosting rewrite. `/internal/*` is protected in the Go app by verifying the OIDC token (audience = service URL, email = invoker SA).
-- `SERVICE_URL` is not known until the first apply. Copy the `api_url` output into `service_url` in the tfvars and apply again.
+- `service_url` uses Cloud Run's predictable URL, `https://rud-api-<project number>.<region>.run.app`, so it's known before the first apply (`gcloud projects describe <project-id> --format='value(projectNumber)'`).
+- Region is `europe-west3` (Frankfurt) for everything: next to the Neon database. Not Stockholm (`europe-north2`): Firebase Hosting can't rewrite `/api/**` to Cloud Run there.
+- Changing `region` replaces the Cloud Run service, Artifact Registry repo, Tasks queue and Scheduler job. That's safe: they hold no data (`deletion_protection = false` on Cloud Run for this reason). Update the GitHub variables `REGION`, `IMAGE` and `API_URL` afterwards.
 - Neon is managed outside Terraform on purpose (keeps the state small and avoids a third-party provider).

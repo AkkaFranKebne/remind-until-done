@@ -15,19 +15,33 @@ src/
 ```
 
 ## Run locally
+
 Needs Node 22.12+ (`nvm use` picks the version from `.nvmrc`).
+
 ```
 nvm use
 npm install
 npm run dev          # http://localhost:5173
 ```
+
 Start the API too (`make run` in `api/`), or the page shows "API unreachable".
 
 ## Scripts
-| Script | What it does |
-|---|---|
-| `npm run dev` | Dev server with hot reload |
-| `npm run build` | Type check, then production build into `dist/` |
-| `npm run typecheck` | TypeScript check only |
-| `npm run lint` | oxlint |
-| `npm test` | Jest unit tests |
+
+| Script                 | What it does                                        |
+| ---------------------- | --------------------------------------------------- |
+| `npm run dev`          | Dev server with hot reload                          |
+| `npm run build`        | Type check, then production build into `dist/`      |
+| `npm run typecheck`    | TypeScript check only                               |
+| `npm run lint`         | oxlint, with type-aware rules; fails on any warning |
+| `npm run format`       | Format all files with Prettier                      |
+| `npm run format:check` | Fail if any file isn't formatted (for CI)           |
+| `npm test`             | Jest unit tests                                     |
+
+## Code quality
+
+- **Prettier** formats code (`.prettierrc.json`). Zed formats on save (`.zed/settings.json`).
+- **oxlint** (`.oxlintrc.json`) checks for bugs, accessibility problems, import cycles and test mistakes.
+- **TypeScript** runs in strict mode, with `noUncheckedIndexedAccess` (`list[0]` may be `undefined`).
+- **Pre-commit hook** (husky + lint-staged): formats and lints the staged files before each commit.
+  `npm install` sets it up. Skip once with `git commit --no-verify` (use sparingly).

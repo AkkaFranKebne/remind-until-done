@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { fetchHealth } from '../lib/api/health'
 
-type State = { kind: 'loading' } | { kind: 'ok'; status: string } | { kind: 'error'; message: string }
+type State =
+  { kind: 'loading' } | { kind: 'ok'; status: string } | { kind: 'error'; message: string }
 
 // Shows whether the app can reach the API. Temporary: it proves the
 // /api rewrite works (milestone M0) and goes away once real pages exist.

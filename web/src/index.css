@@ -10,7 +10,10 @@
   --error: #b91c1c;
 
   color-scheme: light;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--fg);
   background: var(--bg);
 }

@@ -7,9 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
-    "lint": "oxlint",
+    "lint": "oxlint --type-aware --deny-warnings",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "jest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "cd .. && husky web/.husky"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -24,14 +27,25 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "husky": "^9.1.7",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
+    "lint-staged": "^17.6.0",
     "oxlint": "^1.81.0",
+    "oxlint-tsgolint": "^7.0.2003",
+    "prettier": "^3.9.9",
     "ts-jest": "^29.4.14",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   },
   "engines": {
     "node": ">=22.12"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "oxlint --type-aware --deny-warnings"
+    ],
+    "*.{js,cjs,css,json,md,html}": "prettier --write"
   }
 }

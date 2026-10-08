@@ -1,0 +1,79 @@
+# Deploys the API (Cloud Run) and the web app (Firebase Hosting) (design doc 6.4).
+# - Merge to main -> dev, automatically.
+# - Manual run ("Run workflow" in the Actions tab, type "prod") -> prod.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "prod" to deploy this commit to production'
+        required: true
+
+permissions:
+  contents: read
+  id-token: write # lets GitHub prove its identity to Google (Workload Identity Federation)
+
+# Never run two deploys to the same environment at once.
+concurrency:
+  group: deploy-${{ github.event_name == 'workflow_dispatch' && 'prod' || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    if: github.event_name == 'push' || inputs.confirm == 'prod'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && 'prod' || 'dev' }}
+    env:
+      HUSKY: 0
+      IMAGE: ${{ vars.IMAGE }}:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to Google Cloud (no stored keys)
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Build and push the API image
+        run: |
+          gcloud auth configure-docker ${{ vars.REGION }}-docker.pkg.dev --quiet
+          docker build -t "$IMAGE" api
+          docker push "$IMAGE"
+
+      - name: Deploy the API to Cloud Run
+        run: |
+          gcloud run deploy rud-api \
+            --project ${{ vars.PROJECT_ID }} \
+            --region ${{ vars.REGION }} \
+            --image "$IMAGE" \
+            --quiet
+
+      - name: Smoke test the API (Cloud Run URL)
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.API_URL }}/api/v1/healthz"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build the web app
+        working-directory: web
+        run: npm ci && npm run build
+
+      - name: Deploy the web app to Firebase Hosting
+        working-directory: web
+        run: npx --yes firebase-tools@15.33.0 deploy --only hosting --project ${{ vars.PROJECT_ID }} --non-interactive
+
+      - name: Smoke test through Firebase Hosting (the M0 check)
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.APP_URL }}/api/v1/healthz"

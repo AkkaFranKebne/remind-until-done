@@ -12,3 +12,6 @@ crash.log
 .DS_Store
 .env
 .env.*
+
+# Go build output
+api/bin/

@@ -1,0 +1,134 @@
+# Deploys the API (Cloud Run) and the web app (Firebase Hosting) (design doc 6.4).
+# - Merge to main -> dev, automatically.
+# - Manual run ("Run workflow" in the Actions tab, on main, type "prod") -> prod.
+#
+# Security: only the "deploy" job logs in to Google Cloud. All building (npm, Vite,
+# Docker) happens in the "build" job, which has no cloud access, so a hacked npm
+# package can't steal the login.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "prod" to deploy this commit to production'
+        required: true
+
+permissions:
+  contents: read
+
+# Never run two deploys to the same environment at once.
+concurrency:
+  group: deploy-${{ github.event_name == 'workflow_dispatch' && 'prod' || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: ci
+    # Deploys only ever come from main. Google refuses logins from other branches too (infra/wif.tf).
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || inputs.confirm == 'prod')
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # don't leave the GitHub token on disk
+
+      - name: Build the API image
+        run: |
+          docker build -t rud-api:${{ github.sha }} api
+          docker save rud-api:${{ github.sha }} | gzip > api-image.tar.gz
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build the web app
+        working-directory: web
+        run: npm ci && npm run build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build
+          path: |
+            api-image.tar.gz
+            web/dist
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && 'prod' || 'dev' }}
+    permissions:
+      contents: read
+      id-token: write # lets GitHub prove its identity to Google (Workload Identity Federation)
+    env:
+      HUSKY: 0
+      IMAGE: ${{ vars.IMAGE }}:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # don't leave the GitHub token on disk
+
+      # Unpack into a separate folder, so the build can't overwrite checked-out files
+      # (like package-lock.json). Only the two expected outputs are used.
+      - uses: actions/download-artifact@v8
+        with:
+          name: build
+          path: ${{ runner.temp }}/build
+
+      - name: Take the built web app
+        run: cp -R "$RUNNER_TEMP/build/web/dist" web/dist
+
+      # No npm cache in this job: other jobs write that cache. Packages come fresh
+      # from the registry, checked against the lockfile.
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      # Installed BEFORE logging in, with install scripts off: no package code runs here.
+      # After the login, only firebase-tools runs (pinned by package-lock.json).
+      - name: Install deploy tools (no scripts)
+        working-directory: web
+        run: npm ci --ignore-scripts
+
+      - name: Log in to Google Cloud (no stored keys)
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Push the API image
+        run: |
+          gunzip -c "$RUNNER_TEMP/build/api-image.tar.gz" | docker load
+          docker tag rud-api:${{ github.sha }} "$IMAGE"
+          gcloud auth configure-docker ${{ vars.REGION }}-docker.pkg.dev --quiet
+          docker push "$IMAGE"
+
+      - name: Deploy the API to Cloud Run
+        run: |
+          gcloud run deploy rud-api \
+            --project ${{ vars.PROJECT_ID }} \
+            --region ${{ vars.REGION }} \
+            --image "$IMAGE" \
+            --quiet
+
+      - name: Smoke test the API (Cloud Run URL)
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.API_URL }}/api/v1/healthz"
+
+      - name: Deploy the web app to Firebase Hosting
+        working-directory: web
+        run: npx firebase deploy --only hosting --project ${{ vars.PROJECT_ID }} --non-interactive
+
+      - name: Smoke test through Firebase Hosting (the M0 check)
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.APP_URL }}/api/v1/healthz"

@@ -1,0 +1,5 @@
+Dockerfile
+.dockerignore
+Makefile
+README.md
+*_test.go

@@ -3,6 +3,10 @@ resource "google_cloud_run_v2_service" "api" {
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
 
+  # The service is stateless (code lives in the image, data in Neon), so Terraform
+  # may delete and re-create it, e.g. to move regions.
+  deletion_protection = false
+
   template {
     service_account = google_service_account.api.email
 

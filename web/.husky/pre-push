@@ -1,0 +1,3 @@
+# Runs before every push. Checks the whole web/ project (slower than the
+# pre-commit hook, so it runs once per push instead of once per commit).
+cd web && npm run -s typecheck && npm test --silent

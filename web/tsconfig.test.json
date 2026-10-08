@@ -1,0 +1,12 @@
+{
+  // Settings for Jest tests. ts-jest compiles them to CommonJS (what Jest runs)
+  // by itself, so only the differences from the app config are listed here.
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "verbatimModuleSyntax": false,
+    "esModuleInterop": true,
+    "types": ["jest", "@testing-library/jest-dom"]
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "jest.setup.ts"]
+}

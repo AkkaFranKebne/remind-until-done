@@ -1,0 +1,14 @@
+// Project settings for Zed (shared through Git).
+// Formats web/ files with Prettier on save, using web/.prettierrc.json.
+// Go files are formatted by gofmt (Zed's default for Go).
+{
+  "format_on_save": "on",
+  "languages": {
+    "TypeScript": { "formatter": "prettier" },
+    "TSX": { "formatter": "prettier" },
+    "JavaScript": { "formatter": "prettier" },
+    "CSS": { "formatter": "prettier" },
+    "JSON": { "formatter": "prettier" },
+    "JSONC": { "formatter": "prettier" }
+  }
+}

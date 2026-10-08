@@ -13,12 +13,22 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   workload_identity_pool_provider_id = "github"
 
   attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repository"
+    "google.subject"         = "assertion.sub"
+    "attribute.repository"   = "assertion.repository"
+    "attribute.ref"          = "assertion.ref"
+    "attribute.workflow_ref" = "assertion.workflow_ref"
+    "attribute.environment"  = "assertion.environment"
   }
 
-  # Only this repository may authenticate
-  attribute_condition = "assertion.repository == \"${var.github_repo}\""
+  # Only deploy.yml, running on main, in this environment (dev or prod), may log in.
+  # Numeric ids, not names: a deleted or renamed repo name could be re-created by someone else.
+  attribute_condition = join(" && ", [
+    "assertion.repository_id == \"${var.github_repository_id}\"",
+    "assertion.repository_owner_id == \"${var.github_owner_id}\"",
+    "assertion.ref == \"refs/heads/main\"",
+    "assertion.workflow_ref == \"${var.github_repo}/.github/workflows/deploy.yml@refs/heads/main\"",
+    "assertion.environment == \"${var.env}\"",
+  ])
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
@@ -65,9 +75,5 @@ resource "google_project_iam_member" "deployer_hosting" {
   member  = "serviceAccount:${google_service_account.deployer.email}"
 }
 
-# Read the DB URL to run Flyway migrations
-resource "google_secret_manager_secret_iam_member" "deployer_reads_db" {
-  secret_id = google_secret_manager_secret.app["database-url"].id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.deployer.email}"
-}
+# No access to the database URL yet. Add it back (secretAccessor on "database-url")
+# when deploy.yml runs Flyway migrations (milestone M2).

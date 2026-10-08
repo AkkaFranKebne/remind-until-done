@@ -51,3 +51,13 @@ variable "github_repo" {
   type        = string
   description = "GitHub repository allowed to deploy, as owner/name"
 }
+
+variable "github_repository_id" {
+  type        = string
+  description = "Numeric id of the GitHub repository (gh api repos/OWNER/NAME -q .id)"
+}
+
+variable "github_owner_id" {
+  type        = string
+  description = "Numeric id of the GitHub repository owner (gh api repos/OWNER/NAME -q .owner.id)"
+}

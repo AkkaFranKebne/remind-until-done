@@ -7,7 +7,7 @@
         "source": "/api/**",
         "run": {
           "serviceId": "rud-api",
-          "region": "europe-north2"
+          "region": "europe-west3"
         }
       },
       {

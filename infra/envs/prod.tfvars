@@ -1,9 +1,9 @@
 project_id = "rud-prod-4f7k2" # Permanent: it becomes the app URL https://<project_id>.web.app
 env        = "prod"
-region     = "europe-north2" # Stockholm: Cloud Run, Artifact Registry
-# tasks_region     = "europe-west1"   # Cloud Tasks queue
-# scheduler_region = "europe-west1"   # Cloud Scheduler job
+region     = "europe-west3" # Frankfurt: Cloud Run, Artifact Registry (next to Neon)
+# tasks_region     = "europe-west3"   # Cloud Tasks queue (default)
+# scheduler_region = "europe-west3"   # Cloud Scheduler job (default)
 github_repo          = "AkkaFranKebne/remind-until-done"
 github_repository_id = "1392734426"
 github_owner_id      = "10964553"
-service_url          = "https://rud-api-q623gdpgbq-ma.a.run.app" # api_url output from the first apply
+service_url          = "https://rud-api-1045734232708.europe-west3.run.app" # predictable Cloud Run URL

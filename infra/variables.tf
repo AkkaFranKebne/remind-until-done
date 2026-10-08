@@ -5,20 +5,20 @@ variable "project_id" {
 
 variable "region" {
   type        = string
-  description = "Region for Cloud Run and Artifact Registry. europe-north2 = Stockholm (Cloud Run is available there; confirm Artifact Registry)"
-  default     = "europe-north2"
+  description = "Region for Cloud Run and Artifact Registry. europe-west3 = Frankfurt, next to the Neon database. Not Stockholm (europe-north2): Firebase Hosting cannot rewrite /api to Cloud Run there."
+  default     = "europe-west3"
 }
 
 variable "tasks_region" {
   type        = string
-  description = "Region for the Cloud Tasks queue. Stockholm is not confirmed for Cloud Tasks, so this defaults to Belgium. Tasks carry only ids, no personal data"
-  default     = "europe-west1"
+  description = "Region for the Cloud Tasks queue (Frankfurt, same as the API). Tasks carry only ids, no personal data"
+  default     = "europe-west3"
 }
 
 variable "scheduler_region" {
   type        = string
-  description = "Region for the Cloud Scheduler job (confirm Stockholm support before changing)"
-  default     = "europe-west1"
+  description = "Region for the Cloud Scheduler job (Frankfurt, same as the API)"
+  default     = "europe-west3"
 }
 
 variable "env" {
@@ -38,7 +38,7 @@ variable "image" {
 
 variable "service_url" {
   type        = string
-  description = "Cloud Run URL, used as OIDC audience. Empty on first apply, set on the second."
+  description = "Cloud Run URL, used as OIDC audience. Use the predictable form https://rud-api-<project number>.<region>.run.app"
   default     = ""
 }
 

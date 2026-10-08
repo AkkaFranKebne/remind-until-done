@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "rud-dev-4f7k2",
+    "dev": "rud-dev-4f7k2",
+    "prod": "rud-prod-4f7k2"
+  }
+}

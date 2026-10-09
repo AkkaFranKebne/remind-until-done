@@ -180,8 +180,8 @@
 }
 
 @layer base {
+  /* Page defaults: what an element gets when it has no class of its own. */
   body {
-    @apply bg-bg text-fg text-base font-sans antialiased;
-    min-height: 100dvh;
+    @apply min-h-dvh bg-bg text-base text-fg antialiased;
   }
 }

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Download, House } from 'lucide-react'
-import { Button } from './Button'
+import { Button, ButtonLink } from './Button'
 
 const meta = {
   title: 'UI/Button',
@@ -36,4 +36,13 @@ export const Large: Story = { args: { size: 'lg', icon: Download, children: 'Ins
 /** While loading, the spinner takes the icon's place, so the text doesn't move. */
 export const LargeLoading: Story = {
   args: { size: 'lg', icon: Download, loading: true, children: 'Install app' },
+}
+
+/** Navigation that looks like a button (e.g. "Go home"): a real link. */
+export const AsLink: Story = {
+  render: () => (
+    <ButtonLink to="/" icon={House}>
+      Go home
+    </ButtonLink>
+  ),
 }

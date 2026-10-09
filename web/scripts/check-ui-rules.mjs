@@ -52,6 +52,11 @@ const lineRules = [
     'name the properties that animate',
   ],
   ['ui-icons-lucide', /<svg[\s>]/, 'inline <svg>; use an icon from lucide-react'],
+  [
+    'ui-base-ui-first',
+    /<(button|input|select|textarea|dialog)[\s>]/,
+    'raw form/dialog element; use our components built on Base UI (Button, IconButton ...) or a Base UI component',
+  ],
 ]
 
 const problems = []

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Download } from 'lucide-react'
-import { Button } from './Button'
+import { WithRouter } from '../../test-utils/withRouter'
+import { Button, ButtonLink } from './Button'
 
 test('calls onClick when clicked', () => {
   const onClick = jest.fn()
@@ -64,4 +65,14 @@ test('while loading, the spinner replaces the icon', () => {
 
   expect(container.querySelector('svg')).not.toBeInTheDocument()
   expect(container.querySelector('span[aria-hidden="true"]')).toBeInTheDocument()
+})
+
+test('ButtonLink is a real link (not a button)', async () => {
+  render(
+    <WithRouter>
+      <ButtonLink to="/">Go home</ButtonLink>
+    </WithRouter>,
+  )
+
+  expect(await screen.findByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
 })

@@ -18,10 +18,10 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-/** Close: an action, so a <button>. */
+/** Close: an action, so an IconButton (Base UI button). */
 export const Close: Story = {}
 
-/** Settings and Back navigate, so they are links (IconLink), with the same look. */
+/** Settings and Back navigate, so they are real links (IconLink), with the same look. */
 export const Links: Story = {
   render: () => (
     <>

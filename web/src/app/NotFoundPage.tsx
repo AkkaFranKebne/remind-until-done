@@ -1,6 +1,5 @@
-import { Link } from '@tanstack/react-router'
 import { House } from 'lucide-react'
-import { buttonClasses } from '../components/ui/buttonStyles'
+import { ButtonLink } from '../components/ui/Button'
 import { TopBar } from '../components/ui/TopBar'
 
 /** Design Inventory → Phone Screens → "Global 404" (unknown URL, not a missing reminder). */
@@ -17,10 +16,9 @@ export function NotFoundPage() {
           Whatever you were looking for, it&apos;s not at this URL. Typo? Stale link? Either way —
           nothing to see.
         </p>
-        <Link to="/" className={buttonClasses({ className: 'w-full' })}>
-          <House size={16} strokeWidth={2} aria-hidden="true" />
+        <ButtonLink to="/" icon={House} className="w-full">
           Go home
-        </Link>
+        </ButtonLink>
       </main>
     </div>
   )

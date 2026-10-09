@@ -13,7 +13,7 @@ test('IconButton is a named button that hides its icon from screen readers', () 
   expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
 })
 
-test('IconLink is a named link to its route', async () => {
+test('IconLink is a real, named link (not a button)', async () => {
   render(
     <WithRouter>
       <IconLink to="/settings" icon={SlidersHorizontal} label="Settings" />

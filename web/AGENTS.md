@@ -137,10 +137,10 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   check:
     "Everything works in light and dark (check the Storybook theme toggle). Status, nag and error
     tokens stay the same in both themes on purpose (Inventory rule: hue carries meaning).
-    Filled primary buttons use accent-solid + on-solid (fixed: white on the dark-mode accent is
-    unreadable). Text on gradient screens uses on-grad / on-grad-fg2 (fixed: the gradient
-    top stays light in dark mode). TopBar has no background of its own; pass the screen's
-    tone (plain, brand, nag-mid; more with the M2 detail screens) to colour its icon, never a raw colour."
+    Filled primary buttons use accent-solid + on-solid (same in both themes: white on the dark-mode
+    accent is unreadable). Text on gradient screens uses on-grad / on-grad-fg2 (same in both themes: the
+    gradient top stays light in dark mode). TopBar has no background of its own; pass the screen's
+    tone (plain, brand, nag-mid) to colour its icon, never a raw colour."
 
 - id: ui-reduced-motion
   status: advisory
@@ -170,9 +170,9 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
 - Combine classes with **`cn()`** (`src/lib/cn.ts`: clsx + tailwind-merge). A `className` passed from outside wins over the component's own class (`px-5` + `px-6` → `px-6`).
 - Every custom utility in `src/index.css` (`text-*` sizes, `border-*` widths, `animate-*`) is registered in `src/lib/cn.ts`, with a case in `cn.test.ts`. tailwind-merge only knows Tailwind's built-in names: unregistered, `cn('text-display', 'text-accent')` keeps only `text-accent`.
 - Design tokens: `src/index.css` (copied from the Inventory). Font: Inter, self-hosted (`@fontsource-variable/inter`). Icons: `lucide-react`.
-- Routing: **TanStack Router**, routes defined in code in `src/app/router.tsx` (no generated route files). Add a page with the `page(parent, path, Component)` helper. Links are type-checked: `<Link to="/r/$id" params={{ id }}>`; `router.test.tsx` fails the type check if the helper ever loses that.
+- Routing: **TanStack Router**, routes defined in code in `src/app/router.tsx` (no generated route files). Add a page with the `page(parent, path, Component)` helper. Links are type-checked: `<Link to="/r/$id" params={{ id }}>`; `router.test.tsx` guards this with a type-check test.
 - Components with `<Link>` need a router in tests and stories: wrap them in `WithRouter` (`src/test-utils/withRouter.tsx`).
-- The app is mobile-first and will support light and dark mode (`index.html`).
+- The app is mobile-first and supports light and dark mode (follows the phone's setting).
 
 ## Never
 

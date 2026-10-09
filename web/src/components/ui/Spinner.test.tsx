@@ -12,3 +12,9 @@ test('uses the given label', () => {
 
   expect(screen.getByRole('status', { name: 'Signing in' })).toBeInTheDocument()
 })
+
+test('decorative spinners are hidden from screen readers', () => {
+  render(<Spinner decorative />)
+
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+})

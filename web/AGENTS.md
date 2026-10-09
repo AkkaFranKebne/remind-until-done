@@ -117,7 +117,10 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   applies_to: 'src/**/*.{tsx,css}'
   check:
     'Everything works in light and dark (check the Storybook theme toggle). Status, nag and error
-    tokens stay the same in both themes on purpose (Inventory rule: hue carries meaning).'
+    tokens stay the same in both themes on purpose (Inventory rule: hue carries meaning).
+    Filled primary buttons use accent-solid + on-solid (fixed: white on the dark-mode accent is
+    unreadable). Text and icons on gradient screens use on-grad / on-grad-fg2 (fixed: the gradient
+    top stays light in dark mode).'
 
 - id: ui-reduced-motion
   status: advisory

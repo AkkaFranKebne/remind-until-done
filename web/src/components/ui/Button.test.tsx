@@ -10,20 +10,34 @@ test('calls onClick when clicked', () => {
   expect(onClick).toHaveBeenCalledTimes(1)
 })
 
-test('while loading: shows a spinner, is busy and ignores clicks', () => {
+test('while loading: busy, keeps its name and focus, and ignores clicks', () => {
   const onClick = jest.fn()
   render(
     <Button loading onClick={onClick}>
       Signing in
     </Button>,
   )
-  const button = screen.getByRole('button', { name: /signing in/i })
+  // The spinner is decorative, so the accessible name is just the text.
+  const button = screen.getByRole('button', { name: 'Signing in' })
 
   fireEvent.click(button)
 
-  expect(button).toBeDisabled()
   expect(button).toHaveAttribute('aria-busy', 'true')
-  expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument()
+  expect(button).toHaveAttribute('aria-disabled', 'true')
+  expect(button).not.toBeDisabled() // stays focusable for keyboard users
+  expect(onClick).not.toHaveBeenCalled()
+})
+
+test('disabled buttons ignore clicks', () => {
+  const onClick = jest.fn()
+  render(
+    <Button disabled onClick={onClick}>
+      Done
+    </Button>,
+  )
+
+  fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+
   expect(onClick).not.toHaveBeenCalled()
 })
 

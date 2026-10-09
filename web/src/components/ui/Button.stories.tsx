@@ -21,3 +21,7 @@ export const Primary: Story = {}
 export const Ghost: Story = { args: { variant: 'ghost', children: 'Remind later' } }
 export const Loading: Story = { args: { loading: true, children: 'Signing in' } }
 export const Disabled: Story = { args: { disabled: true } }
+export const GhostLoading: Story = { args: { variant: 'ghost', loading: true, children: 'Saving' } }
+export const GhostDisabled: Story = {
+  args: { variant: 'ghost', disabled: true, children: 'Remind later' },
+}

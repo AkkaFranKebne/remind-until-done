@@ -20,12 +20,20 @@ export function TopBar({ variant = 'surface', showSettings = true, contextLine }
     <>
       <header
         className={[
-          'sticky top-0 z-10 pt-[env(safe-area-inset-top)]',
-          surface ? 'border-b border-border bg-bg2' : 'bg-transparent',
+          'pt-[env(safe-area-inset-top)]',
+          // Only the solid bar sticks: content scrolling under a transparent bar would overlap the logo.
+          surface ? 'sticky top-0 z-10 border-b border-border bg-bg2' : 'bg-transparent',
         ].join(' ')}
       >
         <div className="flex h-14 items-center justify-between px-4">
-          <span className="text-xl font-bold tracking-[-0.02em] text-accent">rud.</span>
+          <span
+            className={[
+              'text-xl font-bold tracking-[-0.02em]',
+              surface ? 'text-accent' : 'text-on-grad',
+            ].join(' ')}
+          >
+            rud.
+          </span>
           {showSettings ? (
             <Link
               to="/settings"
@@ -33,8 +41,8 @@ export function TopBar({ variant = 'surface', showSettings = true, contextLine }
               className={[
                 '-mr-2.5 flex size-11 items-center justify-center rounded-xl',
                 'focus-visible:outline-2 focus-visible:outline-accent',
-                // Over a gradient the icon takes the screen's colour, softened (Inventory list screen).
-                surface ? 'text-fg2' : 'text-accent/60',
+                // Over a gradient: fixed colours, because the gradient's top stays light in dark mode too.
+                surface ? 'text-fg2' : 'text-on-grad',
               ].join(' ')}
             >
               <SlidersHorizontal size={22} strokeWidth={1.75} aria-hidden="true" />
@@ -44,7 +52,14 @@ export function TopBar({ variant = 'surface', showSettings = true, contextLine }
       </header>
       {/* Below the bar, on the page background; it scrolls away with the content. */}
       {contextLine ? (
-        <p className="px-4 pt-2.5 pb-3.5 text-[13px] text-fg2 italic">{contextLine}</p>
+        <p
+          className={[
+            'px-4 pt-4 pb-3.5 text-[13px] italic',
+            surface ? 'text-fg2' : 'text-on-grad-fg2',
+          ].join(' ')}
+        >
+          {contextLine}
+        </p>
       ) : null}
     </>
   )

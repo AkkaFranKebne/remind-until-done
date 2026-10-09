@@ -4,16 +4,29 @@ import {
   createRouter,
   RouterProvider,
 } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
+
+const Content = createContext<ReactNode>(null)
+
+function Root() {
+  return useContext(Content)
+}
 
 /**
  * Renders a component inside a small router, so components with <Link> work
- * in tests and Storybook. Every URL shows the same component.
+ * in tests and Storybook. The router is created once; new children (e.g. a
+ * Storybook control change) flow in through context, so nothing remounts.
  */
 export function WithRouter({ children }: { children: ReactNode }) {
-  const router = createRouter({
-    routeTree: createRootRoute({ component: () => children }),
-    history: createMemoryHistory({ initialEntries: ['/'] }),
-  })
-  return <RouterProvider router={router} />
+  const [router] = useState(() =>
+    createRouter({
+      routeTree: createRootRoute({ component: Root }),
+      history: createMemoryHistory({ initialEntries: ['/'] }),
+    }),
+  )
+  return (
+    <Content.Provider value={children}>
+      <RouterProvider router={router} />
+    </Content.Provider>
+  )
 }

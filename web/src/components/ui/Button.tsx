@@ -1,43 +1,43 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, MouseEvent } from 'react'
+import { buttonClasses, type ButtonVariant } from './buttonStyles'
 import { Spinner } from './Spinner'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'ghost'
-  /** Shows a spinner and blocks clicks while an action runs. */
+  variant?: ButtonVariant
+  /** Shows a spinner and ignores clicks while an action runs. */
   loading?: boolean
 }
 
-const variants = {
-  primary: 'bg-accent text-white',
-  ghost: 'border-[1.5px] border-accent bg-transparent text-accent',
-}
-
-/** Design Inventory → Components → "Buttons". 48px tall: an easy thumb target. */
+/** Design Inventory → Components → "Done / Remind later — primary pair" and "Button — loading". */
 export function Button({
   variant = 'primary',
   loading = false,
-  disabled,
   className = '',
   children,
   type = 'button',
+  onClick,
   ...rest
 }: ButtonProps) {
+  // While loading, the button stays focusable (aria-disabled, not disabled),
+  // so keyboard focus doesn't jump to the top of the page.
+  function handleClick(event: MouseEvent<HTMLButtonElement>) {
+    if (loading) {
+      event.preventDefault()
+      return
+    }
+    onClick?.(event)
+  }
+
   return (
     <button
       type={type}
-      disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={[
-        'inline-flex h-12 items-center justify-center gap-1.5 rounded-xl px-5 text-sm font-medium',
-        'cursor-pointer transition-opacity duration-(--duration-fast) active:opacity-80',
-        'disabled:cursor-not-allowed disabled:opacity-40',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
-        variants[variant],
-        className,
-      ].join(' ')}
+      aria-disabled={loading || undefined}
+      onClick={handleClick}
+      className={buttonClasses(variant, className)}
       {...rest}
     >
-      {loading ? <Spinner size="sm" onAccent={variant === 'primary'} /> : null}
+      {loading ? <Spinner size="sm" decorative onAccent={variant === 'primary'} /> : null}
       {children}
     </button>
   )

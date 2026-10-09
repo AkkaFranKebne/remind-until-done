@@ -30,7 +30,8 @@ export const Transparent: Story = {
   args: { variant: 'transparent', contextLine: 'Nothing nagging you yet.' },
   decorators: [
     (Story) => (
-      <div className="min-h-40 bg-(image:--grad-shell-brand)">
+      // Phone-height, like the real list screen: the gradient fades over the whole screen.
+      <div className="h-[844px] bg-(image:--grad-shell-brand)">
         <Story />
       </div>
     ),

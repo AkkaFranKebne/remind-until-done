@@ -12,7 +12,7 @@ test.each([
   ['/r/123', 'Reminder'],
   ['/settings', 'Settings'],
   ['/login', 'Sign in'],
-  ['/no-such-page', 'Page not found'],
+  ['/no-such-page', 'Nothing here.'],
 ])('%s shows "%s"', async (path, heading) => {
   renderAt(path)
 
@@ -24,4 +24,10 @@ test('login page has no Settings link (nobody is signed in)', async () => {
 
   await screen.findByRole('heading', { name: 'Sign in' })
   expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument()
+})
+
+test('the 404 page has a full-size "Go home" link', async () => {
+  renderAt('/no-such-page')
+
+  expect(await screen.findByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
 })

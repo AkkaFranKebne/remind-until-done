@@ -31,6 +31,11 @@ const lineRules = [
     "Tailwind's own palette colour; use a token (e.g. text-fg2, bg-accent-bg)",
   ],
   [
+    'ui-tokens-only',
+    /\b(bg|text|border|ring|outline|fill|stroke|divide|from|to|via)-(white|black)\b/,
+    'named colour; use a token (e.g. text-on-solid)',
+  ],
+  [
     'ui-no-transition-all',
     /\btransition-all\b|transition:\s*all\b/,
     'name the properties that animate',

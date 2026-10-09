@@ -18,6 +18,12 @@
   --accent-bg: #ede9fe;
   --border: #e2e0d8;
 
+  /* Fixed in both themes (Inventory, decided 2026-10-09, for contrast). */
+  --accent-solid: #6d28d9; /* filled primary buttons */
+  --on-solid: #ffffff; /* text and icons on accent-solid */
+  --on-grad: #6d28d9; /* logo and icons on gradient screens */
+  --on-grad-fg2: #5a5850; /* secondary text on gradient screens */
+
   /* Status, error and nag tints: the same in both themes (hue carries meaning). */
   --tag-pending: #fff3cd;
   --tag-pending-fg: #7d5c00;
@@ -27,6 +33,9 @@
   --tag-done-fg: #1e6b38;
   --tag-overdue: #7f1d1d;
   --tag-overdue-fg: #fef2f2;
+  --tag-shared: #e8f0fe;
+  --tag-shared-fg: #1a56c4;
+  --waiting-row-bg: #ede9fe;
   --error: #c0392b;
   --error-bg: #fdecea;
   --nag-low: #fde8c8;
@@ -108,6 +117,13 @@
   --color-accent2: var(--accent2);
   --color-accent-bg: var(--accent-bg);
   --color-border: var(--border);
+  --color-accent-solid: var(--accent-solid);
+  --color-on-solid: var(--on-solid);
+  --color-on-grad: var(--on-grad);
+  --color-on-grad-fg2: var(--on-grad-fg2);
+  --color-waiting-row-bg: var(--waiting-row-bg);
+  --color-tag-shared: var(--tag-shared);
+  --color-tag-shared-fg: var(--tag-shared-fg);
   --color-error: var(--error);
   --color-error-bg: var(--error-bg);
   --color-tag-pending: var(--tag-pending);

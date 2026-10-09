@@ -28,3 +28,12 @@ test('takes the colour class it is given', () => {
 
   expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('text-tag-done-fg')
 })
+
+test('a disabled IconButton ignores clicks', () => {
+  const onClick = jest.fn()
+  render(<IconButton icon={X} label="Close" disabled onClick={onClick} />)
+
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+
+  expect(onClick).not.toHaveBeenCalled()
+})

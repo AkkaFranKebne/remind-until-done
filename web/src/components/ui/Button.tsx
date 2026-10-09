@@ -3,6 +3,8 @@ import type { ButtonHTMLAttributes, MouseEvent } from 'react'
 import { buttonClasses, buttonIconSize, type ButtonSize, type ButtonVariant } from './buttonStyles'
 import { Spinner } from './Spinner'
 
+const slotSize: Record<ButtonSize, string> = { md: 'size-4', lg: 'size-5' }
+
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
   size?: ButtonSize
@@ -47,10 +49,19 @@ export function Button({
       className={buttonClasses({ variant, size, className })}
       {...rest}
     >
-      {loading ? (
-        <Spinner size={size === 'lg' ? 'md' : 'sm'} decorative onAccent={variant === 'primary'} />
-      ) : Icon ? (
-        <Icon size={iconSize} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+      {loading || Icon ? (
+        // Fixed-size slot: the spinner is a bit smaller than the icon, so the text must not move.
+        <span className={`inline-flex shrink-0 items-center justify-center ${slotSize[size]}`}>
+          {loading ? (
+            <Spinner
+              size={size === 'lg' ? 'md' : 'sm'}
+              decorative
+              onAccent={variant === 'primary'}
+            />
+          ) : Icon ? (
+            <Icon size={iconSize} strokeWidth={2} aria-hidden="true" />
+          ) : null}
+        </span>
       ) : null}
       {children}
     </button>

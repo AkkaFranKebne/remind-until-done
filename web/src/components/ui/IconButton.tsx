@@ -13,6 +13,7 @@ function iconButtonClasses(className: string) {
     '-m-0.5 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-[10px]',
     'transition-colors duration-(--duration-fast) motion-reduce:transition-none',
     'hover:bg-current/10 active:bg-current/15',
+    'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent',
     // The focus ring uses the icon's colour, so it's visible on every background.
     'focus-visible:outline-2 focus-visible:outline-current',
     className,

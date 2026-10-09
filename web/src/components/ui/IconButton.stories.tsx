@@ -35,3 +35,5 @@ export const Links: Story = {
 export const Coloured: Story = {
   args: { icon: SlidersHorizontal, label: 'Settings', className: 'text-tag-done-fg' },
 }
+
+export const Disabled: Story = { args: { disabled: true } }

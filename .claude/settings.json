@@ -10,8 +10,7 @@
       "Read(**/*.tfstate.*)",
       "Read(**/.terraform/**)",
       "Read(**/dist/**)",
-      "Read(**/coverage/**)",
-      "Read(**/node_modules/**)"
+      "Read(**/coverage/**)"
     ]
   }
 }

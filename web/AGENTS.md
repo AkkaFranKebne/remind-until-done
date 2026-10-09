@@ -28,6 +28,28 @@ The linter and compiler enforce these. Settings: `.oxlintrc.json`, `tsconfig.app
 - `list[0]` is `T | undefined` (`noUncheckedIndexedAccess`). Handle the `undefined`.
 - Max file length: see `max-lines` in `.oxlintrc.json`.
 
+## Effects (`useEffect`)
+
+`useEffect` is only for syncing with something **outside React**: browser APIs (`online`/`offline` events), the service worker, Firebase listeners, timers.
+
+Enforced by lint (errors):
+
+- `set-state-in-effect`: no `setState` directly in an effect body.
+- `exhaustive-deps`: every value the effect uses is in its dependency array.
+
+Not caught by lint, so check by hand (and in review):
+
+| Instead of an effect that...      | Do this                                      |
+| --------------------------------- | -------------------------------------------- |
+| computes a value from props/state | compute it during render (`useMemo` if slow) |
+| reacts to a user action           | put the code in the event handler            |
+| fetches data                      | TanStack Query (from M2)                     |
+| resets state when an id changes   | give the component `key={id}`                |
+| keeps two pieces of state in sync | store one, compute the other                 |
+
+Background: [You Might Not Need an Effect](https://react.dev/learn/you-might-not-need-an-effect).
+`src/app/ApiStatus.tsx` fetches in an effect; that's the temporary M0 page and goes away in M2.
+
 ## Conventions (design doc 5.4)
 
 - Folders: `src/app/` (shell, router), `src/lib/` (shared helpers, API client), `src/features/<feature>/` (pages and components per feature), `src/components/ui/` (shadcn).

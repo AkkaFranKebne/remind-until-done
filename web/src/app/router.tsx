@@ -3,6 +3,8 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  type AnyRoute,
+  type RouteComponent,
   type RouterHistory,
 } from '@tanstack/react-router'
 import { LoginPage } from '../features/auth/LoginPage'
@@ -19,40 +21,32 @@ const rootRoute = createRootRoute({
   notFoundComponent: NotFoundPage,
 })
 
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/login',
-  component: LoginPage,
-})
-
-/** Signed-in pages share the header. RequireAuth wraps this route from M1 sign-in. */
+/** Signed-in pages share the header (AppLayout). RequireAuth wraps this route from M1 sign-in. */
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
   component: AppLayout,
 })
 
-const remindersRoute = createRoute({
-  getParentRoute: () => appRoute,
-  path: '/',
-  component: RemindersPage,
-})
-
-const reminderRoute = createRoute({
-  getParentRoute: () => appRoute,
-  path: '/r/$id',
-  component: ReminderPage,
-})
-
-const settingsRoute = createRoute({
-  getParentRoute: () => appRoute,
-  path: '/settings',
-  component: SettingsPage,
-})
+/**
+ * A page route: `path` under `parent`, showing `component`.
+ * `const TPath` keeps the exact path text (e.g. '/r/$id'), so links and params stay type-checked.
+ */
+function page<TParent extends AnyRoute, const TPath extends string>(
+  parent: TParent,
+  path: TPath,
+  component: RouteComponent,
+) {
+  return createRoute({ getParentRoute: () => parent, path, component })
+}
 
 export const routeTree = rootRoute.addChildren([
-  loginRoute,
-  appRoute.addChildren([remindersRoute, reminderRoute, settingsRoute]),
+  page(rootRoute, '/login', LoginPage),
+  appRoute.addChildren([
+    page(appRoute, '/', RemindersPage),
+    page(appRoute, '/r/$id', ReminderPage),
+    page(appRoute, '/settings', SettingsPage),
+  ]),
 ])
 
 /** The app uses the browser's history; tests pass a memory history. */

@@ -1,4 +1,4 @@
-import { createMemoryHistory, RouterProvider } from '@tanstack/react-router'
+import { createMemoryHistory, Link, RouterProvider } from '@tanstack/react-router'
 import { render, screen } from '@testing-library/react'
 import { createAppRouter } from './router'
 
@@ -30,4 +30,20 @@ test('the 404 page has a full-size "Go home" link', async () => {
   renderAt('/no-such-page')
 
   expect(await screen.findByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
+})
+
+// Compile-time check: the page() helper must keep links type-checked.
+// If types were lost, the @ts-expect-error lines would be "unused" and the type check would fail.
+test('links to routes are type-checked', () => {
+  const ok = (
+    <Link to="/r/$id" params={{ id: '123' }}>
+      Reminder
+    </Link>
+  )
+  // @ts-expect-error: no such route
+  const unknownRoute = <Link to="/nope">Nope</Link>
+  // @ts-expect-error: /r/$id needs its id param
+  const missingParam = <Link to="/r/$id">Reminder</Link>
+
+  expect([ok, unknownRoute, missingParam]).toHaveLength(3)
 })

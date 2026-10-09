@@ -32,7 +32,8 @@ const lineRules = [
   ],
   [
     'ui-tokens-only',
-    /\b(bg|text|border|ring|outline|fill|stroke|divide|from|to|via)-(white|black)\b/,
+    // Any utility: text-white, border-t-white, shadow-black/20 ... (whitespace-* is safe: no '-' before 'white').
+    /\b[a-z][a-z-]*-(white|black)(\/\d+)?\b/,
     'named colour; use a token (e.g. text-on-solid)',
   ],
   [

@@ -18,7 +18,8 @@ export function buttonClasses(variant: ButtonVariant = 'primary', extra = '') {
     'cursor-pointer transition-opacity duration-(--duration-fast) active:opacity-80',
     'motion-reduce:transition-none',
     'disabled:cursor-not-allowed disabled:opacity-40',
-    'aria-disabled:cursor-not-allowed',
+    // While loading (aria-disabled) it looks disabled too, and pressing it changes nothing.
+    'aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:active:opacity-40',
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
     variants[variant],
     extra,

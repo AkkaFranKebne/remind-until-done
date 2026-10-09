@@ -40,9 +40,11 @@ export function TopBar({ variant = 'surface', showSettings = true, contextLine }
               aria-label="Settings"
               className={[
                 '-mr-2.5 flex size-11 items-center justify-center rounded-xl',
-                'focus-visible:outline-2 focus-visible:outline-accent',
-                // Over a gradient: fixed colours, because the gradient's top stays light in dark mode too.
-                surface ? 'text-fg2' : 'text-on-grad',
+                'focus-visible:outline-2',
+                // Over a gradient: fixed colours (icon and focus ring), because the gradient's top stays light in dark mode too.
+                surface
+                  ? 'text-fg2 focus-visible:outline-accent'
+                  : 'text-on-grad focus-visible:outline-on-grad',
               ].join(' ')}
             >
               <SlidersHorizontal size={22} strokeWidth={1.75} aria-hidden="true" />

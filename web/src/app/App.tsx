@@ -1,6 +1,6 @@
 import { ApiStatus } from './ApiStatus'
 
-export default function App() {
+export function App() {
   return (
     <main>
       <h1>rud.</h1>

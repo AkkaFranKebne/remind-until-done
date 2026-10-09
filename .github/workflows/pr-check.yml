@@ -1,0 +1,24 @@
+# Checks the PR description against .github/pull_request_template.md.
+# Same script as the /create-pr command (.claude/commands/create-pr.md).
+name: pr-check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  description:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Script tests
+        run: python3 scripts/test_check_pr_body.py
+      # The body is read from the event file inside the script, never pasted into
+      # this shell command (a PR body could contain shell code).
+      - name: Check the PR description
+        run: python3 scripts/check_pr_body.py --event

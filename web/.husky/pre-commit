@@ -1,3 +1,11 @@
-# Runs before every commit. Formats and lints only the staged files in web/.
-# Husky runs this from the repo root, so move into web/ first.
+# Runs before every commit, from the repo root.
+
+# 1. Secret scan of the staged changes (whole repo, not only web/).
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks is not installed. Install it: https://github.com/gitleaks/gitleaks#installing"
+  exit 1
+fi
+gitleaks git --pre-commit --staged --redact --no-banner
+
+# 2. Format and lint the staged files in web/.
 cd web && npx lint-staged

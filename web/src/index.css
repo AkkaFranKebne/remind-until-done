@@ -1,6 +1,6 @@
 /* Temporary styles for the M0 status page. Not the real UI design.
    Accent and background come from the design doc (5.9); the rest is a placeholder.
-   From M1, styling comes from Tailwind + shadcn and the RUD Design Inventory. */
+   From M1, styling comes from Tailwind + Base UI and the RUD Design Inventory. */
 :root {
   --accent: #6d28d9;
   --bg: #f8f7f5;

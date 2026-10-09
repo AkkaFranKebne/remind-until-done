@@ -15,3 +15,6 @@ crash.log
 
 # Go build output
 api/bin/
+
+# Python cache
+__pycache__/

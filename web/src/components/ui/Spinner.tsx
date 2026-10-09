@@ -1,3 +1,4 @@
+import { cva } from 'class-variance-authority'
 type SpinnerProps = {
   size?: 'sm' | 'md'
   /** Use on the solid accent (inside a primary button). */
@@ -11,7 +12,18 @@ type SpinnerProps = {
   decorative?: boolean
 }
 
-const sizes = { sm: 'size-3.5', md: 'size-4.5' }
+const spinnerVariants = cva(
+  'inline-block shrink-0 animate-spin-fast rounded-full border-2 motion-reduce:animate-none',
+  {
+    variants: {
+      size: { sm: 'size-3.5', md: 'size-4.5' },
+      onAccent: {
+        true: 'border-on-solid/30 border-t-on-solid',
+        false: 'border-border border-t-accent',
+      },
+    },
+  },
+)
 
 /** Design Inventory → Components → "Button — loading" (spinner: 0.7s per turn). */
 export function Spinner({
@@ -20,11 +32,7 @@ export function Spinner({
   label = 'Loading',
   decorative = false,
 }: SpinnerProps) {
-  const className = [
-    'inline-block shrink-0 animate-spin-fast rounded-full border-2 motion-reduce:animate-none',
-    sizes[size],
-    onAccent ? 'border-on-solid/30 border-t-on-solid' : 'border-border border-t-accent',
-  ].join(' ')
+  const className = spinnerVariants({ size, onAccent })
 
   if (decorative) return <span aria-hidden="true" className={className} />
   // <output> is announced by screen readers like role="status".

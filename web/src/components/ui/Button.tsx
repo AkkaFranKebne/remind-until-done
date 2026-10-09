@@ -2,6 +2,8 @@ import { Button as BaseButton } from '@base-ui/react/button'
 import { Link, type LinkProps } from '@tanstack/react-router'
 import type { LucideIcon } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '../../lib/cn'
 import { Spinner } from './Spinner'
 
 /**
@@ -13,34 +15,35 @@ import { Spinner } from './Spinner'
  * and Phone Screens → Login "Install app" (size lg).
  */
 
-export type ButtonVariant = 'primary' | 'ghost'
-/** md: everyday buttons. lg: the one hero action on a screen (Install app, Sign in). */
-export type ButtonSize = 'md' | 'lg'
-
-const variants: Record<ButtonVariant, string> = {
-  // Same violet in both themes: white text on the lighter dark-mode accent is unreadable.
-  primary: 'bg-accent-solid text-on-solid',
-  ghost: 'border-strong border-accent bg-transparent text-accent',
-}
-
-const sizes: Record<ButtonSize, string> = {
-  md: 'h-12 gap-1.5 rounded-md px-5 text-base font-semibold', // 48px
-  lg: 'h-13 gap-2 rounded-md px-6 text-base font-bold', // 52px
-}
-
-function classes(variant: ButtonVariant, size: ButtonSize, className: string) {
-  return [
-    'inline-flex items-center justify-center',
+const buttonVariants = cva(
+  [
+    'inline-flex items-center justify-center rounded-md text-base',
     'cursor-pointer transition-opacity duration-(--duration-fast) active:opacity-80',
     'motion-reduce:transition-none',
     // Base UI marks disabled (and loading) buttons with data-disabled.
     'data-disabled:cursor-not-allowed data-disabled:opacity-40 data-disabled:active:opacity-40',
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
-    sizes[size],
-    variants[variant],
-    className,
-  ].join(' ')
-}
+  ],
+  {
+    variants: {
+      variant: {
+        // Same violet in both themes: white text on the lighter dark-mode accent is unreadable.
+        primary: 'bg-accent-solid text-on-solid',
+        ghost: 'border-strong border-accent bg-transparent text-accent',
+      },
+      /** md: everyday buttons (48px). lg: the one hero action on a screen (52px, Install app). */
+      size: {
+        md: 'h-12 gap-1.5 px-5 font-semibold',
+        lg: 'h-13 gap-2 px-6 font-bold',
+      },
+    },
+    defaultVariants: { variant: 'primary', size: 'md' },
+  },
+)
+
+type Variants = VariantProps<typeof buttonVariants>
+export type ButtonVariant = NonNullable<Variants['variant']>
+export type ButtonSize = NonNullable<Variants['size']>
 
 /** The icon (or spinner) slot plus the label. Fixed-size slot, so the label never moves. */
 function Content({
@@ -108,7 +111,7 @@ export function Button({
       disabled={disabled || loading}
       focusableWhenDisabled={loading}
       aria-busy={loading || undefined}
-      className={classes(variant, size, className)}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...rest}
     >
       <Content size={size} variant={variant} icon={icon} loading={loading}>
@@ -128,7 +131,7 @@ export function ButtonLink({
   ...linkProps
 }: Shared & Omit<LinkProps, 'className' | 'children'>) {
   return (
-    <Link className={classes(variant, size, className)} {...linkProps}>
+    <Link className={cn(buttonVariants({ variant, size }), className)} {...linkProps}>
       <Content size={size} variant={variant} icon={icon}>
         {children}
       </Content>

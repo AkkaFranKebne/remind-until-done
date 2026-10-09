@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router'
+import { cva } from 'class-variance-authority'
 import { SlidersHorizontal } from 'lucide-react'
+import { cn } from '../../lib/cn'
 import { IconLink } from './IconButton'
 
 /**
@@ -13,11 +15,15 @@ import { IconLink } from './IconButton'
  */
 export type TopBarTone = 'plain' | 'brand' | 'nag-mid'
 
-const iconTone: Record<TopBarTone, string> = {
-  plain: 'text-fg2',
-  brand: 'text-on-grad',
-  'nag-mid': 'text-nag-mid-fg',
-}
+const iconTone = cva('-mr-2', {
+  variants: {
+    tone: {
+      plain: 'text-fg2',
+      brand: 'text-on-grad',
+      'nag-mid': 'text-nag-mid-fg',
+    } satisfies Record<TopBarTone, string>,
+  },
+})
 
 type TopBarProps = {
   tone?: TopBarTone
@@ -43,11 +49,11 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
           <Link
             to="/"
             aria-label="rud. – your reminders"
-            className={[
+            className={cn(
               '-ml-1 flex min-h-11 items-center rounded-sm px-1 text-xl font-bold tracking-tight',
               'focus-visible:outline-2 focus-visible:outline-current',
               plain ? 'text-accent' : 'text-on-grad',
-            ].join(' ')}
+            )}
           >
             rud.
           </Link>
@@ -56,7 +62,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
               to="/settings"
               icon={SlidersHorizontal}
               label="Settings"
-              className={`-mr-2 ${iconTone[tone]}`}
+              className={iconTone({ tone })}
             />
           ) : null}
         </div>
@@ -64,10 +70,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
       {/* Below the bar; it scrolls away with the content. */}
       {contextLine ? (
         <p
-          className={[
-            'px-4 pt-4 pb-3.5 text-sm italic',
-            plain ? 'text-fg2' : 'text-on-grad-fg2',
-          ].join(' ')}
+          className={cn('px-4 pt-4 pb-3.5 text-sm italic', plain ? 'text-fg2' : 'text-on-grad-fg2')}
         >
           {contextLine}
         </p>

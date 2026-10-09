@@ -29,3 +29,13 @@ test('shows the context line when given', async () => {
 
   expect(await screen.findByText('3 things need your attention.')).toBeInTheDocument()
 })
+
+test.each([
+  ['plain', 'text-fg2'],
+  ['brand', 'text-on-grad'],
+  ['done', 'text-tag-done-fg'],
+] as const)('tone %s colours the Settings icon with %s', async (tone, colourClass) => {
+  renderTopBar({ tone })
+
+  expect(await screen.findByRole('link', { name: 'Settings' })).toHaveClass(colourClass)
+})

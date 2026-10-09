@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { SlidersHorizontal } from 'lucide-react'
+import { IconLink } from './IconButton'
 
 /**
  * Which background the bar sits on. The Settings icon (and its focus ring) takes the
@@ -39,27 +40,25 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
       <header className="pt-[env(safe-area-inset-top)]">
         <div className="flex h-14 items-center justify-between px-4">
           {/* On gradients: fixed violet, because the gradient's top stays light in dark mode too. */}
-          <span
+          {/* The logo goes to the reminders list. 44px tall, so it's an easy tap. */}
+          <Link
+            to="/"
+            aria-label="rud. – your reminders"
             className={[
-              'text-xl font-bold tracking-[-0.02em]',
+              '-ml-1 flex min-h-11 items-center rounded-lg px-1 text-xl font-bold tracking-[-0.02em]',
+              'focus-visible:outline-2 focus-visible:outline-current',
               plain ? 'text-accent' : 'text-on-grad',
             ].join(' ')}
           >
             rud.
-          </span>
+          </Link>
           {showSettings ? (
-            <Link
+            <IconLink
               to="/settings"
-              aria-label="Settings"
-              className={[
-                '-mr-2.5 flex size-11 items-center justify-center rounded-xl',
-                // The focus ring uses the icon's colour, so it's visible on every background.
-                'focus-visible:outline-2 focus-visible:outline-current',
-                iconTone[tone],
-              ].join(' ')}
-            >
-              <SlidersHorizontal size={22} strokeWidth={1.75} aria-hidden="true" />
-            </Link>
+              icon={SlidersHorizontal}
+              label="Settings"
+              className={`-mr-2 ${iconTone[tone]}`}
+            />
           ) : null}
         </div>
       </header>

@@ -39,3 +39,9 @@ test.each([
 
   expect(await screen.findByRole('link', { name: 'Settings' })).toHaveClass(colourClass)
 })
+
+test('the logo links to the reminders list', async () => {
+  renderTopBar()
+
+  expect(await screen.findByRole('link', { name: /rud\./ })).toHaveAttribute('href', '/')
+})

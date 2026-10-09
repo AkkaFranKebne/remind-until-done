@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { Download, House } from 'lucide-react'
 import { Button } from './Button'
 
 const meta = {
@@ -24,4 +25,15 @@ export const Disabled: Story = { args: { disabled: true } }
 export const GhostLoading: Story = { args: { variant: 'ghost', loading: true, children: 'Saving' } }
 export const GhostDisabled: Story = {
   args: { variant: 'ghost', disabled: true, children: 'Remind later' },
+}
+
+/** Icon before the text (any Lucide icon). */
+export const WithIcon: Story = { args: { icon: House, children: 'Go home' } }
+
+/** lg: the one hero action on a screen. */
+export const Large: Story = { args: { size: 'lg', icon: Download, children: 'Install app' } }
+
+/** While loading, the spinner takes the icon's place, so the text doesn't move. */
+export const LargeLoading: Story = {
+  args: { size: 'lg', icon: Download, loading: true, children: 'Install app' },
 }

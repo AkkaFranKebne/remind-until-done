@@ -1,16 +1,25 @@
+import type { LucideIcon } from 'lucide-react'
 import type { ButtonHTMLAttributes, MouseEvent } from 'react'
-import { buttonClasses, type ButtonVariant } from './buttonStyles'
+import { buttonClasses, buttonIconSize, type ButtonSize, type ButtonVariant } from './buttonStyles'
 import { Spinner } from './Spinner'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
-  /** Shows a spinner and ignores clicks while an action runs. */
+  size?: ButtonSize
+  /** A Lucide icon before the text, e.g. icon={Download}. Sized and hidden from screen readers. */
+  icon?: LucideIcon
+  /** Shows a spinner (in the icon's place) and ignores clicks while an action runs. */
   loading?: boolean
 }
 
-/** Design Inventory → Components → "Done / Remind later — primary pair" and "Button — loading". */
+/**
+ * Design Inventory → Components → "Done / Remind later — primary pair", "Button — loading",
+ * and Phone Screens → Login "Install app" (size lg).
+ */
 export function Button({
   variant = 'primary',
+  size = 'md',
+  icon: Icon,
   loading = false,
   className = '',
   children,
@@ -28,16 +37,21 @@ export function Button({
     onClick?.(event)
   }
 
+  const iconSize = buttonIconSize[size]
   return (
     <button
       type={type}
       aria-busy={loading || undefined}
       aria-disabled={loading || undefined}
       onClick={handleClick}
-      className={buttonClasses(variant, className)}
+      className={buttonClasses({ variant, size, className })}
       {...rest}
     >
-      {loading ? <Spinner size="sm" decorative onAccent={variant === 'primary'} /> : null}
+      {loading ? (
+        <Spinner size={size === 'lg' ? 'md' : 'sm'} decorative onAccent={variant === 'primary'} />
+      ) : Icon ? (
+        <Icon size={iconSize} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+      ) : null}
       {children}
     </button>
   )

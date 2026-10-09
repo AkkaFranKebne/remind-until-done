@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { Download } from 'lucide-react'
 import { Button } from './Button'
 
 test('calls onClick when clicked', () => {
@@ -45,4 +46,22 @@ test('is a plain button by default, so it never submits a form by accident', () 
   render(<Button>Done</Button>)
 
   expect(screen.getByRole('button')).toHaveAttribute('type', 'button')
+})
+
+test('shows the icon, hidden from screen readers', () => {
+  const { container } = render(<Button icon={Download}>Install app</Button>)
+
+  expect(screen.getByRole('button', { name: 'Install app' })).toBeInTheDocument()
+  expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+})
+
+test('while loading, the spinner replaces the icon', () => {
+  const { container } = render(
+    <Button icon={Download} loading>
+      Install app
+    </Button>,
+  )
+
+  expect(container.querySelector('svg')).not.toBeInTheDocument()
+  expect(container.querySelector('span[aria-hidden="true"]')).toBeInTheDocument()
 })

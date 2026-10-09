@@ -20,7 +20,7 @@ export function NotFoundPage() {
           Whatever you were looking for, it&apos;s not at this URL. Typo? Stale link? Either way —
           nothing to see.
         </p>
-        <Link to="/" className={buttonClasses('primary', 'w-full font-semibold')}>
+        <Link to="/" className={buttonClasses({ className: 'w-full' })}>
           <House size={16} strokeWidth={2} aria-hidden="true" />
           Go home
         </Link>

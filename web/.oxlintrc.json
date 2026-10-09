@@ -63,10 +63,16 @@
       }
     ]
   },
-  "ignorePatterns": ["dist", "coverage"],
+  "ignorePatterns": ["coverage", "dist", "storybook-static"],
   "overrides": [
     {
-      "files": ["*.config.ts", "*.config.js"],
+      "files": [
+        "*.config.ts",
+        "*.config.js",
+        ".storybook/*.ts",
+        ".storybook/*.tsx",
+        "**/*.stories.tsx"
+      ],
       "rules": {
         "import/no-default-export": "off"
       }

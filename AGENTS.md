@@ -70,7 +70,13 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - **Node version** comes from `.nvmrc`. Run `nvm use` first.
 
 ## Deferred work (do it when its milestone starts)
-- M1 (sign-in): Content-Security-Policy header in `web/firebase.json`; reviewer subagent; MCP docs servers.
-- M2 (database): re-add the deployer's read access to `database-url` for migrations; first skills ("new endpoint", "new migration"); semgrep.
+- M1 (sign-in, database PR): re-add the deployer's read access to `database-url` for migrations (design doc decision 24).
+- M1 (wrap-up): MCP docs servers; Storybook MCP (agents read real component props).
+- M2 (reminders): first skills ("new endpoint", "new migration"); semgrep.
+- M2 (detail screens): TopBar tones for the vivid detail gradients (nag-low, overdue, done, waiting, nag-high). The current logo/icon colours fail contrast there; decide the look with the screens, update the Inventory, then add the tones.
 - M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.
+- M7 (hardening): Content-Security-Policy in `web/firebase.json`, report-only first (design doc 7.1).
 - Any time: pin GitHub Actions by commit SHA; remove Editor from the default compute service account.
+
+## Review agents
+- `ui-reviewer` (`.claude/agents/ui-reviewer.md`): checks frontend changes against the UI rules in `web/AGENTS.md` and the Design Inventory. Run it on every PR that touches `web/src/`.

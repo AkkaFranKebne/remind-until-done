@@ -1,11 +1,8 @@
-import { ApiStatus } from './ApiStatus'
+import { RouterProvider } from '@tanstack/react-router'
+import { createAppRouter } from './router'
+
+const router = createAppRouter()
 
 export function App() {
-  return (
-    <main>
-      <h1>rud.</h1>
-      <p className="tagline">Remind Until Done</p>
-      <ApiStatus />
-    </main>
-  )
+  return <RouterProvider router={router} />
 }

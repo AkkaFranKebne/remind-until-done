@@ -121,7 +121,7 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     Filled primary buttons use accent-solid + on-solid (fixed: white on the dark-mode accent is
     unreadable). Text on gradient screens uses on-grad / on-grad-fg2 (fixed: the gradient
     top stays light in dark mode). TopBar has no background of its own; pass the screen's
-    tone (plain, brand, nag-low, nag-mid, overdue, done) to colour its icon, never a raw colour."
+    tone (plain, brand, nag-mid; more with the M2 detail screens) to colour its icon, never a raw colour."
 
 - id: ui-reduced-motion
   status: advisory

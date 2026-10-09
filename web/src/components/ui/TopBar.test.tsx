@@ -33,7 +33,7 @@ test('shows the context line when given', async () => {
 test.each([
   ['plain', 'text-fg2'],
   ['brand', 'text-on-grad'],
-  ['done', 'text-tag-done-fg'],
+  ['nag-mid', 'text-nag-mid-fg'],
 ] as const)('tone %s colours the Settings icon with %s', async (tone, colourClass) => {
   renderTopBar({ tone })
 

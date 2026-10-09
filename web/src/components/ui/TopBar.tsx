@@ -7,17 +7,16 @@ import { IconLink } from './IconButton'
  * matching colour from the Design Inventory's phone screens.
  * - plain: the normal page background (settings, login, 404)
  * - brand: the violet list gradient
- * - nag-low / nag-mid / overdue / done: the reminder detail gradients
+ * - nag-mid: the nagging reminder detail gradient
+ * More tones (nag-low, overdue, done) come with the M2 detail screens: on those vivid
+ * gradients today's colours fail contrast, so their look is decided there.
  */
-export type TopBarTone = 'plain' | 'brand' | 'nag-low' | 'nag-mid' | 'overdue' | 'done'
+export type TopBarTone = 'plain' | 'brand' | 'nag-mid'
 
 const iconTone: Record<TopBarTone, string> = {
   plain: 'text-fg2',
   brand: 'text-on-grad',
-  'nag-low': 'text-nag-low-fg',
   'nag-mid': 'text-nag-mid-fg',
-  overdue: 'text-tag-overdue',
-  done: 'text-tag-done-fg',
 }
 
 type TopBarProps = {

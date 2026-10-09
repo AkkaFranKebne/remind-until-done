@@ -20,7 +20,7 @@ export type ButtonSize = 'md' | 'lg'
 const variants: Record<ButtonVariant, string> = {
   // Same violet in both themes: white text on the lighter dark-mode accent is unreadable.
   primary: 'bg-accent-solid text-on-solid',
-  ghost: 'border-[1.5px] border-accent bg-transparent text-accent',
+  ghost: 'border-strong border-accent bg-transparent text-accent',
 }
 
 const sizes: Record<ButtonSize, string> = {

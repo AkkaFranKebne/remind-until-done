@@ -20,7 +20,7 @@ type Story = StoryObj<typeof meta>
 
 /** Phone-height screen with a gradient, like the real list and detail screens. */
 function Screen({ gradient, children }: { gradient: string; children: ReactNode }) {
-  return <div className={`h-[844px] ${gradient}`}>{children}</div>
+  return <div className={`h-screen ${gradient}`}>{children}</div>
 }
 
 /** Plain page background: settings, simple screens. */

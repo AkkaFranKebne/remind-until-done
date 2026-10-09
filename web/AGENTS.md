@@ -69,8 +69,11 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     No pixel sizes (text-[13px], rounded-[10px]). Text sizes come from the type scale only:
     text-xs 11 · text-sm 13 · text-base 15 · text-lg 18 · text-xl 22 · text-display 72 (in rem).
     Radii: rounded-sm 6 · rounded-md 12 · rounded-lg 20 (and rounded-full).
-    Tailwind's own sizes (text-2xl, rounded-xl) are removed. New value? Add it to the Inventory
-    first, then to src/index.css."
+    No one-off values in [ ] at all (border-[1.5px], tracking-[-3px], h-[844px]); only env(...)
+    for safe areas. Named extras: border-strong (1.5px), animate-spin-fast (0.7s). Spacing and
+    letter spacing use Tailwind's scale (size-4.5, tracking-tight).
+    Tailwind's own text sizes and radii (text-2xl, rounded-xl) are removed. New value? Add it to
+    the Inventory first, then to src/index.css."
 
 - id: ui-no-transition-all
   status: enforced

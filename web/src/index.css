@@ -125,6 +125,14 @@
   --radius-sm: 0.375rem; /* 6px: chips, small badges, focus rings on text */
   --radius-md: 0.75rem; /* 12px: buttons, cards, tiles, inputs */
   --radius-lg: 1.25rem; /* 20px: sheets, modals, FAB */
+
+  /* Inventory spinner: one turn every 0.7s (Tailwind's animate-spin is 1s). */
+  --animate-spin-fast: spin 0.7s linear infinite;
+}
+
+/* Inventory: ghost buttons and inputs have a 1.5px border (Tailwind has only 1px and 2px). */
+@utility border-strong {
+  border-width: 1.5px;
 }
 
 @theme inline {

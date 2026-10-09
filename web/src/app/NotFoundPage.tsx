@@ -8,7 +8,7 @@ export function NotFoundPage() {
     <div className="flex min-h-dvh flex-col">
       <TopBar showSettings={false} />
       <main className="flex flex-1 flex-col items-center justify-center gap-3.5 p-7 text-center">
-        <p aria-hidden="true" className="text-display font-bold tracking-[-3px] text-accent-bg">
+        <p aria-hidden="true" className="text-display font-bold tracking-tighter text-accent-bg">
           404
         </p>
         <h1 className="-mt-1.5 text-lg font-bold text-balance">Nothing here.</h1>

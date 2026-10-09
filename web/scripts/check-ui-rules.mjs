@@ -38,8 +38,10 @@ const lineRules = [
   ],
   [
     'ui-tokens-only',
-    /\b(text|rounded(-[a-z]{1,2})?)-\[[0-9.]+(px|rem|em)\]/,
-    'fixed size; use the type scale (text-xs … text-xl, text-display) or radii (rounded-sm/md/lg)',
+    // Any one-off bracket value: text-[13px], border-[1.5px], tracking-[-3px], h-[844px] ...
+    // Only values using env(...) are allowed (phone safe areas, also inside calc()). Token references like bg-(image:--x) use ( ), not [ ].
+    /\b[a-z][a-z0-9-]*-\[(?![^\]]*env\()[^\]]+\]/,
+    'one-off value in [ ]; use a token or the Tailwind scale (see web/AGENTS.md ui-tokens-only)',
   ],
   [
     'ui-tokens-only',

@@ -16,8 +16,8 @@ const variants: Record<ButtonVariant, string> = {
 }
 
 const sizes: Record<ButtonSize, string> = {
-  md: 'h-12 gap-1.5 rounded-xl px-5 text-sm font-semibold', // 48px, 14px, 600
-  lg: 'h-13 gap-2 rounded-[14px] px-6 text-[15px] font-bold', // 52px, 15px, 700
+  md: 'h-12 gap-1.5 rounded-md px-5 text-base font-semibold', // 48px, base, 600
+  lg: 'h-13 gap-2 rounded-md px-6 text-base font-bold', // 52px, base, 700
 }
 
 /** Icon size (px) per button size. */

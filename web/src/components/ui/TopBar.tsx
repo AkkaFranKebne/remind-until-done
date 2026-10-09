@@ -44,7 +44,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
             to="/"
             aria-label="rud. – your reminders"
             className={[
-              '-ml-1 flex min-h-11 items-center rounded-lg px-1 text-xl font-bold tracking-[-0.02em]',
+              '-ml-1 flex min-h-11 items-center rounded-sm px-1 text-xl font-bold tracking-[-0.02em]',
               'focus-visible:outline-2 focus-visible:outline-current',
               plain ? 'text-accent' : 'text-on-grad',
             ].join(' ')}
@@ -65,7 +65,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
       {contextLine ? (
         <p
           className={[
-            'px-4 pt-4 pb-3.5 text-[13px] italic',
+            'px-4 pt-4 pb-3.5 text-sm italic',
             plain ? 'text-fg2' : 'text-on-grad-fg2',
           ].join(' ')}
         >

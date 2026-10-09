@@ -37,6 +37,16 @@ const lineRules = [
     'named colour; use a token (e.g. text-on-solid)',
   ],
   [
+    'ui-tokens-only',
+    /\b(text|rounded(-[a-z]{1,2})?)-\[[0-9.]+(px|rem|em)\]/,
+    'fixed size; use the type scale (text-xs … text-xl, text-display) or radii (rounded-sm/md/lg)',
+  ],
+  [
+    'ui-tokens-only',
+    /\btext-([2-9]xl)\b|\brounded(-[a-z]{1,2})?-([2-4]?xl|xs)\b/,
+    "Tailwind's own size; it doesn't exist here. Use our type scale or radii",
+  ],
+  [
     'ui-no-transition-all',
     /\btransition-all\b|transition:\s*all\b/,
     'name the properties that animate',

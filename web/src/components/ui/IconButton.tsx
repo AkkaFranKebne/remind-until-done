@@ -10,7 +10,7 @@ import type { ButtonHTMLAttributes } from 'react'
  */
 function iconButtonClasses(className: string) {
   return [
-    '-m-0.5 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-[10px]',
+    '-m-0.5 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md',
     'transition-colors duration-(--duration-fast) motion-reduce:transition-none',
     'hover:bg-current/10 active:bg-current/15',
     'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent',

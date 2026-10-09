@@ -22,7 +22,7 @@ export const OnAccent: Story = {
   args: { onAccent: true },
   decorators: [
     (Story) => (
-      <div className="inline-flex rounded-xl bg-accent p-3">
+      <div className="inline-flex rounded-md bg-accent p-3">
         <Story />
       </div>
     ),

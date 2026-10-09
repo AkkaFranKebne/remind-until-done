@@ -63,9 +63,14 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
 - id: ui-tokens-only
   status: enforced
   applies_to: 'src/**/*.{ts,tsx,css}, except src/index.css'
-  check: 'No raw colours (hex, rgb(), hsl(), oklch()) and no Tailwind palette colours (bg-red-500).
-    Use the tokens from src/index.css: bg-bg2, text-fg2, text-accent, bg-(image:--grad-shell-brand) ...
-    New colour? Add it to the Inventory first, then to src/index.css.'
+  check:
+    "No raw colours (hex, rgb(), hsl(), oklch(), text-white, bg-red-500). Use the colour tokens from
+    src/index.css: bg-bg2, text-fg2, text-accent, bg-(image:--grad-shell-brand) ...
+    No pixel sizes (text-[13px], rounded-[10px]). Text sizes come from the type scale only:
+    text-xs 11 · text-sm 13 · text-base 15 · text-lg 18 · text-xl 22 · text-display 72 (in rem).
+    Radii: rounded-sm 6 · rounded-md 12 · rounded-lg 20 (and rounded-full).
+    Tailwind's own sizes (text-2xl, rounded-xl) are removed. New value? Add it to the Inventory
+    first, then to src/index.css."
 
 - id: ui-no-transition-all
   status: enforced

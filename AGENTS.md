@@ -1,0 +1,77 @@
+# AGENTS.md: RUD (Remind Until Done)
+
+Rules for AI agents (and people) working in this repo. Area rules live next to the code:
+[`web/AGENTS.md`](web/AGENTS.md), [`api/AGENTS.md`](api/AGENTS.md), [`infra/AGENTS.md`](infra/AGENTS.md).
+
+## What this is
+A PWA that keeps sending push notifications until you tap Done. Monorepo:
+
+| Folder | What | Stack |
+|---|---|---|
+| `web/` | Frontend (React PWA) | React 19, TypeScript, Vite, Jest |
+| `api/` | Backend (one service on Cloud Run) | Go, net/http |
+| `infra/` | Google Cloud setup | Terraform |
+| `.github/workflows/` | CI (`ci.yml`) and deploy (`deploy.yml`) | GitHub Actions |
+
+## Source of truth
+- **The design doc** decides what to build: https://claude.ai/artifact/BXDpFvgmBqmRxs7aPtq5yH
+  - Read the relevant section before designing or coding a feature.
+  - If the code and the doc disagree, or the doc disagrees with itself: **stop and ask**. Don't guess.
+  - Decisions made while building go into the doc (section 9.1).
+- **Config files** decide the numbers (lint limits, versions, regions). This file never repeats a number; it points to the config.
+
+## Who you're working with
+The owner is a frontend developer learning fullstack.
+- Short sentences, plain language, an example for every new backend/infra idea.
+- Compare to frontend concepts where it helps ("Makefile = npm scripts").
+
+## Workflow
+- Never commit to `main`. Branch → PR → owner merges.
+- Branch names: `area/short-topic` (e.g. `api/healthz`, `web/login`, `infra/region`, `chore/...`).
+- **PR descriptions are study notes.** Plain language, short sentences, bullets. Structure:
+  1. What this PR does
+  2. New ideas, explained (with frontend comparisons)
+  3. How to try it
+  4. What I checked (and what I couldn't)
+  5. Not in this PR, and why
+- Run the checks below before pushing. The Git hooks run some of them; CI runs all of them.
+
+## Commands
+Run from the folder named.
+
+| Where | Check | Command |
+|---|---|---|
+| `web/` | everything CI runs | `npm run lint && npm run format:check && npm run typecheck && npm test && npm run build` |
+| `api/` | everything CI runs | `make fmt vet test` |
+| `infra/` | format + validate | `terraform fmt -check -recursive && terraform validate` |
+| repo root | secret scan | `gitleaks git --redact` |
+
+## Never
+- Never commit secrets: keys, tokens, connection strings, `.env` files. Secret values live in Google Secret Manager only (`infra/secrets.tf` holds the names).
+- Never add GitHub secrets. Deploy logs in with Workload Identity Federation (no keys).
+- Never run `terraform apply` against **prod**. Prepare a saved plan (`terraform plan -out=...`); the owner applies it.
+- Never skip hooks (`--no-verify`) or turn off a lint rule to make a check pass. Fix the code, or ask.
+- Never deploy by hand. Deploys go through `deploy.yml` (merge → dev; manual run with `prod` → prod).
+- Never edit generated files (e.g. `web/src/lib/api/generated/` once it exists).
+
+## Environments
+| | dev | prod |
+|---|---|---|
+| App | https://rud-dev-4f7k2.web.app | https://rud-prod-4f7k2.web.app |
+| Google project | `rud-dev-4f7k2` | `rud-prod-4f7k2` |
+| Deploy | automatic on merge to `main` | manual run of `deploy.yml`, type `prod` |
+
+Region and other settings: `infra/envs/*.tfvars` and the GitHub environment variables.
+
+## Known traps
+- **Firebase Hosting rewrites to Cloud Run only work in some regions.** `europe-north2` (Stockholm) is not one. Check before changing the region.
+- **Terraform state is per environment.** Switch with `terraform init -reconfigure -backend-config="bucket=rud-tfstate-<env>" -backend-config="prefix=rud"`. Always check which one is active before `plan`/`apply`.
+- **Cloud Run URLs** use the predictable form `https://rud-api-<project number>.<region>.run.app` (`service_url` in tfvars).
+- **npm 11 blocks package install scripts** by default. That's intended; don't approve them without a reason.
+- **Node version** comes from `.nvmrc`. Run `nvm use` first.
+
+## Deferred work (do it when its milestone starts)
+- M1 (sign-in): Content-Security-Policy header in `web/firebase.json`; reviewer subagent; MCP docs servers.
+- M2 (database): re-add the deployer's read access to `database-url` for migrations; first skills ("new endpoint", "new migration"); semgrep.
+- M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.
+- Any time: pin GitHub Actions by commit SHA; remove Editor from the default compute service account.

@@ -28,12 +28,10 @@ The owner is a frontend developer learning fullstack.
 ## Workflow
 - Never commit to `main`. Branch → PR → owner merges.
 - Branch names: `area/short-topic` (e.g. `api/healthz`, `web/login`, `infra/region`, `chore/...`).
-- **PR descriptions are study notes.** Plain language, short sentences, bullets. Structure:
-  1. What this PR does
-  2. New ideas, explained (with frontend comparisons)
-  3. How to try it
-  4. What I checked (and what I couldn't)
-  5. Not in this PR, and why
+- **PR descriptions are study notes.** Plain language, short sentences, bullets, frontend comparisons for new ideas.
+  - Sections: `.github/pull_request_template.md` (the only list).
+  - Check before opening: `python3 scripts/check_pr_body.py <file>`. CI runs the same script (`pr-check.yml`).
+  - In Claude Code: `/create-pr` does all of this.
 - Run the checks below before pushing. The Git hooks run some of them; CI runs all of them.
 
 ## Commands
@@ -45,6 +43,7 @@ Run from the folder named.
 | `api/` | everything CI runs | `make fmt vet test` |
 | `infra/` | format + validate | `terraform fmt -check -recursive && terraform validate` |
 | repo root | secret scan | `gitleaks git --redact` |
+| repo root | PR description | `python3 scripts/check_pr_body.py <file>` (tests: `python3 scripts/test_check_pr_body.py`) |
 
 ## Never
 - Never commit secrets: keys, tokens, connection strings, `.env` files. Secret values live in Google Secret Manager only (`infra/secrets.tf` holds the names).

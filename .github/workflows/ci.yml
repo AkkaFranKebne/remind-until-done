@@ -53,6 +53,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Storybook builds (every story compiles)
+        run: npm run build-storybook
 
   api:
     runs-on: ubuntu-latest

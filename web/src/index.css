@@ -1,52 +1,140 @@
-/* Temporary styles for the M0 status page. Not the real UI design.
-   Accent and background come from the design doc (5.9); the rest is a placeholder.
-   From M1, styling comes from Tailwind + Base UI and the RUD Design Inventory. */
+/* Design tokens and global styles.
+   Source: the RUD Design Inventory → Tokens
+   (https://claude.ai/artifact/Lyv8dnTRRDg6hwa3jxP2ws). Change values there first, then here. */
+
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+/* ── Light theme (default) ── */
 :root {
-  --accent: #6d28d9;
   --bg: #f8f7f5;
+  --bg2: #ffffff;
+  --bg3: #f0efe9;
   --fg: #1a1915;
-  --fg-2: #6b6a64;
-  --ok: #15803d;
-  --error: #b91c1c;
+  --fg2: #5a5850;
+  --fg3: #8a8778;
+  --accent: #6d28d9;
+  --accent2: #8b5cf6;
+  --accent-bg: #ede9fe;
+  --border: #e2e0d8;
 
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
-  color: var(--fg);
-  background: var(--bg);
+  /* Status, error and nag tints: the same in both themes (hue carries meaning). */
+  --tag-pending: #fff3cd;
+  --tag-pending-fg: #7d5c00;
+  --tag-nagging: #fce8e6;
+  --tag-nagging-fg: #b03027;
+  --tag-done: #e6f4ea;
+  --tag-done-fg: #1e6b38;
+  --tag-overdue: #7f1d1d;
+  --tag-overdue-fg: #fef2f2;
+  --error: #c0392b;
+  --error-bg: #fdecea;
+  --nag-low: #fde8c8;
+  --nag-low-fg: #7a4a10;
+  --nag-mid: #f9bfb8;
+  --nag-mid-fg: #8b2a22;
+  --nag-high: #b02820;
+  --nag-high-fg: #fff5f5;
+
+  /* Gradients: screen backgrounds by filter/status, and UI elements. Same in both themes. */
+  --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 28%, var(--bg3) 60%);
+  --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
+  --grad-shell-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
+  --grad-shell-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
+  --grad-detail-waiting: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 38%, var(--bg3) 68%);
+  --grad-detail-nag-low: linear-gradient(180deg, #f59e0b 0%, #fde8c8 38%, var(--bg3) 68%);
+  --grad-detail-nag-mid: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
+  --grad-detail-nag-high: linear-gradient(180deg, #f97316 0%, #fca5a5 38%, var(--bg3) 70%);
+  --grad-detail-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
+  --grad-detail-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
+  --grad-shimmer: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+  --grad-install-card: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 60%, #ede9fe 100%);
+  --grad-login-icon: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 100%);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --easing-std: cubic-bezier(0.4, 0, 0.2, 1);
+
+  color-scheme: light;
 }
 
-body {
-  margin: 0;
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  /* Keep content clear of the notch and home bar on phones. */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-    env(safe-area-inset-left);
+/* ── Dark theme: follows the phone, or data-theme="dark" (Storybook toggle) ── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #141412;
+    --bg2: #1e1d1a;
+    --bg3: #252420;
+    --fg: #f0ede6;
+    --fg2: #a8a498;
+    --fg3: #6e6a60;
+    --accent: #a78bfa;
+    --accent2: #c4b5fd;
+    --accent-bg: #2e1f5e;
+    --border: #2e2d28;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #141412;
+  --bg2: #1e1d1a;
+  --bg3: #252420;
+  --fg: #f0ede6;
+  --fg2: #a8a498;
+  --fg3: #6e6a60;
+  --accent: #a78bfa;
+  --accent2: #c4b5fd;
+  --accent-bg: #2e1f5e;
+  --border: #2e2d28;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
 }
 
-main {
-  text-align: center;
-  padding: 24px;
+/* ── Tailwind names for the tokens: bg-bg2, text-fg2, text-accent, border-border ... ── */
+@theme inline {
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
+  --color-bg3: var(--bg3);
+  --color-fg: var(--fg);
+  --color-fg2: var(--fg2);
+  --color-fg3: var(--fg3);
+  --color-accent: var(--accent);
+  --color-accent2: var(--accent2);
+  --color-accent-bg: var(--accent-bg);
+  --color-border: var(--border);
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+  --color-tag-pending: var(--tag-pending);
+  --color-tag-pending-fg: var(--tag-pending-fg);
+  --color-tag-nagging: var(--tag-nagging);
+  --color-tag-nagging-fg: var(--tag-nagging-fg);
+  --color-tag-done: var(--tag-done);
+  --color-tag-done-fg: var(--tag-done-fg);
+  --color-tag-overdue: var(--tag-overdue);
+  --color-tag-overdue-fg: var(--tag-overdue-fg);
+  --color-nag-low: var(--nag-low);
+  --color-nag-low-fg: var(--nag-low-fg);
+  --color-nag-mid: var(--nag-mid);
+  --color-nag-mid-fg: var(--nag-mid-fg);
+  --color-nag-high: var(--nag-high);
+  --color-nag-high-fg: var(--nag-high-fg);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --ease-std: var(--easing-std);
 }
 
-h1 {
-  margin: 0;
-  font-size: 48px;
-  color: var(--accent);
-}
-
-.tagline {
-  margin: 4px 0 24px;
-  color: var(--fg-2);
-}
-
-.status-ok {
-  color: var(--ok);
-}
-
-.status-error {
-  color: var(--error);
+@layer base {
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    min-height: 100dvh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
 }

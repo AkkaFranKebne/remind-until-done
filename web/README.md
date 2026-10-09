@@ -45,5 +45,5 @@ Start the API too (`make run` in `api/`), or the page shows "API unreachable".
 - **TypeScript** runs in strict mode, with `noUncheckedIndexedAccess` (`list[0]` may be `undefined`).
 - **Git hooks** (husky), set up by `npm install`:
   - **pre-commit** (lint-staged): formats and lints the staged files. Fast.
-  - **pre-push**: type check + Jest tests for the whole web app.
+  - **pre-push**: UI rules check + type check + Jest tests for the whole web app.
   - Skip once with `--no-verify` (use sparingly; CI still checks everything).

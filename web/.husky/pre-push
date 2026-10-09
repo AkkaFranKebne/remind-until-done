@@ -1,3 +1,4 @@
 # Runs before every push. Checks the whole web/ project (slower than the
 # pre-commit hook, so it runs once per push instead of once per commit).
-cd web && npm run -s typecheck && npm test --silent
+# check-ui-rules: the enforced UI rules from web/AGENTS.md (the pre-commit hook only runs oxlint).
+cd web && node scripts/check-ui-rules.mjs && npm run -s typecheck && npm test --silent

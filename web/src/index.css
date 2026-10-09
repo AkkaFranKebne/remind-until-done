@@ -103,7 +103,6 @@
   color-scheme: dark;
 }
 
-/* ── Tailwind names for the tokens: bg-bg2, text-fg2, text-accent, border-border ... ── */
 /* ── Type scale and radii (Inventory → Tokens → "Type scale", "Radius"). In rem, so text follows
    the phone's text-size setting. Tailwind's own sizes are removed: only these exist. ── */
 @theme {
@@ -136,6 +135,8 @@
   border-width: 1.5px;
 }
 
+/* ── Tailwind names for the colour tokens: bg-bg2, text-fg2, text-accent, border-border ...
+   inline: the class points straight at var(--accent), so it follows the dark theme. ── */
 @theme inline {
   --font-sans: 'Inter Variable', system-ui, sans-serif;
 

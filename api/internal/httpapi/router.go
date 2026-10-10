@@ -3,16 +3,24 @@
 package httpapi
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 )
 
-type API struct {
-	log *slog.Logger
+// Pinger checks that the database answers. *pgxpool.Pool has this method;
+// tests pass a fake.
+type Pinger interface {
+	Ping(ctx context.Context) error
 }
 
-func New(log *slog.Logger) *API {
-	return &API{log: log}
+type API struct {
+	log    *slog.Logger
+	health *dbHealth
+}
+
+func New(log *slog.Logger, db Pinger) *API {
+	return &API{log: log, health: newDBHealth(db, log)}
 }
 
 // Router returns the handler for the whole service.
@@ -27,8 +35,15 @@ func (a *API) Router() http.Handler {
 	return a.logRequests(mux)
 }
 
+// healthz is the liveness check: it always answers 200 {"status":"ok"} while the
+// server runs. "database" is the result of the check when this instance started
+// (CheckDatabase); the deploy smoke test requires "ok", but the API keeps serving either way.
 func (a *API) healthz(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	database := "ok"
+	if !a.health.ok.Load() {
+		database = "unavailable"
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "database": database})
 }
 
 func (a *API) notFound(w http.ResponseWriter, r *http.Request) {

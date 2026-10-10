@@ -2,7 +2,9 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -13,13 +15,32 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 )
 
+// fakeDB answers Ping with err (nil = the database is fine).
+type fakeDB struct{ err error }
+
+func (f fakeDB) Ping(context.Context) error { return f.err }
+
 func newTestRouter(logs io.Writer) http.Handler {
-	return New(logging.New(logs)).Router()
+	return New(logging.New(logs), fakeDB{}).Router()
+}
+
+// getHealthz starts an API like main does (database check first), then calls /healthz.
+func getHealthz(t *testing.T, db Pinger) (*httptest.ResponseRecorder, map[string]string) {
+	t.Helper()
+	api := New(logging.New(io.Discard), db)
+	api.health.retryWait = 0
+	api.CheckDatabase(context.Background())
+	rec := httptest.NewRecorder()
+	api.Router().ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/healthz", nil))
+	var body map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("body is not JSON: %v", err)
+	}
+	return rec, body
 }
 
 func TestHealthz(t *testing.T) {
-	rec := httptest.NewRecorder()
-	newTestRouter(io.Discard).ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/healthz", nil))
+	rec, body := getHealthz(t, fakeDB{})
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
@@ -27,12 +48,19 @@ func TestHealthz(t *testing.T) {
 	if ct := rec.Header().Get("Content-Type"); ct != "application/json" {
 		t.Errorf("Content-Type = %q, want application/json", ct)
 	}
-	var body map[string]string
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
-		t.Fatalf("body is not JSON: %v", err)
+	if body["status"] != "ok" || body["database"] != "ok" {
+		t.Errorf("body = %v, want status ok and database ok", body)
 	}
-	if body["status"] != "ok" {
-		t.Errorf("status field = %q, want ok", body["status"])
+}
+
+func TestHealthzStaysUpWhenDatabaseIsDown(t *testing.T) {
+	rec, body := getHealthz(t, fakeDB{err: errors.New("connection refused")})
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 (liveness must not depend on the database)", rec.Code)
+	}
+	if body["status"] != "ok" || body["database"] != "unavailable" {
+		t.Errorf("body = %v, want status ok and database unavailable", body)
 	}
 }
 

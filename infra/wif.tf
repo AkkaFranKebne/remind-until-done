@@ -75,5 +75,10 @@ resource "google_project_iam_member" "deployer_hosting" {
   member  = "serviceAccount:${google_service_account.deployer.email}"
 }
 
-# No access to the database URL yet. Add it back (secretAccessor on "database-url")
-# when deploy.yml runs Flyway migrations (milestone M2).
+# Read the database URL, only to run Flyway migrations in deploy.yml before each
+# deploy (design doc 6.4). Only this one secret, not the others.
+resource "google_secret_manager_secret_iam_member" "deployer_reads_database_url" {
+  secret_id = google_secret_manager_secret.app["database-url"].id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.deployer.email}"
+}

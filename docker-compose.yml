@@ -1,0 +1,47 @@
+# Local database for development (design doc 6.7).
+#   make db-up      start Postgres on localhost:5432
+#   make migrate    apply the Flyway migrations in api/db/migrations
+#   make db-down    stop it (data stays in the db-data volume; make db-reset deletes it)
+#
+# deploy.yml runs the same flyway service against Neon, so local and cloud use one
+# Flyway version.
+#
+# Images are pinned by digest (@sha256:...): the fingerprint of the exact image, which
+# nobody can change. The tag in front is only for humans. To upgrade, update both
+# (docker buildx imagetools inspect <image>:<tag> prints the digest).
+services:
+  db:
+    image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      # Local-only login. Neon's real one lives in Secret Manager.
+      POSTGRES_USER: rud
+      POSTGRES_PASSWORD: rud
+      POSTGRES_DB: rud
+    ports:
+      - '127.0.0.1:5432:5432' # only reachable from this machine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rud -d rud']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  flyway:
+    image: flyway/flyway:13.10.0@sha256:f5dab54b2b51e5aa131ebc2be36fd8a7c18006541db06638469ec26b6ad2bfe2
+    # No online "newer version?" check: in deploy this container holds the database password.
+    entrypoint: [flyway, -skipCheckForUpdate]
+    profiles: [tools] # not started by "docker compose up"; run with "docker compose run"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/rud
+      FLYWAY_USER: rud
+      FLYWAY_PASSWORD: rud
+      FLYWAY_CONNECT_RETRIES: 5 # Neon may need a moment to wake up
+    volumes:
+      - ./api/db/migrations:/flyway/sql:ro
+
+volumes:
+  db-data:

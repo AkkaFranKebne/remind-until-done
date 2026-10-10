@@ -4,7 +4,8 @@
 #
 # Security: only the "deploy" job logs in to Google Cloud. All building (npm, Vite,
 # Docker) happens in the "build" job, which has no cloud access, so a hacked npm
-# package can't steal the login.
+# package can't steal the login. After the login, only firebase-tools and the Flyway
+# image run; Flyway sees only the migrations folder and the database settings.
 name: deploy
 
 on:
@@ -100,6 +101,10 @@ jobs:
         working-directory: web
         run: npm ci --ignore-scripts
 
+      # Same image and version as local "make migrate" (docker-compose.yml).
+      - name: Download Flyway
+        run: docker compose --profile tools pull flyway
+
       - name: Log in to Google Cloud (no stored keys)
         uses: google-github-actions/auth@v3
         with:
@@ -115,6 +120,19 @@ jobs:
           gcloud auth configure-docker ${{ vars.REGION }}-docker.pkg.dev --quiet
           docker push "$IMAGE"
 
+      # Before the new revision starts, so new code never runs against old tables (design doc 6.5).
+      # If it fails, the deploy stops and the old revision keeps serving.
+      # The database URL goes from Secret Manager into environment variables only:
+      # never printed, never on a command line, and masked in case anything echoes it.
+      - name: Migrate the database (Flyway)
+        run: |
+          DB_URL="$(gcloud secrets versions access latest --secret=database-url --project ${{ vars.PROJECT_ID }})"
+          echo "::add-mask::$DB_URL"
+          SETTINGS="$(printf '%s' "$DB_URL" | python3 scripts/to_jdbc.py)"
+          while IFS='=' read -r key value; do export "$key=$value"; done <<< "$SETTINGS"
+          echo "::add-mask::$FLYWAY_PASSWORD"
+          docker compose run --rm --no-deps -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD flyway migrate
+
       - name: Deploy the API to Cloud Run
         run: |
           gcloud run deploy rud-api \
@@ -123,8 +141,12 @@ jobs:
             --image "$IMAGE" \
             --quiet
 
+      # Also proves the new revision reached the database when it started ("database":"ok").
       - name: Smoke test the API (Cloud Run URL)
-        run: curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.API_URL }}/api/v1/healthz"
+        run: |
+          BODY="$(curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.API_URL }}/api/v1/healthz")"
+          echo "$BODY"
+          jq -e '.database == "ok"' <<< "$BODY" > /dev/null
 
       - name: Deploy the web app to Firebase Hosting
         working-directory: web

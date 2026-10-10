@@ -12,8 +12,8 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-// Same image as docker-compose.yml.
-const postgresImage = "postgres:17.11-alpine"
+// Same image (and digest) as docker-compose.yml.
+const postgresImage = "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
 
 // startDatabase starts a throwaway Postgres in Docker, applies the migrations and
 // returns an open pool. The container is removed when the test ends.

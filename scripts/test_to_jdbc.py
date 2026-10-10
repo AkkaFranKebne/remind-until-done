@@ -32,6 +32,11 @@ class ToJdbc(unittest.TestCase):
     def test_trailing_newline_is_ignored(self):
         self.assertEqual(t.to_flyway(NEON + "\n")["FLYWAY_PASSWORD"], "s3cret")
 
+    def test_every_safe_sslmode_is_accepted(self):
+        for mode in t.SSL_MODES:
+            with self.subTest(mode=mode):
+                self.assertTrue(t.to_flyway(f"postgres://u:p@h/rud?sslmode={mode}")["FLYWAY_URL"].endswith(mode))
+
     def test_bad_urls_are_refused(self):
         for bad in [
             "mysql://u:p@h/rud",
@@ -39,6 +44,12 @@ class ToJdbc(unittest.TestCase):
             "postgres://u@h/rud",
             "postgres://u:p@h/",
             "postgres://u:a%0Ab@h/rud",
+            "postgres://u:@h/rud",  # empty password
+            "postgres://u:p@h/rud?sslmode=require%26socketFactory%3Dx.Y",  # extra driver setting
+            "postgres://u:p@h/rud?sslmode=allow",  # not encrypted
+            "postgres://u:p@h/rud%3Fssl%3Dfalse",  # setting hidden in the name
+            "postgres://u:p@h/r/u/d",
+            "postgres://u:p@[::1]/rud",  # IPv6 isn't needed for Neon
         ]:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 t.to_flyway(bad)

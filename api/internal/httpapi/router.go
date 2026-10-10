@@ -6,7 +6,6 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"time"
 )
 
 // Pinger checks that the database answers. *pgxpool.Pool has this method;
@@ -16,12 +15,12 @@ type Pinger interface {
 }
 
 type API struct {
-	log *slog.Logger
-	db  Pinger
+	log    *slog.Logger
+	health *dbHealth
 }
 
 func New(log *slog.Logger, db Pinger) *API {
-	return &API{log: log, db: db}
+	return &API{log: log, health: newDBHealth(db, log)}
 }
 
 // Router returns the handler for the whole service.
@@ -37,15 +36,11 @@ func (a *API) Router() http.Handler {
 }
 
 // healthz is the liveness check: it always answers 200 {"status":"ok"} while the
-// server runs. "database" says whether Postgres answered within a few seconds; the
-// deploy smoke test requires "ok", but the API keeps serving either way.
+// server runs. "database" says whether Postgres answered (a recent answer is reused,
+// see dbHealth); the deploy smoke test requires "ok", but the API keeps serving either way.
 func (a *API) healthz(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	defer cancel()
-
 	database := "ok"
-	if err := a.db.Ping(ctx); err != nil {
-		a.log.WarnContext(r.Context(), "database ping failed", "err", err)
+	if !a.health.isOK(r.Context()) {
 		database = "unavailable"
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "database": database})

@@ -10,28 +10,39 @@ Flyway needs: FLYWAY_URL=jdbc:postgresql://ep-x.eu-central-1.aws.neon.tech/rud?s
   list of running processes.
 - "-pooler" is removed from the host: migrations use Neon's direct connection (design doc 6.5).
 - Only sslmode is kept from the query (the Java driver doesn't know Neon's other options).
+- Everything that ends up in FLYWAY_URL is checked against a strict pattern, so a crafted
+  value can't add extra driver settings (some of them load code).
 
 Used by deploy.yml. Usage:
   printf '%s' "$DATABASE_URL" | scripts/to_jdbc.py
 """
+import re
 import sys
 from urllib.parse import parse_qs, unquote, urlsplit
+
+SSL_MODES = {"disable", "require", "verify-ca", "verify-full"}
+HOST = re.compile(r"[A-Za-z0-9.-]+")
+DATABASE = re.compile(r"[A-Za-z0-9_-]+")
 
 
 def to_flyway(url: str) -> dict[str, str]:
     parts = urlsplit(url.strip())
     if parts.scheme not in ("postgres", "postgresql"):
         raise ValueError("not a postgres:// or postgresql:// URL")
-    if not parts.hostname or not parts.username or parts.password is None:
+    if not parts.hostname or not parts.username or not parts.password:
         raise ValueError("the URL needs a user, a password and a host")
+    if not HOST.fullmatch(parts.hostname):
+        raise ValueError("the host may only contain letters, digits, dots and dashes")
     database = parts.path.lstrip("/")
-    if not database:
-        raise ValueError("the URL needs a database name")
+    if not DATABASE.fullmatch(database):
+        raise ValueError("the database name may only contain letters, digits, _ and -")
 
     first, dot, rest = parts.hostname.partition(".")
     host = first.removesuffix("-pooler") + dot + rest
     port = f":{parts.port}" if parts.port else ""
     sslmode = parse_qs(parts.query).get("sslmode", ["require"])[0]
+    if sslmode not in SSL_MODES:
+        raise ValueError(f"sslmode must be one of {sorted(SSL_MODES)}")
 
     settings = {
         "FLYWAY_URL": f"jdbc:postgresql://{host}{port}/{database}?sslmode={sslmode}",

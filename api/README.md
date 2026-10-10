@@ -33,7 +33,7 @@ features that need them are added.
 ## Routes
 | Route | Notes |
 |---|---|
-| `GET /api/v1/healthz` | Liveness check: always `200 {"status":"ok"}`, plus `"database":"ok"` or `"unavailable"` |
+| `GET /api/v1/healthz` | Liveness check: always `200 {"status":"ok"}`, plus `"database":"ok"` or `"unavailable"` (a good answer is reused for 30 s, a failure for 5 s) |
 
 Browser calls reach the API through the Firebase Hosting rewrite, which keeps
 the full `/api/v1/...` path. Unknown routes return

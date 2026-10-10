@@ -10,11 +10,13 @@ func TestAllowlist(t *testing.T) {
 		id   Identity
 		want bool
 	}{
-		{"listed", Identity{Email: "tester@example.com", EmailVerified: true}, true},
-		{"case and spaces don't matter", Identity{Email: " EWA@example.COM", EmailVerified: true}, true},
-		{"not listed", Identity{Email: "stranger@example.com", EmailVerified: true}, false},
-		{"listed but unverified", Identity{Email: "tester@example.com", EmailVerified: false}, false},
-		{"no email", Identity{EmailVerified: true}, false},
+		{"listed", google("tester@example.com", true), true},
+		{"case and spaces don't matter", google(" EWA@example.COM", true), true},
+		{"not listed", google("stranger@example.com", true), false},
+		{"listed but unverified", google("tester@example.com", false), false},
+		{"no email", google("", true), false},
+		{"listed, but email/password sign-in", Identity{Email: "tester@example.com", EmailVerified: true, SignInProvider: "password"}, false},
+		{"listed, but no provider", Identity{Email: "tester@example.com", EmailVerified: true}, false},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -28,8 +30,12 @@ func TestAllowlist(t *testing.T) {
 	}
 }
 
+func google(email string, verified bool) Identity {
+	return Identity{Email: email, EmailVerified: verified, SignInProvider: GoogleProvider}
+}
+
 func TestEmptyAllowlistLetsNobodyIn(t *testing.T) {
-	if NewAllowlist("").Allows(Identity{Email: "a@example.com", EmailVerified: true}) {
+	if NewAllowlist("").Allows(google("a@example.com", true)) {
 		t.Error("an empty list let someone in, want nobody (design doc decision 31)")
 	}
 }

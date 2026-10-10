@@ -43,6 +43,10 @@ func Load() (Config, error) {
 		}
 		cfg.DatabaseURL = LocalDatabaseURL
 	}
+	// The Firebase SDK skips the token signature check when this is set.
+	if os.Getenv("FIREBASE_AUTH_EMULATOR_HOST") != "" && cfg.Env != "local" {
+		return Config{}, errors.New("FIREBASE_AUTH_EMULATOR_HOST must never be set in dev or prod")
+	}
 	if cfg.GCPProject == "" {
 		return Config{}, errors.New("GCP_PROJECT is required (locally, make run sets the dev project)")
 	}

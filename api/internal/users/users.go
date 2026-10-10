@@ -109,7 +109,10 @@ func (s Settings) Validate() error {
 	if s.Timezone != nil {
 		tz := *s.Timezone
 		// LoadLocation also accepts "" (UTC) and "Local" (the server's zone); neither is a real choice.
-		if _, err := time.LoadLocation(tz); err != nil || tz == "" || tz == "Local" || len(tz) > 64 {
+		if len(tz) == 0 || len(tz) > 64 || tz == "Local" {
+			return ValidationError{"timezone must be an IANA name, like Europe/Stockholm"}
+		}
+		if _, err := time.LoadLocation(tz); err != nil {
 			return ValidationError{"timezone must be an IANA name, like Europe/Stockholm"}
 		}
 	}

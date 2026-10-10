@@ -56,6 +56,17 @@ func TestLoadRequiresDatabaseURLOutsideLocal(t *testing.T) {
 	}
 }
 
+func TestLoadRefusesTheAuthEmulatorOutsideLocal(t *testing.T) {
+	t.Setenv("ENV", "prod")
+	t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
+	t.Setenv("GCP_PROJECT", "rud-prod-4f7k2")
+	t.Setenv("FIREBASE_AUTH_EMULATOR_HOST", "localhost:9099")
+
+	if _, err := Load(); err == nil {
+		t.Error("Load() error = nil, want an error: the emulator setting turns off token signature checks")
+	}
+}
+
 func TestLoadRequiresGCPProject(t *testing.T) {
 	t.Setenv("ENV", "local")
 	t.Setenv("GCP_PROJECT", "")

@@ -17,10 +17,14 @@ import (
 
 // Identity is what a valid token says about the caller.
 type Identity struct {
-	UID           string // Firebase user id, stable for this Google account
-	Email         string
-	EmailVerified bool
+	UID            string // Firebase user id, stable for this Google account
+	Email          string
+	EmailVerified  bool
+	SignInProvider string // "google.com" for Google sign-in
 }
+
+// GoogleProvider is the only sign-in method in v1 (design doc section 0).
+const GoogleProvider = "google.com"
 
 // Firebase checks ID tokens issued for one Firebase project.
 type Firebase struct {
@@ -49,7 +53,7 @@ func (f *Firebase) Verify(ctx context.Context, idToken string) (Identity, error)
 	}
 	email, _ := tok.Claims["email"].(string)
 	verified, _ := tok.Claims["email_verified"].(bool)
-	return Identity{UID: tok.UID, Email: email, EmailVerified: verified}, nil
+	return Identity{UID: tok.UID, Email: email, EmailVerified: verified, SignInProvider: tok.Firebase.SignInProvider}, nil
 }
 
 // Allowlist is the invite list (the ALLOWED_EMAILS secret, comma-separated).
@@ -68,10 +72,13 @@ func NewAllowlist(csv string) Allowlist {
 	return Allowlist{emails: emails}
 }
 
-// Allows is true only for a verified email on the list. Unverified emails are
-// refused: otherwise an account that merely claims a tester's address could get in.
+// Allows is true only for a Google sign-in with a verified email on the list.
+//   - Unverified emails are refused: otherwise an account that merely claims a
+//     tester's address could get in.
+//   - Other sign-in methods are refused even if someone switches them on in the
+//     Firebase console later (that setting isn't in Terraform, so no review sees it).
 func (l Allowlist) Allows(id Identity) bool {
-	return id.EmailVerified && l.emails[normalize(id.Email)]
+	return id.SignInProvider == GoogleProvider && id.EmailVerified && l.emails[normalize(id.Email)]
 }
 
 func (l Allowlist) Len() int { return len(l.emails) }

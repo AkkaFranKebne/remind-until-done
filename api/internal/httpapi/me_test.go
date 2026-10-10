@@ -80,9 +80,9 @@ func newMeAPI() testAPI {
 	api := New(logging.New(logs), Deps{
 		DB: fakeDB{},
 		Tokens: fakeTokens{
-			invitedToken:    {UID: "u1", Email: "ewa@example.com", EmailVerified: true},
-			strangerToken:   {UID: "u2", Email: "stranger@example.com", EmailVerified: true},
-			unverifiedToken: {UID: "u3", Email: "ewa@example.com", EmailVerified: false},
+			invitedToken:    {UID: "u1", Email: "ewa@example.com", EmailVerified: true, SignInProvider: auth.GoogleProvider},
+			strangerToken:   {UID: "u2", Email: "stranger@example.com", EmailVerified: true, SignInProvider: auth.GoogleProvider},
+			unverifiedToken: {UID: "u3", Email: "ewa@example.com", EmailVerified: false, SignInProvider: auth.GoogleProvider},
 		},
 		Users:   store,
 		Invited: auth.NewAllowlist("ewa@example.com"),

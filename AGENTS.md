@@ -40,8 +40,9 @@ Run from the folder named.
 | Where | Check | Command |
 |---|---|---|
 | `web/` | everything CI runs | `npm run lint && npm run format:check && npm run typecheck && npm test && npm run build` |
-| `api/` | everything CI runs | `make fmt vet test` |
+| `api/` | everything CI runs | `make fmt vet test` (needs Docker running: database tests start their own Postgres) |
 | `infra/` | format + validate | `terraform fmt -check -recursive && terraform validate` |
+| repo root | local database | `make db-up migrate` (Postgres in Docker + Flyway); `make psql` for a SQL prompt |
 | repo root | secret scan | `gitleaks git --redact` |
 | repo root | PR description | `python3 scripts/check_pr_body.py <file>` (tests: `python3 scripts/test_check_pr_body.py`) |
 
@@ -70,7 +71,6 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - **Node version** comes from `.nvmrc`. Run `nvm use` first.
 
 ## Deferred work (do it when its milestone starts)
-- M1 (sign-in, database PR): re-add the deployer's read access to `database-url` for migrations (design doc decision 24).
 - M1 (wrap-up): MCP docs servers; Storybook MCP (agents read real component props).
 - M2 (reminders): first skills ("new endpoint", "new migration"); semgrep.
 - M2 (detail screens): TopBar tones for the vivid detail gradients (nag-low, overdue, done, waiting, nag-high). The current logo/icon colours fail contrast there; decide the look with the screens, update the Inventory, then add the tones.

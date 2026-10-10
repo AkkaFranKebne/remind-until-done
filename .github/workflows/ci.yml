@@ -68,11 +68,21 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: api/go.mod
-          cache: false # nothing to cache until the module has dependencies (go.sum)
+          cache-dependency-path: api/go.sum
       - name: gofmt
         run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
       - run: go vet ./...
-      - run: go test ./...
+      - name: go test (database tests start their own Postgres in Docker)
+        run: go test ./...
+      - name: Migrations apply with the real Flyway (same setup as make migrate)
+        working-directory: .
+        run: |
+          docker compose up -d --wait db
+          docker compose run --rm flyway migrate
+          docker compose run --rm flyway validate
+      - name: to_jdbc.py tests (turns the Neon URL into Flyway settings in deploy.yml)
+        working-directory: .
+        run: python3 scripts/test_to_jdbc.py
       - name: govulncheck (known vulnerabilities in Go and dependencies)
         run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
       - name: Docker image builds

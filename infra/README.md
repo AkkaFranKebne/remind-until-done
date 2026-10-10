@@ -45,7 +45,7 @@ terraform apply -var-file=envs/dev.tfvars \
 ```
 2. Add the secret values (into the matching project):
 ```
-printf '%s' "$NEON_URL"       | gcloud secrets versions add database-url     --data-file=- --project=rud-dev-4f7k2
+printf '%s' "$NEON_URL"       | gcloud secrets versions add database-url     --data-file=- --project=rud-dev-4f7k2   # Neon's pooled URL; migrations switch to the direct host themselves
 printf '%s' "$ACTION_KEY"     | gcloud secrets versions add action-token-key --data-file=- --project=rud-dev-4f7k2
 printf '%s' "$ALLOWED_EMAILS" | gcloud secrets versions add allowed-emails   --data-file=- --project=rud-dev-4f7k2   # comma-separated tester Google emails
 ```

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/config"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/db"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/httpapi"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 )
@@ -24,9 +25,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	pool, err := db.Open(context.Background(), cfg.DatabaseURL)
+	if err != nil {
+		log.Error("database", "err", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.New(log).Router(),
+		Handler:           httpapi.New(log, pool).Router(),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

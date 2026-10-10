@@ -1,0 +1,41 @@
+# Local database for development (design doc 6.7).
+#   make db-up      start Postgres on localhost:5432
+#   make migrate    apply the Flyway migrations in api/db/migrations
+#   make db-down    stop it (data stays in the db-data volume; make db-reset deletes it)
+#
+# deploy.yml runs the same flyway service against Neon, so local and cloud use one
+# Flyway version (the image tag below).
+services:
+  db:
+    image: postgres:17.11-alpine
+    environment:
+      # Local-only login. Neon's real one lives in Secret Manager.
+      POSTGRES_USER: rud
+      POSTGRES_PASSWORD: rud
+      POSTGRES_DB: rud
+    ports:
+      - '127.0.0.1:5432:5432' # only reachable from this machine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rud -d rud']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  flyway:
+    image: flyway/flyway:13.10.0
+    profiles: [tools] # not started by "docker compose up"; run with "docker compose run"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/rud
+      FLYWAY_USER: rud
+      FLYWAY_PASSWORD: rud
+      FLYWAY_CONNECT_RETRIES: 5 # Neon may need a moment to wake up
+    volumes:
+      - ./api/db/migrations:/flyway/sql:ro
+
+volumes:
+  db-data:

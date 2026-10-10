@@ -1,8 +1,8 @@
 # Build stage: compile a static binary.
 FROM golang:1.27 AS build
 WORKDIR /src
-# go.* also matches go.sum once the module has dependencies.
-COPY go.* ./
+# Dependencies first, so this layer is reused while only our code changes.
+COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/api ./cmd/api

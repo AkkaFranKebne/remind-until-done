@@ -25,7 +25,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 - Schema changes are Flyway files in `db/migrations/` named `V<n>__<what>.sql`. They must work with the previous release too (design doc 6.5): add a nullable column, backfill, tighten later.
 - Database tests use testcontainers (a throwaway Postgres per test, same image as `docker-compose.yml`). Unit tests use fakes.
 - Every reminder query filters by the signed-in `user_id`. Another user's row returns 404, not 403.
-- A public route that touches the database must not let anonymous callers wake or flood it: reuse a recent answer (like `dbHealth` for `/healthz`) or require sign-in.
+- A public route that touches the database must not let anonymous callers wake or flood it: check once at startup (like `CheckDatabase` for `/healthz`) or require sign-in.
 
 ## Never
 - Never build SQL by string concatenation. Use query parameters.

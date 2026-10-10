@@ -32,9 +32,16 @@ func main() {
 	}
 	defer pool.Close()
 
+	// Check the database once, before taking requests (/healthz reports this result).
+	// The API starts either way: routes that don't need the database keep working.
+	api := httpapi.New(log, pool)
+	if api.CheckDatabase(context.Background()) {
+		log.Info("database ok")
+	}
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           httpapi.New(log, pool).Router(),
+		Handler:           api.Router(),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

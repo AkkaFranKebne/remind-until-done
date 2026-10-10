@@ -141,18 +141,12 @@ jobs:
             --image "$IMAGE" \
             --quiet
 
-      # Also proves the new revision reaches the database ("database":"ok").
-      # A few tries: a sleeping Neon database needs a moment to wake up. 5 seconds apart,
-      # because the API reuses a failed database check for 5 seconds (dbHealth).
+      # Also proves the new revision reached the database when it started ("database":"ok").
       - name: Smoke test the API (Cloud Run URL)
         run: |
-          for try in 1 2 3 4 5; do
-            BODY="$(curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.API_URL }}/api/v1/healthz")"
-            echo "$BODY"
-            jq -e '.database == "ok"' <<< "$BODY" > /dev/null && exit 0
-            sleep 5
-          done
-          exit 1
+          BODY="$(curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.API_URL }}/api/v1/healthz")"
+          echo "$BODY"
+          jq -e '.database == "ok"' <<< "$BODY" > /dev/null
 
       - name: Deploy the web app to Firebase Hosting
         working-directory: web

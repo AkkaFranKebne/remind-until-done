@@ -36,11 +36,11 @@ func (a *API) Router() http.Handler {
 }
 
 // healthz is the liveness check: it always answers 200 {"status":"ok"} while the
-// server runs. "database" says whether Postgres answered (a recent answer is reused,
-// see dbHealth); the deploy smoke test requires "ok", but the API keeps serving either way.
+// server runs. "database" is the result of the check when this instance started
+// (CheckDatabase); the deploy smoke test requires "ok", but the API keeps serving either way.
 func (a *API) healthz(w http.ResponseWriter, r *http.Request) {
 	database := "ok"
-	if !a.health.isOK(r.Context()) {
+	if !a.health.ok.Load() {
 		database = "unavailable"
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "database": database})

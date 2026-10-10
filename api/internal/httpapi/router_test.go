@@ -24,10 +24,14 @@ func newTestRouter(logs io.Writer) http.Handler {
 	return New(logging.New(logs), fakeDB{}).Router()
 }
 
+// getHealthz starts an API like main does (database check first), then calls /healthz.
 func getHealthz(t *testing.T, db Pinger) (*httptest.ResponseRecorder, map[string]string) {
 	t.Helper()
+	api := New(logging.New(io.Discard), db)
+	api.health.retryWait = 0
+	api.CheckDatabase(context.Background())
 	rec := httptest.NewRecorder()
-	New(logging.New(io.Discard), db).Router().ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/healthz", nil))
+	api.Router().ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/healthz", nil))
 	var body map[string]string
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
 		t.Fatalf("body is not JSON: %v", err)

@@ -2,96 +2,93 @@ package httpapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
-	"sync"
-	"sync/atomic"
+	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 )
 
-// countingDB counts pings. If gate is set, each ping waits until it's closed.
+// countingDB counts pings and fails the first failFirst of them.
 type countingDB struct {
-	calls atomic.Int32
-	err   error
-	gate  chan struct{}
+	calls     int
+	failFirst int
 }
 
-func (c *countingDB) Ping(ctx context.Context) error {
-	c.calls.Add(1)
-	if c.gate != nil {
-		<-c.gate
+func (c *countingDB) Ping(context.Context) error {
+	c.calls++
+	if c.calls <= c.failFirst {
+		return errors.New("asleep")
 	}
-	return c.err
+	return nil
 }
 
-// newTestHealth returns a dbHealth with a clock the test moves by hand.
-func newTestHealth(db Pinger) (*dbHealth, *time.Time) {
-	now := time.Date(2026, 10, 10, 9, 0, 0, 0, time.UTC)
-	h := newDBHealth(db, logging.New(io.Discard))
-	h.now = func() time.Time { return now }
-	return h, &now
+func newTestAPI(db Pinger) *API {
+	api := New(logging.New(io.Discard), db)
+	api.health.retryWait = 0
+	return api
 }
 
-func TestHealthReusesAGoodAnswerFor30Seconds(t *testing.T) {
+func healthzDatabase(t *testing.T, api *API) string {
+	t.Helper()
+	rec := httptest.NewRecorder()
+	api.Router().ServeHTTP(rec, httptest.NewRequest("GET", "/api/v1/healthz", nil))
+	if rec.Code != 200 {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	var body map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	return body["database"]
+}
+
+func TestHealthzCallersNeverPingTheDatabase(t *testing.T) {
 	db := &countingDB{}
-	h, now := newTestHealth(db)
+	api := newTestAPI(db)
+	api.CheckDatabase(context.Background())
 
-	h.isOK(context.Background())
-	*now = now.Add(29 * time.Second)
-	h.isOK(context.Background())
-	if got := db.calls.Load(); got != 1 {
-		t.Fatalf("pings within 30s = %d, want 1", got)
+	for range 10 {
+		if got := healthzDatabase(t, api); got != "ok" {
+			t.Fatalf("database = %q, want ok", got)
+		}
 	}
-
-	*now = now.Add(2 * time.Second)
-	if !h.isOK(context.Background()) {
-		t.Error("isOK() = false, want true")
-	}
-	if got := db.calls.Load(); got != 2 {
-		t.Errorf("pings after 31s = %d, want 2", got)
+	if db.calls != 1 {
+		t.Errorf("pings = %d, want 1 (only the startup check)", db.calls)
 	}
 }
 
-func TestHealthRetriesAFailureAfter5Seconds(t *testing.T) {
-	db := &countingDB{err: errors.New("asleep")}
-	h, now := newTestHealth(db)
+func TestCheckDatabaseRetriesWhileNeonWakesUp(t *testing.T) {
+	db := &countingDB{failFirst: 2}
+	api := newTestAPI(db)
 
-	if h.isOK(context.Background()) {
-		t.Fatal("isOK() = true, want false while the database fails")
+	if !api.CheckDatabase(context.Background()) {
+		t.Fatal("CheckDatabase() = false, want true on the third try")
 	}
-	*now = now.Add(4 * time.Second)
-	h.isOK(context.Background())
-	if got := db.calls.Load(); got != 1 {
-		t.Fatalf("pings within 5s of a failure = %d, want 1", got)
-	}
-
-	db.err = nil // the database woke up
-	*now = now.Add(2 * time.Second)
-	if !h.isOK(context.Background()) {
-		t.Error("isOK() = false 6s after the failure, want a new ping that succeeds")
+	if db.calls != 3 {
+		t.Errorf("pings = %d, want 3", db.calls)
 	}
 }
 
-func TestHealthCallersShareOnePing(t *testing.T) {
-	db := &countingDB{gate: make(chan struct{})}
-	h, _ := newTestHealth(db)
+func TestCheckDatabaseGivesUpAfterThreeTries(t *testing.T) {
+	db := &countingDB{failFirst: 99}
+	api := newTestAPI(db)
 
-	var wg sync.WaitGroup
-	for range 20 {
-		wg.Go(func() { h.isOK(context.Background()) })
+	if api.CheckDatabase(context.Background()) {
+		t.Fatal("CheckDatabase() = true, want false")
 	}
-	// Let the first ping finish only once the others are queued behind it.
-	for db.calls.Load() == 0 {
-		time.Sleep(time.Millisecond)
+	if db.calls != 3 {
+		t.Errorf("pings = %d, want 3", db.calls)
 	}
-	time.Sleep(20 * time.Millisecond)
-	close(db.gate)
-	wg.Wait()
+	if got := healthzDatabase(t, api); got != "unavailable" {
+		t.Errorf("database = %q, want unavailable", got)
+	}
+}
 
-	if got := db.calls.Load(); got != 1 {
-		t.Errorf("pings for 20 parallel callers = %d, want 1", got)
+func TestHealthzBeforeTheCheckSaysUnavailable(t *testing.T) {
+	if got := healthzDatabase(t, newTestAPI(&countingDB{})); got != "unavailable" {
+		t.Errorf("database = %q, want unavailable until CheckDatabase has run", got)
 	}
 }

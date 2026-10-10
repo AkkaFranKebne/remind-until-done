@@ -3,54 +3,45 @@ package httpapi
 import (
 	"context"
 	"log/slog"
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
-// dbHealth remembers the last database ping, because /healthz is public: without
-// it, anyone calling it in a loop would keep Neon awake (using up the free plan's
-// compute) and tie up pool connections.
-//
-//   - A good answer is reused for okTTL, a failure only for failTTL, so a database
-//     that just woke up is seen quickly.
-//   - Callers arriving during a ping wait for that ping instead of starting their
-//     own, so /healthz uses at most one connection at a time.
+// dbHealth is the database answer that /healthz reports: the result of one check
+// when this instance started (CheckDatabase). /healthz is public, so its callers
+// never trigger a ping themselves; otherwise anyone could keep Neon awake and use
+// up the free plan's compute.
 type dbHealth struct {
-	db      Pinger
-	log     *slog.Logger
-	okTTL   time.Duration
-	failTTL time.Duration
-	now     func() time.Time
-
-	mu      sync.Mutex
-	checked time.Time
-	ok      bool
+	db        Pinger
+	log       *slog.Logger
+	ok        atomic.Bool
+	tries     int
+	retryWait time.Duration
 }
 
 func newDBHealth(db Pinger, log *slog.Logger) *dbHealth {
-	return &dbHealth{db: db, log: log, okTTL: 30 * time.Second, failTTL: 5 * time.Second, now: time.Now}
+	return &dbHealth{db: db, log: log, tries: 3, retryWait: 2 * time.Second}
 }
 
-func (h *dbHealth) isOK(ctx context.Context) bool {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	ttl := h.failTTL
-	if h.ok {
-		ttl = h.okTTL
+// CheckDatabase pings the database, with a few tries because a sleeping Neon
+// database needs a moment to wake up. main calls it once, before the server
+// accepts requests, so the deploy smoke test already sees the answer.
+func (a *API) CheckDatabase(ctx context.Context) bool {
+	h := a.health
+	for try := 1; try <= h.tries; try++ {
+		// Same limit as the pool's ConnectTimeout.
+		pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		err := h.db.Ping(pingCtx)
+		cancel()
+		if err == nil {
+			h.ok.Store(true)
+			return true
+		}
+		h.log.WarnContext(ctx, "database ping failed", "try", try, "err", err)
+		if try < h.tries {
+			time.Sleep(h.retryWait)
+		}
 	}
-	if !h.checked.IsZero() && h.now().Sub(h.checked) < ttl {
-		return h.ok
-	}
-
-	// Not tied to this caller's request: if they hang up, the answer still counts
-	// for everyone waiting.
-	pingCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-	defer cancel()
-	err := h.db.Ping(pingCtx)
-	if err != nil {
-		h.log.WarnContext(ctx, "database ping failed", "err", err)
-	}
-	h.ok, h.checked = err == nil, h.now()
-	return h.ok
+	h.ok.Store(false)
+	return false
 }

@@ -13,7 +13,7 @@ import (
 )
 
 // Same image (and digest) as docker-compose.yml.
-const postgresImage = "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+const postgresImage = "postgres:18.6-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873"
 
 // startDatabase starts a throwaway Postgres in Docker, applies the migrations and
 // returns an open pool. The container is removed when the test ends.

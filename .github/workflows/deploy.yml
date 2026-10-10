@@ -148,6 +148,13 @@ jobs:
           echo "$BODY"
           jq -e '.database == "ok"' <<< "$BODY" > /dev/null
 
+      # Sign-in is switched on: /me without a token must be refused.
+      - name: Smoke test sign-in (401 without a token)
+        run: |
+          STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --retry 5 --retry-all-errors "${{ vars.API_URL }}/api/v1/me")"
+          echo "GET /api/v1/me without a token: $STATUS"
+          test "$STATUS" = 401
+
       - name: Deploy the web app to Firebase Hosting
         working-directory: web
         run: npx firebase deploy --only hosting --project ${{ vars.PROJECT_ID }} --non-interactive

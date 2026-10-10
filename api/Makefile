@@ -1,6 +1,14 @@
 .PHONY: run test vet fmt build docker
 
-# Start the API on http://localhost:8080
+# Your personal local settings, not in git (.gitignore has .env.*). For example:
+#   ALLOWED_EMAILS=you@gmail.com
+-include .env.local
+export ALLOWED_EMAILS
+
+# Local sign-in uses the dev Firebase project (design doc decision 32).
+export GCP_PROJECT ?= rud-dev-4f7k2
+
+# Start the API on http://localhost:8080 (local database: make db-up migrate in the repo root)
 run:
 	go run ./cmd/api
 

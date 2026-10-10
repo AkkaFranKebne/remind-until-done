@@ -21,13 +21,13 @@ type fakeDB struct{ err error }
 func (f fakeDB) Ping(context.Context) error { return f.err }
 
 func newTestRouter(logs io.Writer) http.Handler {
-	return New(logging.New(logs), fakeDB{}).Router()
+	return New(logging.New(logs), Deps{DB: fakeDB{}}).Router()
 }
 
 // getHealthz starts an API like main does (database check first), then calls /healthz.
 func getHealthz(t *testing.T, db Pinger) (*httptest.ResponseRecorder, map[string]string) {
 	t.Helper()
-	api := New(logging.New(io.Discard), db)
+	api := New(logging.New(io.Discard), Deps{DB: db})
 	api.health.retryWait = 0
 	api.CheckDatabase(context.Background())
 	rec := httptest.NewRecorder()

@@ -80,3 +80,4 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 
 ## Review agents
 - `ui-reviewer` (`.claude/agents/ui-reviewer.md`): checks frontend changes against the UI rules in `web/AGENTS.md` and the Design Inventory. Run it on every PR that touches `web/src/`.
+- `security-reviewer` (`.claude/agents/security-reviewer.md`): checks for secrets, IAM, deploy-pipeline, auth and dependency problems. Run it on every PR that touches `infra/`, `.github/workflows/`, `docker-compose.yml`, `scripts/`, API config/auth/database code, `web/firebase.json` or dependencies.

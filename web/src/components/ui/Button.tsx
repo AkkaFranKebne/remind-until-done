@@ -1,7 +1,6 @@
 import { Button as BaseButton } from '@base-ui/react/button'
 import { Link, type LinkProps } from '@tanstack/react-router'
-import type { LucideIcon } from 'lucide-react'
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, ComponentType, ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/cn'
 import { Spinner } from './Spinner'
@@ -12,8 +11,19 @@ import { Spinner } from './Spinner'
  * - ButtonLink is a real link (TanStack <Link>), so screen readers say "link" and
  *   long-press / open-in-new-tab work. Never make a navigation a button, or the reverse.
  * Design Inventory → Components → "Done / Remind later — primary pair", "Button — loading",
- * and Phone Screens → Login "Install app" (size lg).
+ * Phone Screens → Login "Install app" (size lg) and "Continue with Google" (surface), and
+ * Settings → "Sign-out confirm" (neutral Cancel).
  */
+
+/**
+ * What fits in the icon slot: any Lucide icon, or a brand mark with the same props
+ * (GoogleIcon). Sized by the button and hidden from screen readers.
+ */
+export type ButtonIcon = ComponentType<{
+  size?: number
+  strokeWidth?: number
+  'aria-hidden'?: 'true'
+}>
 
 const buttonVariants = cva(
   [
@@ -30,6 +40,10 @@ const buttonVariants = cva(
         // Same violet in both themes: white text on the lighter dark-mode accent is unreadable.
         primary: 'bg-accent-solid text-on-solid',
         ghost: 'border-strong border-accent bg-transparent text-accent',
+        // Quiet second choice next to a primary one (Cancel in a confirm sheet).
+        neutral: 'bg-bg3 text-fg2',
+        // Card-coloured with a border: "Continue with Google" (Google's own button style).
+        surface: 'border-strong border-border bg-bg2 text-fg',
       },
       /** md: everyday buttons (48px). lg: the one hero action on a screen (52px, Install app). */
       size: {
@@ -55,7 +69,7 @@ function Content({
 }: {
   size: ButtonSize
   variant: ButtonVariant
-  icon?: LucideIcon
+  icon?: ButtonIcon
   loading?: boolean
   children: ReactNode
 }) {
@@ -84,8 +98,8 @@ function Content({
 type Shared = {
   variant?: ButtonVariant
   size?: ButtonSize
-  /** A Lucide icon before the text, e.g. icon={Download}. Sized and hidden from screen readers. */
-  icon?: LucideIcon
+  /** An icon before the text, e.g. icon={Download}. Sized and hidden from screen readers. */
+  icon?: ButtonIcon
   className?: string
   children: ReactNode
 }

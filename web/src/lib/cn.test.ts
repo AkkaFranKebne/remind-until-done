@@ -28,3 +28,10 @@ test('border-strong is a border width', () => {
 test('animate-spin-fast is an animation', () => {
   expect(cn('animate-spin', 'animate-spin-fast')).toBe('animate-spin-fast')
 })
+
+test('the sheet motions are kept next to look-alike classes', () => {
+  expect(cn('bg-scrim backdrop-blur-sm', 'backdrop-fade')).toBe(
+    'bg-scrim backdrop-blur-sm backdrop-fade',
+  )
+  expect(cn('sheet-slide', 'translate-y-0')).toBe('sheet-slide translate-y-0')
+})

@@ -6,16 +6,16 @@ Also read the root [`AGENTS.md`](../AGENTS.md). Design: design doc section 5.
 
 Run in `web/`, after `nvm use`.
 
-| Task                                               | Command                                   |
-| -------------------------------------------------- | ----------------------------------------- |
-| Dev server (proxies `/api` to the Go API on :8080) | `npm run dev`                             |
-| Lint (type-aware; any warning fails)               | `npm run lint`                            |
-| Format / check format                              | `npm run format` / `npm run format:check` |
-| Type check                                         | `npm run typecheck`                       |
-| Unit tests (Jest)                                  | `npm test`                                |
-| Production build                                   | `npm run build`                           |
-| Storybook (component catalogue) on :6006           | `npm run storybook`                       |
-| Storybook build (CI checks it)                     | `npm run build-storybook`                 |
+| Task                                                                                                                          | Command                                   |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Dev server on **https**://localhost:5173 (proxies `/api` to the Go API on :8080; first visit: accept the certificate warning) | `npm run dev`                             |
+| Lint (type-aware; any warning fails)                                                                                          | `npm run lint`                            |
+| Format / check format                                                                                                         | `npm run format` / `npm run format:check` |
+| Type check                                                                                                                    | `npm run typecheck`                       |
+| Unit tests (Jest)                                                                                                             | `npm test`                                |
+| Production build                                                                                                              | `npm run build`                           |
+| Storybook (component catalogue) on :6006                                                                                      | `npm run storybook`                       |
+| Storybook build (CI checks it)                                                                                                | `npm run build-storybook`                 |
 
 ## Rules (enforced)
 
@@ -70,7 +70,8 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     text-xs 11 · text-sm 13 · text-base 15 · text-lg 18 · text-xl 22 · text-display 72 (in rem).
     Radii: rounded-sm 6 · rounded-md 12 · rounded-lg 20 (and rounded-full).
     No one-off values in [ ] at all (border-[1.5px], tracking-[-3px], h-[844px]); only env(...)
-    for safe areas. Named extras: border-strong (1.5px), animate-spin-fast (0.7s). Spacing uses
+    for safe areas. Named extras: border-strong (1.5px), animate-spin-fast (0.7s), sheet-slide and
+    backdrop-fade (every bottom sheet and its backdrop). Spacing uses
     Tailwind's 4px scale, whole or half steps (gap-2, size-4.5); letter spacing too (tracking-tight).
     Tailwind's own text sizes and radii (text-2xl, rounded-xl) are removed. New value? Add it to
     the Inventory first, then to src/index.css."
@@ -83,7 +84,9 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
 - id: ui-icons-lucide
   status: enforced
   applies_to: 'src/**/*.tsx'
-  check: 'Icons come from lucide-react, imported one by one. No inline <svg>.'
+  check: 'Icons come from lucide-react, imported one by one. No inline <svg>. One exception:
+    third-party brand marks (the Google "G") are image files in public/, shown with <img alt="">
+    (Inventory → Icons → Brand logos).'
 
 - id: ui-base-ui-first
   status: enforced (raw elements) + advisory (choice of component)
@@ -131,6 +134,12 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   check: 'Icon-only buttons and links have aria-label. Decorative icons have aria-hidden. Focus is
     visible (focus-visible:outline-accent).'
 
+- id: ui-text-contrast
+  status: advisory
+  applies_to: 'src/**/*.tsx'
+  check: 'Small text (text-xs, text-sm) uses text-fg2 or stronger. text-fg3 only for large or
+    non-essential text: it is about 3.4:1 on bg, below WCAG AA 4.5:1 (Inventory → Tokens).'
+
 - id: ui-both-themes
   status: advisory
   applies_to: 'src/**/*.{tsx,css}'
@@ -165,13 +174,21 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
 - Folders: `src/app/` (shell, router), `src/lib/` (shared helpers, API client), `src/features/<feature>/` (pages and components per feature), `src/components/ui/` (our own components, built on Base UI).
 - Tests sit next to the code: `Thing.test.tsx`.
 - Server data: TanStack Query (from M2). API calls: generated by orval from `swagger.json` (from M2). Until then, plain `fetch` in `src/lib/api/`.
-- UI components: built on **Base UI** (`@base-ui/react`) for behaviour and accessibility (rule `ui-base-ui-first`), styled with **Tailwind 4** and our tokens. They live in `src/components/ui/`: `Button`/`ButtonLink`, `IconButton`/`IconLink`, `TopBar`, `Spinner`. **No shadcn.**
+- UI components: built on **Base UI** (`@base-ui/react`) for behaviour and accessibility (rule `ui-base-ui-first`), styled with **Tailwind 4** and our tokens. They live in `src/components/ui/`: `Button`/`ButtonLink`, `IconButton`/`IconLink`, `TopBar`, `Spinner`, `Wordmark`, `ConfirmSheet`, `CenteredScreen` (Login, Splash, 404, Offline, iOS gate), `PageHeader` (‹ Back + title). **No shadcn.** Signed-in pages render inside `AppLayout` (`src/app/`: TopBar + content); pages draw only their content.
 - Variants (size, tone, look) use **cva** (`class-variance-authority`): one `thingVariants = cva(base, { variants })`, and the prop types come from `VariantProps`. No hand-built `if`/`join(' ')` class strings.
 - Combine classes with **`cn()`** (`src/lib/cn.ts`: clsx + tailwind-merge). A `className` passed from outside wins over the component's own class (`px-5` + `px-6` → `px-6`).
 - Every custom utility in `src/index.css` (`text-*` sizes, `border-*` widths, `animate-*`) is registered in `src/lib/cn.ts`, with a case in `cn.test.ts`. tailwind-merge only knows Tailwind's built-in names: unregistered, `cn('text-display', 'text-accent')` keeps only `text-accent`.
 - Design tokens: `src/index.css` (copied from the Inventory). Font: Inter, self-hosted (`@fontsource-variable/inter`). Icons: `lucide-react`.
 - Routing: **TanStack Router**, routes defined in code in `src/app/router.tsx` (no generated route files). Add a page with the `page(parent, path, Component)` helper. Links are type-checked: `<Link to="/r/$id" params={{ id }}>`; `router.test.tsx` guards this with a type-check test.
 - Components with `<Link>` need a router in tests and stories: wrap them in `WithRouter` (`src/test-utils/withRouter.tsx`).
+- Sign-in (`src/features/auth/`):
+  - `useAuth()` gives `state` (`checking`, `signedOut`, `notInvited`, `signedIn` with `me`), `signIn()` and `signOut()`. `AuthProvider` sits above the router (`App.tsx`).
+  - The app talks to Firebase only through the `AuthClient` interface (`src/lib/authClient.ts`); the real one is `src/lib/firebase.ts`. Tests use `FakeAuthClient` (`src/test-utils/fakeAuthClient.ts`), never Firebase.
+  - Signed-in pages are behind `RequireAuth` (the `app` route). After sign-in, `/login?next=` sends people back; `safeNext()` only allows paths inside the app.
+  - Firebase web settings come from Hosting's `/__/firebase/init.json` (one build for dev and prod). Locally Vite forwards `/__` to the dev site.
+  - The dev server is https (Vite basic-ssl plugin): Firebase always returns from Google sign-in to `https://<host>`. Storybook runs its own server and stays on plain http.
+- API calls: `src/lib/api/client.ts` (`getMe`, `updateMe`) checks the shape of every answer. Tests swap the server with `setHttp()`. Page tests: `renderApp(path, client)` + `mockMe()` (`src/test-utils/renderApp.tsx`).
+- Navigating from code (`useNavigate`) happens in an event handler or an effect, never during render: TanStack's `<Navigate>` in a page that is being left can fire again and loop.
 - The app is mobile-first and supports light and dark mode (follows the phone's setting).
 
 ## Never

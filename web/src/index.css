@@ -23,6 +23,7 @@
   --on-solid: #ffffff; /* text and icons on accent-solid */
   --on-grad: #6d28d9; /* logo and icons on gradient screens */
   --on-grad-fg2: #5a5850; /* secondary text on gradient screens */
+  --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
 
   /* Status, error and nag tints: the same in both themes (hue carries meaning). */
   --tag-pending: #fff3cd;
@@ -135,6 +136,36 @@
   border-width: 1.5px;
 }
 
+/* Inventory → Motion 1 "Bottom sheet open / close": every bottom sheet slides up from
+   below and its backdrop fades, over --duration-base with --easing-std. Base UI marks
+   the opening and closing moments with data-starting-style / data-ending-style (and
+   waits for the transition before removing the sheet). Reduced motion: no movement. */
+@utility sheet-slide {
+  transition-property: translate;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--easing-std);
+  &[data-starting-style],
+  &[data-ending-style] {
+    translate: 0 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility backdrop-fade {
+  transition-property: opacity;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--easing-std);
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
 /* ── Tailwind names for the colour tokens: bg-bg2, text-fg2, text-accent, border-border ...
    inline: the class points straight at var(--accent), so it follows the dark theme. ── */
 @theme inline {
@@ -154,6 +185,7 @@
   --color-on-solid: var(--on-solid);
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
+  --color-scrim: var(--scrim);
   --color-waiting-row-bg: var(--waiting-row-bg);
   --color-tag-shared: var(--tag-shared);
   --color-tag-shared-fg: var(--tag-shared-fg);

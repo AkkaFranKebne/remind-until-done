@@ -9,11 +9,14 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	_ "time/tzdata" // time zone names (Europe/Stockholm) built into the binary, so they work in any run image
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/config"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/db"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/httpapi"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
 func main() {
@@ -32,9 +35,20 @@ func main() {
 	}
 	defer pool.Close()
 
+	tokens, err := auth.NewFirebase(context.Background(), cfg.GCPProject)
+	if err != nil {
+		log.Error("firebase", "err", err)
+		os.Exit(1)
+	}
+	invited := auth.NewAllowlist(cfg.AllowedEmails)
+	if invited.Len() == 0 {
+		log.Warn("ALLOWED_EMAILS is empty: nobody can sign in")
+	}
+
+	api := httpapi.New(log, httpapi.Deps{DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Invited: invited})
+
 	// Check the database once, before taking requests (/healthz reports this result).
 	// The API starts either way: routes that don't need the database keep working.
-	api := httpapi.New(log, pool)
 	if api.CheckDatabase(context.Background()) {
 		log.Info("database ok")
 	}
@@ -50,7 +64,7 @@ func main() {
 	defer stop()
 
 	go func() {
-		log.Info("listening", "port", cfg.Port, "env", cfg.Env)
+		log.Info("listening", "port", cfg.Port, "env", cfg.Env, "firebase_project", cfg.GCPProject, "invited", invited.Len())
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Error("server stopped", "err", err)
 			os.Exit(1)

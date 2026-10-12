@@ -26,7 +26,7 @@ func (c *countingDB) Ping(context.Context) error {
 }
 
 func newTestAPI(db Pinger) *API {
-	api := New(logging.New(io.Discard), db)
+	api := New(logging.New(io.Discard), Deps{DB: db})
 	api.health.retryWait = 0
 	return api
 }

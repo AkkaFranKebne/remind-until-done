@@ -1,9 +1,8 @@
 // Package config reads the API settings from environment variables.
 //
 // Terraform (infra/cloud_run.tf) sets these on Cloud Run. Locally, the
-// defaults are enough to run the server against the docker-compose database.
-// More settings (ALLOWED_EMAILS, ...) are added here as the features that need
-// them land.
+// api/Makefile sets GCP_PROJECT and reads ALLOWED_EMAILS from api/.env.local.
+// More settings are added here as the features that need them land.
 package config
 
 import (
@@ -16,16 +15,20 @@ import (
 const LocalDatabaseURL = "postgres://rud:rud@localhost:5432/rud?sslmode=disable"
 
 type Config struct {
-	Env         string // local, dev or prod
-	Port        string // Cloud Run injects PORT; the server must listen on it
-	DatabaseURL string // secret: never log it
+	Env           string // local, dev or prod
+	Port          string // Cloud Run injects PORT; the server must listen on it
+	DatabaseURL   string // secret: never log it
+	GCPProject    string // Firebase project whose sign-in tokens are accepted
+	AllowedEmails string // invite list, comma-separated (secret); empty = nobody
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		Env:         getenv("ENV", "local"),
-		Port:        getenv("PORT", "8080"),
-		DatabaseURL: os.Getenv("DATABASE_URL"),
+		Env:           getenv("ENV", "local"),
+		Port:          getenv("PORT", "8080"),
+		DatabaseURL:   os.Getenv("DATABASE_URL"),
+		GCPProject:    os.Getenv("GCP_PROJECT"),
+		AllowedEmails: os.Getenv("ALLOWED_EMAILS"),
 	}
 	switch cfg.Env {
 	case "local", "dev", "prod":
@@ -39,6 +42,13 @@ func Load() (Config, error) {
 			return Config{}, errors.New("DATABASE_URL is required when ENV is dev or prod")
 		}
 		cfg.DatabaseURL = LocalDatabaseURL
+	}
+	// The Firebase SDK skips the token signature check when this is set.
+	if os.Getenv("FIREBASE_AUTH_EMULATOR_HOST") != "" && cfg.Env != "local" {
+		return Config{}, errors.New("FIREBASE_AUTH_EMULATOR_HOST must never be set in dev or prod")
+	}
+	if cfg.GCPProject == "" {
+		return Config{}, errors.New("GCP_PROJECT is required (locally, make run sets the dev project)")
 	}
 	return cfg, nil
 }

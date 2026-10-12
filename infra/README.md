@@ -59,6 +59,17 @@ Copy the `wif_provider` and `deployer_sa_email` outputs into GitHub environment
 variables `WIF_PROVIDER` and `DEPLOYER_SA`. Terraform is applied manually from a
 laptop in v1; the CI identity cannot change infrastructure.
 
+## Add or remove a tester (invite list)
+The list is the `allowed-emails` secret (comma-separated Google emails). The API
+reads it when an instance starts, so a change needs a new revision.
+```
+printf '%s' "$ALLOWED_EMAILS" | gcloud secrets versions add allowed-emails --data-file=- --project=rud-dev-4f7k2
+```
+Then redeploy (re-run the latest `deploy` workflow), or wait until Cloud Run starts new instances.
+
+Removing someone: also disable their user in the Firebase console (Authentication → Users).
+Their sign-in stays valid for up to 1 hour after that, until it expires.
+
 ## Notes
 - The Cloud Run service allows unauthenticated invocation, because the browser reaches it through the Firebase Hosting rewrite. `/internal/*` is protected in the Go app by verifying the OIDC token (audience = service URL, email = invoker SA).
 - `service_url` uses Cloud Run's predictable URL, `https://rud-api-<project number>.<region>.run.app`, so it's known before the first apply (`gcloud projects describe <project-id> --format='value(projectNumber)'`).

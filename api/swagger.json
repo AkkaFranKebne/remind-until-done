@@ -1,0 +1,916 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "RUD API",
+    "version": "1.0.0",
+    "description": "RUD (Remind Until Done) API. Internal endpoints (/internal/tasks/fire, /internal/sweep) are called by Cloud Tasks and Cloud Scheduler with OIDC tokens and are intentionally excluded from this client contract. The app is invite-only: any authenticated endpoint answers 403 (code not_invited) for a Google account that is not on the allowlist."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Same origin via Firebase Hosting rewrite"
+    }
+  ],
+  "security": [
+    {
+      "firebaseIdToken": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "system"
+    },
+    {
+      "name": "user"
+    },
+    {
+      "name": "reminders"
+    },
+    {
+      "name": "devices"
+    },
+    {
+      "name": "actions"
+    }
+  ],
+  "paths": {
+    "/healthz": {
+      "get": {
+        "operationId": "getHealth",
+        "tags": [
+          "system"
+        ],
+        "summary": "Liveness check",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "database": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "unavailable"
+                      ],
+                      "description": "Whether Postgres answered when this instance started (callers never trigger a check). Always 200 either way (liveness); the deploy smoke test requires ok."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "getMe",
+        "tags": [
+          "user"
+        ],
+        "summary": "Current user and settings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/NotInvited"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateMe",
+        "tags": [
+          "user"
+        ],
+        "summary": "Update timezone and defaults",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/NotInvited"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteMe",
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete the account: user row (cascades to reminders, devices, events) then the Firebase user. Idempotent.",
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/reminders": {
+      "get": {
+        "operationId": "listReminders",
+        "tags": [
+          "reminders"
+        ],
+        "summary": "List reminders (paginated)",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "upcoming",
+                "done"
+              ],
+              "default": "upcoming"
+            },
+            "description": "upcoming = not done (waiting, nagging or overdue); done = done"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque cursor from the previous page"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReminderList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createReminder",
+        "tags": [
+          "reminders"
+        ],
+        "summary": "Create a reminder and schedule its task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReminder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "description": "Could not schedule the reminder task; nothing was saved or retry is safe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/LimitReached"
+          }
+        }
+      }
+    },
+    "/reminders/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getReminder",
+        "tags": [
+          "reminders"
+        ],
+        "summary": "Fetch one reminder",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateReminder",
+        "tags": [
+          "reminders"
+        ],
+        "summary": "Edit a reminder (moving dueAt restarts the cycle and reschedules; rescheduling a done reminder counts as active again)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReminder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "503": {
+            "description": "Could not reschedule the reminder task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/LimitReached"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteReminder",
+        "tags": [
+          "reminders"
+        ],
+        "summary": "Delete a reminder",
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/reminders/{id}/done": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "markReminderDone",
+        "tags": [
+          "reminders"
+        ],
+        "summary": "Mark done (idempotent)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/devices": {
+      "get": {
+        "operationId": "listDevices",
+        "tags": [
+          "devices"
+        ],
+        "summary": "Get the registered push device (0 or 1 items; one device per user)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Device"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "registerDevice",
+        "tags": [
+          "devices"
+        ],
+        "summary": "Register this device. Replaces any previously registered device of the user (one device per user)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDevice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/devices/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "delete": {
+        "operationId": "deleteDevice",
+        "tags": [
+          "devices"
+        ],
+        "summary": "Unregister a device",
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/actions/{token}": {
+      "parameters": [
+        {
+          "name": "token",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Short-lived signed token issued in the push payload; encodes reminder and action (done)"
+        }
+      ],
+      "post": {
+        "operationId": "applyAction",
+        "tags": [
+          "actions"
+        ],
+        "summary": "Apply Done from a notification button without a Firebase token (idempotent)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "reminderId",
+                    "status"
+                  ],
+                  "properties": {
+                    "reminderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ReminderStatus"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "description": "Token invalid, expired, or superseded by an edit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "firebaseIdToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Firebase ID token (JWT)"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "validation_failed"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ReminderStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "sending",
+          "sent",
+          "done"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "timezone",
+          "defaultTimeOfDay",
+          "defaultNagIntervalMin"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA name",
+            "example": "Europe/Stockholm"
+          },
+          "defaultTimeOfDay": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "example": "09:00"
+          },
+          "defaultNagIntervalMin": {
+            "type": "integer",
+            "minimum": 15,
+            "maximum": 1440,
+            "example": 60,
+            "description": "Minutes between repeated pushes until the reminder is done"
+          }
+        }
+      },
+      "UpdateUser": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string"
+          },
+          "defaultTimeOfDay": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "defaultNagIntervalMin": {
+            "type": "integer",
+            "minimum": 15,
+            "maximum": 1440
+          }
+        }
+      },
+      "Reminder": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "dueAt",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "nagIntervalMin",
+          "nagCount",
+          "nagsExhausted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "dueAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC instant"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReminderStatus"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "doneAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nagIntervalMin": {
+            "type": "integer",
+            "minimum": 15,
+            "maximum": 1440,
+            "description": "Minutes between repeated pushes until done"
+          },
+          "nagCount": {
+            "type": "integer",
+            "description": "Pushes sent so far in the current cycle (max 12)"
+          },
+          "nagsExhausted": {
+            "type": "boolean",
+            "description": "True when the maximum number of pushes was sent without a Done; the app shows it as Overdue"
+          }
+        }
+      },
+      "CreateReminder": {
+        "type": "object",
+        "required": [
+          "title",
+          "dueAt"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "dueAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC instant, at most 1 year ahead"
+          },
+          "nagIntervalMin": {
+            "type": "integer",
+            "minimum": 15,
+            "maximum": 1440,
+            "description": "Defaults to the user's defaultNagIntervalMin"
+          }
+        }
+      },
+      "UpdateReminder": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "dueAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nagIntervalMin": {
+            "type": "integer",
+            "minimum": 15,
+            "maximum": 1440
+          }
+        }
+      },
+      "ReminderList": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reminder"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Platform": {
+        "type": "string",
+        "enum": [
+          "ios",
+          "android",
+          "web"
+        ]
+      },
+      "Device": {
+        "type": "object",
+        "required": [
+          "id",
+          "platform",
+          "createdAt",
+          "lastSeenAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RegisterDevice": {
+        "type": "object",
+        "required": [
+          "fcmToken",
+          "platform"
+        ],
+        "properties": {
+          "fcmToken": {
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          }
+        },
+        "description": "Registering a new device replaces the previous one."
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid Firebase ID token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found (or not owned by the caller)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "LimitReached": {
+        "description": "Limit reached: at most 5 active (not done) reminders per user, code limit_reached",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotInvited": {
+        "description": "Signed in with Google, but the email is not on the invite list (code not_invited)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

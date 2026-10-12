@@ -1,70 +1,16 @@
-package db
+package db_test
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"slices"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/db"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
 )
 
-// Same image (and digest) as docker-compose.yml.
-const postgresImage = "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
-
-// startDatabase starts a throwaway Postgres in Docker, applies the migrations and
-// returns an open pool. The container is removed when the test ends.
-func startDatabase(t *testing.T) *pgxpool.Pool {
-	t.Helper()
-	ctx := context.Background()
-
-	ctr, err := postgres.Run(ctx, postgresImage,
-		postgres.WithDatabase("rud"),
-		postgres.BasicWaitStrategies(),
-	)
-	testcontainers.CleanupContainer(t, ctr)
-	if err != nil {
-		t.Fatalf("start Postgres (is Docker running?): %v", err)
-	}
-	url, err := ctr.ConnectionString(ctx, "sslmode=disable")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	pool, err := Open(ctx, url)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(pool.Close)
-	applyMigrations(t, pool)
-	return pool
-}
-
-// applyMigrations runs api/db/migrations/V*.sql in order, like Flyway does.
-// (CI also runs the real Flyway against these files.)
-func applyMigrations(t *testing.T, pool *pgxpool.Pool) {
-	t.Helper()
-	files, err := filepath.Glob("../../db/migrations/V*.sql")
-	if err != nil || len(files) == 0 {
-		t.Fatalf("no migrations found: %v", err)
-	}
-	slices.Sort(files) // fine while there are fewer than 10; Flyway sorts by version number
-	for _, f := range files {
-		sql, err := os.ReadFile(f)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if _, err := pool.Exec(context.Background(), string(sql)); err != nil {
-			t.Fatalf("%s: %v", filepath.Base(f), err)
-		}
-	}
-}
-
 func TestOpenRejectsBadURLWithoutLeakingIt(t *testing.T) {
-	_, err := Open(context.Background(), "postgres://user:s3cret@host:notaport/rud")
+	_, err := db.Open(context.Background(), "postgres://user:s3cret@host:notaport/rud")
 	if err == nil {
 		t.Fatal("Open() error = nil, want an error for a bad URL")
 	}
@@ -74,7 +20,7 @@ func TestOpenRejectsBadURLWithoutLeakingIt(t *testing.T) {
 }
 
 func TestMigrationsCreateTheSchema(t *testing.T) {
-	pool := startDatabase(t)
+	pool := dbtest.Start(t)
 	ctx := context.Background()
 
 	if err := pool.Ping(ctx); err != nil {
@@ -101,7 +47,7 @@ func TestMigrationsCreateTheSchema(t *testing.T) {
 }
 
 func TestUserDefaultsAndChecks(t *testing.T) {
-	pool := startDatabase(t)
+	pool := dbtest.Start(t)
 	ctx := context.Background()
 
 	var interval int

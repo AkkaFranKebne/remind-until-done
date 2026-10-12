@@ -1,3 +1,7 @@
+// Same time zone on every machine (CI runs in UTC): a test must not pass on one laptop
+// and fail on another. Tests that need another zone mock it.
+process.env.TZ = 'UTC'
+
 /** @type {import('jest').Config} */
 export default {
   testEnvironment: 'jest-fixed-jsdom',

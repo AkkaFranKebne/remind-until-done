@@ -4,7 +4,6 @@ import { http, HttpResponse, type JsonBodyType } from 'msw'
 import { createAppRouter } from '../app/router'
 import { AuthProvider } from '../features/auth/AuthProvider'
 import type { User } from '../lib/api/generated/model'
-import { getGetMeMockHandler } from '../lib/api/generated/user/user.msw'
 import { server } from '../mocks/server'
 import type { FakeAuthClient } from './fakeAuthClient'
 import { TestQueryProvider } from './TestQueryProvider'
@@ -17,12 +16,20 @@ export const testMe: User = {
   defaultNagIntervalMin: 60,
 }
 
-/** The fake API (MSW) answers GET /api/v1/me with `status` and `body` (default: testMe). */
+/**
+ * The fake API (MSW) answers GET /api/v1/me with `status` and `body` (default: testMe).
+ * PATCH /api/v1/me (the time zone update) answers with that user plus the changes.
+ */
 export function mockMe(status = 200, body: JsonBodyType = testMe) {
   server.use(
-    status === 200 && body === testMe
-      ? getGetMeMockHandler(testMe)
-      : http.get('*/api/v1/me', () => HttpResponse.json(body, { status })),
+    http.get('*/api/v1/me', () => HttpResponse.json(body, { status })),
+    http.patch('*/api/v1/me', async ({ request }) => {
+      const changes: unknown = await request.json()
+      const base = typeof body === 'object' && body !== null ? body : {}
+      const merged =
+        typeof changes === 'object' && changes !== null ? { ...base, ...changes } : base
+      return HttpResponse.json(merged)
+    }),
   )
 }
 

@@ -1,5 +1,4 @@
 import { createContext, useContext } from 'react'
-import type { Me } from '../../lib/api/client'
 import type { AuthUser } from '../../lib/authClient'
 
 /**
@@ -8,13 +7,13 @@ import type { AuthUser } from '../../lib/authClient'
  *   checking   Firebase is still restoring the session (show the splash screen)
  *   signedOut  nobody, or sign-in failed (`error` says why)
  *   notInvited signed in with Google, but not on the invite list: we signed them out
- *   signedIn   `me` is the API's user (GET /api/v1/me)
+ *   signedIn   the API knows them; their settings (GET /me) come from useMe()
  */
 export type AuthState =
   | { status: 'checking' }
   | { status: 'signedOut'; error?: string }
   | { status: 'notInvited'; email: string | null }
-  | { status: 'signedIn'; me: Me; user: AuthUser }
+  | { status: 'signedIn'; user: AuthUser }
 
 export type AuthContextValue = {
   state: AuthState

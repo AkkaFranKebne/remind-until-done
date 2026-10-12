@@ -48,6 +48,17 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # orval's output must be what api/swagger.json gives today: someone changed the
+      # contract without regenerating, or edited a generated file by hand.
+      - name: Generated API code matches api/swagger.json
+        run: |
+          npm run api:generate
+          if [ -n "$(git status --porcelain -- src/lib/api/generated)" ]; then
+            git status --short -- src/lib/api/generated
+            git diff -- src/lib/api/generated
+            echo "::error::src/lib/api/generated is out of date. Run 'npm run api:generate' in web/ and commit."
+            exit 1
+          fi
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck

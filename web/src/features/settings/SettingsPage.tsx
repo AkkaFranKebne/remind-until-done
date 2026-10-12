@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { useAuth } from '../auth/useAuth'
+import { useMe } from '../auth/useMe'
 
 /**
  * /settings. M1 has the Account section only; notifications and preferences come
@@ -13,14 +14,16 @@ import { useAuth } from '../auth/useAuth'
  */
 export function SettingsPage() {
   const { state, signOut } = useAuth()
+  const me = useMe()
   const navigate = useNavigate()
   const [confirming, setConfirming] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
   // RequireAuth only shows this page when signed in.
   if (state.status !== 'signedIn') return null
-  const { me, user } = state
-  const name = user.name ?? me.email
+  const { user } = state
+  const email = me?.email ?? user.email ?? ''
+  const name = user.name ?? email
 
   const confirmSignOut = async () => {
     setSigningOut(true)
@@ -48,7 +51,7 @@ export function SettingsPage() {
           </span>
           <div className="min-w-0">
             <p className="truncate text-base font-semibold">{name}</p>
-            <p className="truncate text-sm text-fg2">{me.email}</p>
+            <p className="truncate text-sm text-fg2">{email}</p>
           </div>
         </div>
         <BaseButton

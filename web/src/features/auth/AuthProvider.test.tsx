@@ -1,10 +1,14 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { setHttp, type Me } from '../../lib/api/client'
+import { http, HttpResponse, type JsonBodyType } from 'msw'
+import type { User } from '../../lib/api/generated/model'
+import { server } from '../../mocks/server'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
+import { TestQueryProvider } from '../../test-utils/TestQueryProvider'
 import { AuthProvider } from './AuthProvider'
 import { useAuth } from './useAuth'
+import { useMe } from './useMe'
 
-const me: Me = {
+const me: User = {
   id: 'u1',
   email: 'tester@example.com',
   timezone: 'UTC',
@@ -15,32 +19,36 @@ const me: Me = {
 type Call = { path: string; method: string; auth: string | null; body: unknown }
 let calls: Call[]
 
-/** Fake API: GET /me answers `getMe`, PATCH /me echoes the new time zone. */
-function mockApi(getMe: { status: number; body: unknown }) {
+/** Fake API (MSW): GET /me answers `getMe`, PATCH /me echoes the new time zone. */
+function mockApi(getMe: { status: number; body: JsonBodyType }) {
   calls = []
-  setHttp((url, init) => {
-    const body: unknown = typeof init.body === 'string' ? JSON.parse(init.body) : undefined
-    const auth = new Headers(init.headers).get('Authorization')
-    calls.push({ path: url, method: init.method ?? 'GET', auth, body })
-    const tz = typeof body === 'object' && body !== null ? Reflect.get(body, 'timezone') : undefined
-    const res =
-      init.method === 'PATCH'
-        ? { status: 200, body: { ...me, timezone: typeof tz === 'string' ? tz : me.timezone } }
-        : getMe
-    return Promise.resolve({
-      ok: res.status < 400,
-      status: res.status,
-      json: () => Promise.resolve(res.body),
-    })
-  })
+  const record = async (request: Request) => {
+    const body: unknown = request.method === 'PATCH' ? await request.clone().json() : undefined
+    const path = new URL(request.url).pathname
+    calls.push({ path, method: request.method, auth: request.headers.get('Authorization'), body })
+    return body
+  }
+  server.use(
+    http.get('*/api/v1/me', async ({ request }) => {
+      await record(request)
+      return HttpResponse.json(getMe.body, { status: getMe.status })
+    }),
+    http.patch('*/api/v1/me', async ({ request }) => {
+      const body = await record(request)
+      const tz =
+        typeof body === 'object' && body !== null ? Reflect.get(body, 'timezone') : undefined
+      return HttpResponse.json({ ...me, timezone: typeof tz === 'string' ? tz : me.timezone })
+    }),
+  )
 }
 
 function Show() {
   const { state } = useAuth()
+  const user = useMe()
   return (
     <p>
       {state.status}
-      {state.status === 'signedIn' ? ` ${state.me.timezone}` : ''}
+      {state.status === 'signedIn' && user ? ` ${user.timezone}` : ''}
       {state.status === 'notInvited' ? ` ${state.email}` : ''}
       {state.status === 'signedOut' && state.error ? ` error: ${state.error}` : ''}
     </p>
@@ -49,9 +57,11 @@ function Show() {
 
 function renderAuth(client: FakeAuthClient) {
   return render(
-    <AuthProvider client={client}>
-      <Show />
-    </AuthProvider>,
+    <TestQueryProvider>
+      <AuthProvider client={client}>
+        <Show />
+      </AuthProvider>
+    </TestQueryProvider>,
   )
 }
 
@@ -124,7 +134,7 @@ describe('AuthProvider', () => {
   })
 
   it('offline: shows the connection message but keeps the Firebase session', async () => {
-    setHttp(() => Promise.reject(new TypeError('Failed to fetch')))
+    server.use(http.get('*/api/v1/me', () => HttpResponse.error()))
     const client = new FakeAuthClient(tester)
     renderAuth(client)
 
@@ -138,6 +148,30 @@ describe('AuthProvider', () => {
     renderAuth(client)
 
     expect(await screen.findByText(/^signedOut error: Sign-in failed/)).toBeInTheDocument()
+  })
+
+  it('sign-out clears the cache: the next sign-in asks the API again', async () => {
+    mockApi({ status: 200, body: { ...me, timezone: 'Europe/Stockholm' } })
+    const client = new FakeAuthClient(tester)
+    renderAuth(client)
+    await screen.findByText('signedIn Europe/Stockholm')
+
+    act(() => client.emit(null))
+    act(() => client.emit(tester))
+
+    await screen.findByText('signedIn Europe/Stockholm')
+    expect(calls.map((c) => c.method)).toEqual(['GET', 'GET'])
+  })
+
+  it('another user right after the first (no sign-out between): asks the API again', async () => {
+    mockApi({ status: 200, body: { ...me, timezone: 'Europe/Stockholm' } })
+    const client = new FakeAuthClient(tester)
+    renderAuth(client)
+    await screen.findByText('signedIn Europe/Stockholm')
+
+    act(() => client.emit({ email: 'other@example.com', name: 'Otto' }))
+
+    await waitFor(() => expect(calls.map((c) => c.method)).toEqual(['GET', 'GET']))
   })
 
   it('follows Firebase when the user signs out later', async () => {

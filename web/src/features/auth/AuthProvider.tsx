@@ -1,20 +1,20 @@
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ApiError, getMe, updateMe } from '../../lib/api/client'
+import { ApiError, setTokenSource } from '../../lib/api/mutator'
 import type { AuthClient, AuthUser } from '../../lib/authClient'
 import { AuthContext, type AuthContextValue, type AuthState } from './useAuth'
+import { meQueryOptions } from './useMe'
 
 const SIGN_IN_FAILED = 'Sign-in failed. Check your connection and try again.'
 
-/** The phone's time zone, e.g. "Europe/Stockholm". */
-function deviceTimezone(): string | undefined {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined
-}
-
 export function AuthProvider({ client, children }: { client: AuthClient; children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'checking' })
+  const queryClient = useQueryClient()
 
   // Sync with Firebase (outside React): its "user changed" events drive the state.
   useEffect(() => {
+    // Every API call (lib/api/mutator.ts) asks the sign-in client for a fresh token.
+    setTokenSource(() => client.getToken())
     let current = 0 // ignore answers to older events (fast sign-in, sign-out, sign-in)
 
     // Coming back from Google with a failed sign-in: show why on the login page.
@@ -27,6 +27,9 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
 
     const stop = client.onUserChange((user) => {
       const run = ++current
+      // A different person (or nobody): drop all cached server data, so one user never
+      // sees another's (design doc 5.7). Firebase only reports sign-in and sign-out here.
+      queryClient.clear()
       if (!user) {
         // Our own sign-out after "not invited" or a failed /me: keep that screen and its message.
         setState((prev) =>
@@ -36,7 +39,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
         )
         return
       }
-      void loadMe(client, user).then(({ next, signOut }) => {
+      void loadMe(queryClient, user).then(({ next, signOut }) => {
         if (run !== current) return
         setState(next) // first show the result ...
         // ... then sign out (that event keeps this state). A failed sign-out changes nothing.
@@ -47,7 +50,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
       current = -1
       stop()
     }
-  }, [client])
+  }, [client, queryClient])
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -68,23 +71,16 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
 }
 
 /**
- * After Firebase sign-in: ask the API who we are, and keep the time zone current.
+ * After Firebase sign-in: ask the API who we are (GET /me, kept in the query cache).
  * `signOut`: the Firebase session must end (not invited, or the API refused us).
  */
 async function loadMe(
-  client: AuthClient,
+  queryClient: QueryClient,
   user: AuthUser,
 ): Promise<{ next: AuthState; signOut: boolean }> {
   try {
-    const token = await client.getToken()
-    let me = await getMe(token)
-
-    // Design doc 5.6: the server keeps the user's time zone; the phone knows the real one.
-    const tz = deviceTimezone()
-    if (tz && tz !== me.timezone) {
-      me = await updateMe({ timezone: tz }, token).catch(() => me)
-    }
-    return { next: { status: 'signedIn', me, user }, signOut: false }
+    await queryClient.fetchQuery(meQueryOptions())
+    return { next: { status: 'signedIn', user }, signOut: false }
   } catch (e) {
     if (e instanceof ApiError && e.code === 'not_invited') {
       return { next: { status: 'notInvited', email: user.email }, signOut: true }

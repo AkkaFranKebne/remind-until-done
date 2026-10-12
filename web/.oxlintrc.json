@@ -63,7 +63,7 @@
       }
     ]
   },
-  "ignorePatterns": ["coverage", "dist", "storybook-static"],
+  "ignorePatterns": ["coverage", "dist", "storybook-static", "src/lib/api/generated"],
   "overrides": [
     {
       "files": [

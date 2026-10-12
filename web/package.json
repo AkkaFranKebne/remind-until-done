@@ -12,6 +12,7 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "preview": "vite preview",
+    "api:generate": "orval --config orval.config.ts",
     "prepare": "cd .. && husky web/.husky",
     "storybook": "storybook dev -p 6006 --host localhost",
     "build-storybook": "storybook build -o storybook-static"
@@ -19,6 +20,7 @@
   "dependencies": {
     "@base-ui/react": "^1.9.0",
     "@fontsource-variable/inter": "^5.3.0",
+    "@tanstack/react-query": "5.104.1",
     "@tanstack/react-router": "^1.170.41",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -29,6 +31,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
     "@storybook/addon-a11y": "^10.6.1",
     "@storybook/addon-docs": "^10.6.1",
     "@storybook/addon-mcp": "10.6.1",
@@ -47,7 +50,10 @@
     "husky": "^9.1.7",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
+    "jest-fixed-jsdom": "^0.0.11",
     "lint-staged": "^17.6.0",
+    "msw": "^2.15.0",
+    "orval": "^8.41.0",
     "oxlint": "^1.81.0",
     "oxlint-tsgolint": "^7.0.2003",
     "prettier": "^3.9.9",

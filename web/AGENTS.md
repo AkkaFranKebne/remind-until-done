@@ -14,7 +14,7 @@ Run in `web/`, after `nvm use`.
 | Type check                                                                                                                    | `npm run typecheck`                       |
 | Unit tests (Jest)                                                                                                             | `npm test`                                |
 | Production build                                                                                                              | `npm run build`                           |
-| Storybook (component catalogue) on :6006                                                                                      | `npm run storybook`                       |
+| Storybook (component catalogue) on localhost:6006, also the agents' `storybook` MCP server (`/mcp`)                           | `npm run storybook`                       |
 | Storybook build (CI checks it)                                                                                                | `npm run build-storybook`                 |
 
 ## Rules (enforced)
@@ -180,6 +180,8 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
 - Every custom utility in `src/index.css` (`text-*` sizes, `border-*` widths, `animate-*`) is registered in `src/lib/cn.ts`, with a case in `cn.test.ts`. tailwind-merge only knows Tailwind's built-in names: unregistered, `cn('text-display', 'text-accent')` keeps only `text-accent`.
 - Design tokens: `src/index.css` (copied from the Inventory). Font: Inter, self-hosted (`@fontsource-variable/inter`). Icons: `lucide-react`.
 - Routing: **TanStack Router**, routes defined in code in `src/app/router.tsx` (no generated route files). Add a page with the `page(parent, path, Component)` helper. Links are type-checked: `<Link to="/r/$id" params={{ id }}>`; `router.test.tsx` guards this with a type-check test.
+- Storybook listens on localhost only (`--host localhost`): never `--host 0.0.0.0` or `allowedHosts: true`, or the agents' `/mcp` endpoint is reachable from the network.
+- Before building UI, ask the `storybook` MCP server what exists (`docs-list`, then `docs-show` for props). It only reports documented props: a prop that isn't there doesn't exist. Doc comments on components become its descriptions, so keep them accurate.
 - Components with `<Link>` need a router in tests and stories: wrap them in `WithRouter` (`src/test-utils/withRouter.tsx`).
 - Sign-in (`src/features/auth/`):
   - `useAuth()` gives `state` (`checking`, `signedOut`, `notInvited`, `signedIn` with `me`), `signIn()` and `signOut()`. `AuthProvider` sits above the router (`App.tsx`).

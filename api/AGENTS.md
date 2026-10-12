@@ -22,6 +22,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 - Routes are listed once in `API.routes()` (`internal/httpapi/router.go`). Every route except `/healthz` is wrapped in `requireUser` (401 without a valid token, 403 `not_invited` if not on the invite list). Every route must be in `swagger.json`: `router_contract_test.go` fails otherwise.
 - The invite list (`ALLOWED_EMAILS`) works the same everywhere: listed and verified emails only; empty = nobody (design doc decision 31). Locally, put your Gmail in `api/.env.local` (`ALLOWED_EMAILS=you@gmail.com`; git-ignored).
 - Errors use one JSON shape: `{"error":{"code":"...","message":"..."}}` (`writeError` in `internal/httpapi/errors.go`).
+- Every answer (errors too) gets `Cache-Control: no-store` and `X-Content-Type-Options: nosniff` from `apiHeaders` (`internal/httpapi/middleware_headers.go`). Answers are per user, so no phone or CDN may keep a copy. Don't override it in a handler.
 - Logs: structured JSON through the logger from `internal/logging` (Cloud Logging reads `severity` and `message`).
 - Settings come from env vars in `internal/config`. Terraform sets them on Cloud Run (`infra/cloud_run.tf`).
 - Database: one pgx pool (`internal/db`), created in `cmd/api/main.go` and passed down. Packages take a small interface (like `httpapi.Pinger`), so tests can pass a fake.

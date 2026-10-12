@@ -48,13 +48,13 @@ export function ConfirmSheet({
       }}
     >
       <Dialog.Portal>
-        {/* Inventory → Motion: the backdrop fades and the sheet slides up (--duration-base). */}
-        <Dialog.Backdrop className="fixed inset-0 bg-scrim backdrop-blur-sm transition-opacity duration-(--duration-base) ease-std data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+        {/* Inventory → Motion: sheet-slide / backdrop-fade (src/index.css). */}
+        <Dialog.Backdrop className="fixed inset-0 bg-scrim backdrop-blur-sm backdrop-fade" />
         {/* Focus starts on Cancel: a reflexive Enter must not run the hard-to-undo action. */}
         <Dialog.Popup
           role="alertdialog"
           initialFocus={cancelRef}
-          className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] mx-auto flex max-w-sm flex-col items-center gap-3 rounded-lg bg-bg2 px-5 pt-3 pb-5 text-center shadow-md transition-transform duration-(--duration-base) ease-std focus-visible:outline-none data-ending-style:translate-y-full data-starting-style:translate-y-full motion-reduce:transition-none"
+          className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] mx-auto flex max-w-sm flex-col items-center gap-3 rounded-lg bg-bg2 px-5 pt-3 pb-5 text-center shadow-md sheet-slide focus-visible:outline-none"
         >
           <span aria-hidden="true" className="h-1 w-10 rounded-full bg-border" />
           <span

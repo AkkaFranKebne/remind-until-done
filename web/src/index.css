@@ -136,6 +136,36 @@
   border-width: 1.5px;
 }
 
+/* Inventory → Motion 1 "Bottom sheet open / close": every bottom sheet slides up from
+   below and its backdrop fades, over --duration-base with --easing-std. Base UI marks
+   the opening and closing moments with data-starting-style / data-ending-style (and
+   waits for the transition before removing the sheet). Reduced motion: no movement. */
+@utility sheet-slide {
+  transition-property: translate;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--easing-std);
+  &[data-starting-style],
+  &[data-ending-style] {
+    translate: 0 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility backdrop-fade {
+  transition-property: opacity;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--easing-std);
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
 /* ── Tailwind names for the colour tokens: bg-bg2, text-fg2, text-accent, border-border ...
    inline: the class points straight at var(--accent), so it follows the dark theme. ── */
 @theme inline {

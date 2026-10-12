@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { LogOut } from 'lucide-react'
 import { ConfirmSheet } from './ConfirmSheet'
 
@@ -61,4 +61,10 @@ test('shows nothing when closed', () => {
   renderSheet({ open: false })
 
   expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+})
+
+test('focus starts on Cancel, so a reflexive Enter does not run the action', async () => {
+  renderSheet()
+
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus())
 })

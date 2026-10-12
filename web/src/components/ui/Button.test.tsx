@@ -76,3 +76,17 @@ test('ButtonLink is a real link (not a button)', async () => {
 
   expect(await screen.findByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
 })
+
+test('the icon slot also takes a brand mark (an image component), hidden from screen readers', () => {
+  function Brand({ size }: { size?: number }) {
+    return <img src="/brand.svg" alt="" width={size} height={size} />
+  }
+  render(
+    <Button size="lg" icon={Brand}>
+      Continue
+    </Button>,
+  )
+
+  expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
+  expect(document.querySelector('img')).toHaveAttribute('width', '20')
+})

@@ -8,6 +8,8 @@ import {
   type RouterHistory,
 } from '@tanstack/react-router'
 import { LoginPage } from '../features/auth/LoginPage'
+import { RequireAuth } from '../features/auth/RequireAuth'
+import { safeNext } from '../features/auth/safeNext'
 import { ReminderPage } from '../features/reminders/ReminderPage'
 import { RemindersPage } from '../features/reminders/RemindersPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
@@ -21,11 +23,25 @@ const rootRoute = createRootRoute({
   notFoundComponent: NotFoundPage,
 })
 
-/** Signed-in pages share the header (AppLayout). RequireAuth wraps this route from M1 sign-in. */
+/** Signed-in pages: behind RequireAuth, sharing the header (AppLayout). */
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
-  component: AppLayout,
+  component: () => (
+    <RequireAuth>
+      <AppLayout />
+    </RequireAuth>
+  ),
+})
+
+/** /login?next=/r/123: where to go after sign-in, only if it's a path in this app. */
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: LoginPage,
+  validateSearch: (search: Record<string, unknown>): { next?: string } => ({
+    next: safeNext(search.next),
+  }),
 })
 
 /**
@@ -41,7 +57,7 @@ function page<TParent extends AnyRoute, const TPath extends string>(
 }
 
 export const routeTree = rootRoute.addChildren([
-  page(rootRoute, '/login', LoginPage),
+  loginRoute,
   appRoute.addChildren([
     page(appRoute, '/', RemindersPage),
     page(appRoute, '/r/$id', ReminderPage),

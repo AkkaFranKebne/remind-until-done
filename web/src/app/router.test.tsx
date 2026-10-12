@@ -1,33 +1,35 @@
-import { createMemoryHistory, Link, RouterProvider } from '@tanstack/react-router'
-import { render, screen } from '@testing-library/react'
-import { createAppRouter } from './router'
+import { Link } from '@tanstack/react-router'
+import { screen } from '@testing-library/react'
+import { ewa, FakeAuthClient } from '../test-utils/fakeAuthClient'
+import { mockMe, renderApp } from '../test-utils/renderApp'
 
-function renderAt(path: string) {
-  const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }))
-  render(<RouterProvider router={router} />)
-}
+beforeEach(() => mockMe())
 
 test.each([
   ['/', 'Your reminders'],
   ['/r/123', 'Reminder'],
   ['/settings', 'Settings'],
-  ['/login', 'Sign in'],
-  ['/no-such-page', 'Nothing here.'],
-])('%s shows "%s"', async (path, heading) => {
-  renderAt(path)
+])('%s shows "%s" when signed in', async (path, heading) => {
+  renderApp(path, new FakeAuthClient(ewa))
 
   expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
 })
 
-test('login page has no Settings link (nobody is signed in)', async () => {
-  renderAt('/login')
+test('/login shows the wordmark and no Settings link (nobody is signed in)', async () => {
+  renderApp('/login', new FakeAuthClient(null))
 
-  await screen.findByRole('heading', { name: 'Sign in' })
+  expect(await screen.findByRole('heading', { level: 1, name: 'rud.' })).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument()
 })
 
+test('an unknown URL shows the 404 page, signed in or not', async () => {
+  renderApp('/no-such-page', new FakeAuthClient(null))
+
+  expect(await screen.findByRole('heading', { name: 'Nothing here.' })).toBeInTheDocument()
+})
+
 test('the 404 page has a full-size "Go home" link', async () => {
-  renderAt('/no-such-page')
+  renderApp('/no-such-page', new FakeAuthClient(null))
 
   expect(await screen.findByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
 })

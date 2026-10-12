@@ -23,7 +23,10 @@
     <!-- Stop iOS turning numbers (like times) into phone links -->
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Coming in M3 (PWA): web app manifest, apple-touch-icon and app icons -->
+    <!-- Home screen install (decision 24): name, icons, standalone window.
+         The service worker (offline, push) comes in M3. Design: Inventory → Icons → App icon. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>rud.</title>
   </head>
   <body>

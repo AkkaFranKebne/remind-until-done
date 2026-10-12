@@ -22,6 +22,7 @@
     "@tanstack/react-router": "^1.170.41",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^13.0.0",
     "lucide-react": "^1.54.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -63,5 +64,10 @@
       "oxlint --type-aware --deny-warnings"
     ],
     "*.{js,cjs,css,json,md,html}": "prettier --write"
+  },
+  "overrides": {
+    "@firebase/firestore": {
+      "@grpc/grpc-js": "^1.14.6"
+    }
   }
 }

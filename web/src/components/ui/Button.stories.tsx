@@ -20,6 +20,12 @@ type Story = StoryObj<typeof meta>
 
 export const Primary: Story = {}
 export const Ghost: Story = { args: { variant: 'ghost', children: 'Remind later' } }
+/** White with a border: Continue with Google (Login). */
+export const Surface: Story = {
+  args: { variant: 'surface', size: 'lg', children: 'Continue with Google' },
+}
+/** Cancel next to a primary action, e.g. in the sign-out confirm sheet. */
+export const Neutral: Story = { args: { variant: 'neutral', size: 'lg', children: 'Cancel' } }
 export const Loading: Story = { args: { loading: true, children: 'Signing in' } }
 export const Disabled: Story = { args: { disabled: true } }
 export const GhostLoading: Story = { args: { variant: 'ghost', loading: true, children: 'Saving' } }

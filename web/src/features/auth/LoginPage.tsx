@@ -1,6 +1,6 @@
 import { Navigate, useSearch } from '@tanstack/react-router'
 import { CircleAlert, Lock } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Wordmark } from '../../components/ui/Wordmark'
 import { cn } from '../../lib/cn'
@@ -18,6 +18,17 @@ export function LoginPage() {
   const { state, signIn } = useAuth()
   const { next } = useSearch({ from: '/login' })
   const [leaving, setLeaving] = useState(false)
+
+  // Going to Google, the browser may freeze this page in its back/forward cache.
+  // Pressing Back then shows the frozen page again, with the button still busy.
+  // "pageshow" with persisted = true means exactly that: un-busy the button.
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setLeaving(false)
+    }
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, [])
 
   if (state.status === 'checking') return <SplashScreen />
   if (state.status === 'signedIn') return <Navigate to={next ?? '/'} replace />

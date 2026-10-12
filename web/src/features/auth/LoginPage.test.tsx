@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { ewa, FakeAuthClient } from '../../test-utils/fakeAuthClient'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
 
@@ -40,6 +40,25 @@ describe('LoginPage', () => {
     fireEvent.click(button)
 
     expect(button).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('coming Back from Google (page restored from the browser cache): the button works again', async () => {
+    const client = new FakeAuthClient(null)
+    renderApp('/login', client)
+    const button = await screen.findByRole('button', { name: 'Continue with Google' })
+    client.signIn = () => new Promise(() => {}) // the page "leaves" for Google
+    fireEvent.click(button)
+    expect(button).toHaveAttribute('aria-busy', 'true')
+
+    // The browser un-freezes the page: pageshow with persisted = true.
+    const restored = new Event('pageshow')
+    Object.defineProperty(restored, 'persisted', { value: true })
+    act(() => {
+      window.dispatchEvent(restored)
+    })
+
+    expect(button).not.toHaveAttribute('aria-busy')
+    expect(button).not.toHaveAttribute('aria-disabled')
   })
 
   it('after sign-in goes to `next`, including its query', async () => {

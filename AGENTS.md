@@ -74,6 +74,7 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - M1 (wrap-up): MCP docs servers; Storybook MCP (agents read real component props).
 - M2 (reminders): first skills ("new endpoint", "new migration"); semgrep.
 - M3 (push, Settings): revisit the sign-out warning "You'll need to reinstall the app to sign back in on this device" (Inventory copy, kept for now). Signing in again works without reinstalling; the real effect is that the phone stops getting pushes (design doc 5.7).
+- M2 (first settings form): move `me` (GET/PATCH /me) from `AuthProvider` into TanStack Query (cache, refetch after a change, loading states). `AuthProvider` then only answers "who is signed in?" (design doc 5.4: TanStack Query for all server data).
 - M2 (orval): the contract test also checks the other direction: every route in `api/swagger.json` is served, or is on an explicit "not built yet" list.
 - M2 (detail screens): TopBar tones for the vivid detail gradients (nag-low, overdue, done, waiting, nag-high). The current logo/icon colours fail contrast there; decide the look with the screens, update the Inventory, then add the tones.
 - M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.

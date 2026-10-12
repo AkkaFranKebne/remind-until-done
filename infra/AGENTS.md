@@ -13,6 +13,7 @@ Run in `infra/`. Needs `gcloud auth application-default login`.
 | Apply (dev only, see below) | `terraform apply <env>.tfplan` |
 
 ## Rules
+- Check resources and arguments with the `terraform` MCP server (current Registry docs) before writing them; our pinned provider version is in `versions.tf`, so read the docs for that major version.
 - One root module, one state per environment. Settings per environment: `envs/dev.tfvars`, `envs/prod.tfvars`.
 - Always change **dev first**, check it, then prepare prod.
 - **Prod: never apply.** Save a plan file and give the owner the exact `terraform apply` command.

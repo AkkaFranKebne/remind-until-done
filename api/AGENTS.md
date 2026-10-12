@@ -14,6 +14,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 | Known vulnerabilities | `go run golang.org/x/vuln/cmd/govulncheck@latest ./...` |
 
 ## Rules
+- Use the `gopls` MCP server (root `AGENTS.md`) to find definitions, references and a package's API before changing shared code; run its diagnostics after a change.
 - Layout follows Appendix D: `cmd/api` (wiring), `internal/config`, `internal/httpapi` (HTTP only), feature packages (`reminders`, `dispatch`, ...).
 - `httpapi` only translates HTTP to service calls. Business rules live in the feature packages.
 - Only `auth`, `scheduling` and `push` import Google SDKs. Everything else uses their interfaces (`httpapi.TokenVerifier`, ...), so tests can use fakes.

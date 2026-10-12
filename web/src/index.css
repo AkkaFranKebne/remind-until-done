@@ -23,6 +23,7 @@
   --on-solid: #ffffff; /* text and icons on accent-solid */
   --on-grad: #6d28d9; /* logo and icons on gradient screens */
   --on-grad-fg2: #5a5850; /* secondary text on gradient screens */
+  --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
 
   /* Status, error and nag tints: the same in both themes (hue carries meaning). */
   --tag-pending: #fff3cd;
@@ -154,6 +155,7 @@
   --color-on-solid: var(--on-solid);
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
+  --color-scrim: var(--scrim);
   --color-waiting-row-bg: var(--waiting-row-bg);
   --color-tag-shared: var(--tag-shared);
   --color-tag-shared-fg: var(--tag-shared-fg);

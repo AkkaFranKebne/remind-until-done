@@ -38,7 +38,7 @@ export function SettingsPage() {
       <section aria-labelledby="account">
         <h2
           id="account"
-          className="border-b border-border px-1 pb-2 text-xs font-semibold tracking-wider text-fg3 uppercase"
+          className="border-b border-border px-1 pb-2 text-xs font-semibold tracking-wider text-fg2 uppercase"
         >
           Account
         </h2>
@@ -51,7 +51,7 @@ export function SettingsPage() {
           </span>
           <div className="min-w-0">
             <p className="truncate text-base font-semibold">{name}</p>
-            <p className="truncate text-sm text-fg3">{me.email}</p>
+            <p className="truncate text-sm text-fg2">{me.email}</p>
           </div>
         </div>
         <BaseButton

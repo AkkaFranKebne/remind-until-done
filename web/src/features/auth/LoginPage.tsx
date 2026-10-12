@@ -50,7 +50,7 @@ export function LoginPage() {
         )}
       >
         <Wordmark as="h1" />
-        <p className="text-sm text-balance text-fg3">
+        <p className="text-sm text-balance text-fg2">
           The reminder app that won&apos;t let you forget.
         </p>
       </div>
@@ -100,7 +100,7 @@ export function LoginPage() {
           >
             {state.error ? 'Try again' : 'Continue with Google'}
           </Button>
-          {state.error ? null : <p className="text-sm text-fg3">rud. is invite-only.</p>}
+          {state.error ? null : <p className="text-sm text-fg2">rud. is invite-only.</p>}
         </div>
       )}
     </main>

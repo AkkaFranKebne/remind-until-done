@@ -3,7 +3,7 @@ import { ApiError, getMe, updateMe } from '../../lib/api/client'
 import type { AuthClient, AuthUser } from '../../lib/authClient'
 import { AuthContext, type AuthContextValue, type AuthState } from './useAuth'
 
-const SIGN_IN_FAILED = 'Sign-in failed. The pop-up may have closed or your connection dropped.'
+const SIGN_IN_FAILED = 'Sign-in failed. Check your connection and try again.'
 
 /** The phone's time zone, e.g. "Europe/Stockholm". */
 function deviceTimezone(): string | undefined {

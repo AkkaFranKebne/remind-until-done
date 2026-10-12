@@ -133,6 +133,12 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   check: 'Icon-only buttons and links have aria-label. Decorative icons have aria-hidden. Focus is
     visible (focus-visible:outline-accent).'
 
+- id: ui-text-contrast
+  status: advisory
+  applies_to: 'src/**/*.tsx'
+  check: 'Small text (text-xs, text-sm) uses text-fg2 or stronger. text-fg3 only for large or
+    non-essential text: it is about 3.4:1 on bg, below WCAG AA 4.5:1 (Inventory → Tokens).'
+
 - id: ui-both-themes
   status: advisory
   applies_to: 'src/**/*.{tsx,css}'

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { screen } from '@testing-library/react'
-import { ewa, FakeAuthClient } from '../test-utils/fakeAuthClient'
+import { FakeAuthClient, tester } from '../test-utils/fakeAuthClient'
 import { mockMe, renderApp } from '../test-utils/renderApp'
 
 beforeEach(() => mockMe())
@@ -10,7 +10,7 @@ test.each([
   ['/r/123', 'Reminder'],
   ['/settings', 'Settings'],
 ])('%s shows "%s" when signed in', async (path, heading) => {
-  renderApp(path, new FakeAuthClient(ewa))
+  renderApp(path, new FakeAuthClient(tester))
 
   expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
 })

@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
-import { ewa, FakeAuthClient } from '../../test-utils/fakeAuthClient'
+import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
 
 describe('signed-in pages (RequireAuth)', () => {
@@ -63,7 +63,7 @@ describe('LoginPage', () => {
 
   it('after sign-in goes to `next`, including its query', async () => {
     mockMe()
-    const router = renderApp('/login?next=%2Fr%2Fabc%3Ftab%3Ddone', new FakeAuthClient(ewa))
+    const router = renderApp('/login?next=%2Fr%2Fabc%3Ftab%3Ddone', new FakeAuthClient(tester))
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/r/abc'))
     expect(router.state.location.search).toEqual({ tab: 'done' })
@@ -71,7 +71,7 @@ describe('LoginPage', () => {
 
   it('ignores a `next` that points to another site and goes home', async () => {
     mockMe()
-    const router = renderApp('/login?next=%2F%2Fevil.example', new FakeAuthClient(ewa))
+    const router = renderApp('/login?next=%2F%2Fevil.example', new FakeAuthClient(tester))
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
@@ -88,12 +88,12 @@ describe('LoginPage', () => {
 
   it('not invited: shows the email that tried, and no sign-in button', async () => {
     mockMe(403, { error: { code: 'not_invited', message: 'this app is invite-only' } })
-    renderApp('/login', new FakeAuthClient(ewa))
+    renderApp('/login', new FakeAuthClient(tester))
 
     expect(
       await screen.findByRole('heading', { name: 'This app is invite-only.' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('ewa.wrobel@gmail.com')).toBeInTheDocument()
+    expect(screen.getByText('tester@example.com')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Google|Try again/ })).not.toBeInTheDocument()
   })
 })

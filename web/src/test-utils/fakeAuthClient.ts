@@ -51,4 +51,4 @@ export class FakeAuthClient implements AuthClient {
   }
 }
 
-export const ewa: AuthUser = { email: 'ewa.wrobel@gmail.com', name: 'Ewa' }
+export const tester: AuthUser = { email: 'tester@example.com', name: 'Tess' }

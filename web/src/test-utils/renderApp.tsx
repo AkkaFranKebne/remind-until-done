@@ -7,7 +7,7 @@ import type { FakeAuthClient } from './fakeAuthClient'
 
 export const testMe: Me = {
   id: 'u1',
-  email: 'ewa.wrobel@gmail.com',
+  email: 'tester@example.com',
   timezone: 'Europe/Stockholm',
   defaultTimeOfDay: '09:00',
   defaultNagIntervalMin: 60,

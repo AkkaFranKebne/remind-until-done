@@ -1,12 +1,12 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { setHttp, type Me } from '../../lib/api/client'
-import { ewa, FakeAuthClient } from '../../test-utils/fakeAuthClient'
+import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { AuthProvider } from './AuthProvider'
 import { useAuth } from './useAuth'
 
 const me: Me = {
   id: 'u1',
-  email: 'ewa.wrobel@gmail.com',
+  email: 'tester@example.com',
   timezone: 'UTC',
   defaultTimeOfDay: '09:00',
   defaultNagIntervalMin: 60,
@@ -81,7 +81,7 @@ describe('AuthProvider', () => {
 
   it('signs in: GET /me with the token, then sends the phone time zone', async () => {
     mockApi({ status: 200, body: me })
-    renderAuth(new FakeAuthClient(ewa))
+    renderAuth(new FakeAuthClient(tester))
 
     expect(await screen.findByText('signedIn Europe/Stockholm')).toBeInTheDocument()
     expect(calls).toEqual([
@@ -97,7 +97,7 @@ describe('AuthProvider', () => {
 
   it('does not PATCH when the time zone already matches', async () => {
     mockApi({ status: 200, body: { ...me, timezone: 'Europe/Stockholm' } })
-    renderAuth(new FakeAuthClient(ewa))
+    renderAuth(new FakeAuthClient(tester))
 
     expect(await screen.findByText('signedIn Europe/Stockholm')).toBeInTheDocument()
     expect(calls.map((c) => c.method)).toEqual(['GET'])
@@ -105,18 +105,18 @@ describe('AuthProvider', () => {
 
   it('not invited: shows who tried, and signs them out of Firebase', async () => {
     mockApi({ status: 403, body: { error: { code: 'not_invited', message: 'invite-only' } } })
-    const client = new FakeAuthClient(ewa)
+    const client = new FakeAuthClient(tester)
     renderAuth(client)
 
-    expect(await screen.findByText('notInvited ewa.wrobel@gmail.com')).toBeInTheDocument()
+    expect(await screen.findByText('notInvited tester@example.com')).toBeInTheDocument()
     await waitFor(() => expect(client.signOutCalls).toBe(1))
     // The sign-out event must not replace the invite-only screen.
-    expect(screen.getByText('notInvited ewa.wrobel@gmail.com')).toBeInTheDocument()
+    expect(screen.getByText('notInvited tester@example.com')).toBeInTheDocument()
   })
 
   it('API down: signed out with a message, Firebase session ended', async () => {
     mockApi({ status: 500, body: { error: { code: 'internal', message: 'x' } } })
-    const client = new FakeAuthClient(ewa)
+    const client = new FakeAuthClient(tester)
     renderAuth(client)
 
     expect(await screen.findByText(/^signedOut error: Sign-in failed/)).toBeInTheDocument()
@@ -125,7 +125,7 @@ describe('AuthProvider', () => {
 
   it('offline: shows the connection message but keeps the Firebase session', async () => {
     setHttp(() => Promise.reject(new TypeError('Failed to fetch')))
-    const client = new FakeAuthClient(ewa)
+    const client = new FakeAuthClient(tester)
     renderAuth(client)
 
     expect(await screen.findByText(/^signedOut error: Can't reach the server/)).toBeInTheDocument()
@@ -142,7 +142,7 @@ describe('AuthProvider', () => {
 
   it('follows Firebase when the user signs out later', async () => {
     mockApi({ status: 200, body: { ...me, timezone: 'Europe/Stockholm' } })
-    const client = new FakeAuthClient(ewa)
+    const client = new FakeAuthClient(tester)
     renderAuth(client)
     await screen.findByText('signedIn Europe/Stockholm')
 

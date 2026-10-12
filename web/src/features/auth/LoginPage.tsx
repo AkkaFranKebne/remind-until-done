@@ -2,6 +2,7 @@ import { Navigate, useSearch } from '@tanstack/react-router'
 import { CircleAlert, Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '../../components/ui/Button'
+import { CenteredScreen } from '../../components/ui/CenteredScreen'
 import { Wordmark } from '../../components/ui/Wordmark'
 import { cn } from '../../lib/cn'
 import { useAuth } from './useAuth'
@@ -42,12 +43,7 @@ export function LoginPage() {
   const notInvited = state.status === 'notInvited'
 
   return (
-    <main
-      className={cn(
-        'flex min-h-dvh flex-col items-center justify-center px-4 text-center',
-        'pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
-      )}
-    >
+    <CenteredScreen className="gap-0">
       <div
         className={cn(
           'flex flex-col items-center gap-2.5',
@@ -108,6 +104,6 @@ export function LoginPage() {
           {state.error ? null : <p className="text-sm text-fg2">rud. is invite-only.</p>}
         </div>
       )}
-    </main>
+    </CenteredScreen>
   )
 }

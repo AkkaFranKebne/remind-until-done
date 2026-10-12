@@ -1,9 +1,9 @@
 import { Button as BaseButton } from '@base-ui/react/button'
 import { useNavigate } from '@tanstack/react-router'
-import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react'
+import { ChevronRight, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
-import { IconLink } from '../../components/ui/IconButton'
+import { PageHeader } from '../../components/ui/PageHeader'
 import { useAuth } from '../auth/useAuth'
 
 /**
@@ -30,10 +30,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="-ml-3 flex items-center gap-1">
-        <IconLink to="/" icon={ChevronLeft} label="Back" className="text-accent" />
-        <h1 className="text-lg font-bold">Settings</h1>
-      </div>
+      <PageHeader title="Settings" backTo="/" />
 
       <section aria-labelledby="account">
         <h2

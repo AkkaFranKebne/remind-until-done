@@ -73,7 +73,7 @@ func (a *API) Router() http.Handler {
 		mux.HandleFunc(r.method+" /api/v1"+r.path, r.handler)
 	}
 	mux.HandleFunc("/", a.notFound)
-	return a.logRequests(mux)
+	return a.logRequests(apiHeaders(mux))
 }
 
 // healthz is the liveness check: it always answers 200 {"status":"ok"} while the

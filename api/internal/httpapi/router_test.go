@@ -99,3 +99,18 @@ func TestRequestsAreLogged(t *testing.T) {
 		}
 	}
 }
+
+// Every answer, errors included, is never cached and never content-sniffed.
+func TestAnswersAreNeverCached(t *testing.T) {
+	router := newTestRouter(io.Discard)
+	for _, path := range []string{"/api/v1/healthz", "/api/v1/me", "/api/v1/nope"} {
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, httptest.NewRequest("GET", path, nil))
+		if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+			t.Errorf("%s: Cache-Control = %q, want no-store", path, got)
+		}
+		if got := rec.Header().Get("X-Content-Type-Options"); got != "nosniff" {
+			t.Errorf("%s: X-Content-Type-Options = %q, want nosniff", path, got)
+		}
+	}
+}

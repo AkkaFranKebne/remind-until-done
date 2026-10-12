@@ -161,3 +161,15 @@ jobs:
 
       - name: Smoke test through Firebase Hosting (the M0 check)
         run: curl --fail --silent --show-error --retry 5 --retry-all-errors "${{ vars.APP_URL }}/api/v1/healthz"
+
+      # The app's files: the phone asks "still the same?" on every open (a deploy shows up at once).
+      # API answers: never stored anywhere (they're per user). See web/firebase.json and api/.../middleware_headers.go.
+      - name: Smoke test caching headers
+        shell: bash
+        run: |
+          APP="$(curl --fail --silent --show-error --retry 5 --retry-all-errors --dump-header - --output /dev/null "${{ vars.APP_URL }}/" | grep -i '^cache-control:' | tr -d '\r' | tr 'A-Z' 'a-z')"
+          API="$(curl --fail --silent --show-error --retry 5 --retry-all-errors --dump-header - --output /dev/null "${{ vars.APP_URL }}/api/v1/healthz" | grep -i '^cache-control:' | tr -d '\r' | tr 'A-Z' 'a-z')"
+          echo "app: $APP"
+          echo "api: $API"
+          test "$APP" = "cache-control: no-cache"
+          test "$API" = "cache-control: no-store"

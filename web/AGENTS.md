@@ -191,6 +191,7 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   - The dev server is https (Vite basic-ssl plugin): Firebase always returns from Google sign-in to `https://<host>`. Storybook runs its own server and stays on plain http.
 - API calls: `src/lib/api/client.ts` (`getMe`, `updateMe`) checks the shape of every answer. Tests swap the server with `setHttp()`. Page tests: `renderApp(path, client)` + `mockMe()` (`src/test-utils/renderApp.tsx`).
 - Navigating from code (`useNavigate`) happens in an event handler or an effect, never during render: TanStack's `<Navigate>` in a page that is being left can fire again and loop.
+- Hosting caching (`firebase.json`): every app file is `Cache-Control: no-cache`. The phone may keep files, but asks Firebase "still the same?" (a quick `304 Not Modified`) every time it opens the app, so a deploy shows up on the next open. The rule is a `regex` that skips `/api/...`: API answers are per user, and the API sets `no-store` on them itself. `deploy.yml` checks both headers after every deploy.
 - The app is mobile-first and supports light and dark mode (follows the phone's setting).
 
 ## Never

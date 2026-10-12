@@ -14,7 +14,8 @@ export function safeNext(value: unknown): string | undefined {
     if (code < 0x20 || code === 0x7f) return undefined
   }
   // Never back to the login page itself (no /login?next=/login?next=... loops).
-  if (value === '/login' || value.startsWith('/login?') || value.startsWith('/login/'))
+  const lower = value.toLowerCase()
+  if (lower === '/login' || lower.startsWith('/login?') || lower.startsWith('/login/'))
     return undefined
   return value
 }

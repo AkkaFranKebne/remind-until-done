@@ -16,6 +16,7 @@ describe('safeNext', () => {
     ['empty', ''],
     ['the login page', '/login'],
     ['the login page with its own next', '/login?next=%2Fsettings'],
+    ['the login page in capitals', '/LOGIN'],
   ])('refuses %s', (_name, value) => {
     expect(safeNext(value)).toBeUndefined()
   })

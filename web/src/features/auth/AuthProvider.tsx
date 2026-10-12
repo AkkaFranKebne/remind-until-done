@@ -39,7 +39,8 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
       void loadMe(client, user).then(({ next, signOut }) => {
         if (run !== current) return
         setState(next) // first show the result ...
-        if (signOut) void client.signOut() // ... then sign out (that event keeps this state)
+        // ... then sign out (that event keeps this state). A failed sign-out changes nothing.
+        if (signOut) client.signOut().catch(() => {})
       })
     })
     return () => {
@@ -88,7 +89,12 @@ async function loadMe(
     if (e instanceof ApiError && e.code === 'not_invited') {
       return { next: { status: 'notInvited', email: user.email }, signOut: true }
     }
-    const error = e instanceof ApiError && e.status === 0 ? e.message : SIGN_IN_FAILED
-    return { next: { status: 'signedOut', error }, signOut: true }
+    // Offline (status 0): keep the Firebase session, so the app works again once the
+    // connection is back. Any other failure ends it.
+    const offline = e instanceof ApiError && e.status === 0
+    return {
+      next: { status: 'signedOut', error: offline ? e.message : SIGN_IN_FAILED },
+      signOut: !offline,
+    }
   }
 }

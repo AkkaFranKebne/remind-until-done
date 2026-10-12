@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Download, House } from 'lucide-react'
+import { GoogleIcon } from '../../features/auth/GoogleIcon'
 import { Button, ButtonLink } from './Button'
 
 const meta = {
@@ -22,7 +23,10 @@ export const Primary: Story = {}
 export const Ghost: Story = { args: { variant: 'ghost', children: 'Remind later' } }
 /** White with a border: Continue with Google (Login). */
 export const Surface: Story = {
-  args: { variant: 'surface', size: 'lg', children: 'Continue with Google' },
+  args: { variant: 'surface', size: 'lg', icon: GoogleIcon, children: 'Continue with Google' },
+}
+export const SurfaceLoading: Story = {
+  args: { ...Surface.args, loading: true },
 }
 /** Cancel next to a primary action, e.g. in the sign-out confirm sheet. */
 export const Neutral: Story = { args: { variant: 'neutral', size: 'lg', children: 'Cancel' } }

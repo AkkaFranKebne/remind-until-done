@@ -10,8 +10,9 @@ export function SplashScreen() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-4">
       <Wordmark />
-      <Spinner label="Checking your session" />
-      <p className="text-xs text-fg3">Checking your session…</p>
+      {/* The text is the status for screen readers; the spinner is only decoration. */}
+      <Spinner decorative />
+      <output className="text-xs text-fg3">Checking your session…</output>
     </main>
   )
 }

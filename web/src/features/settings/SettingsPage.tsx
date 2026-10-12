@@ -45,7 +45,7 @@ export function SettingsPage() {
         <div className="flex items-center gap-3.5 border-b border-border px-1 py-3.5">
           <span
             aria-hidden="true"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent-bg text-base font-semibold text-accent"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-bg text-base font-semibold text-accent"
           >
             {name.charAt(0).toUpperCase()}
           </span>
@@ -60,9 +60,9 @@ export function SettingsPage() {
         >
           <span
             aria-hidden="true"
-            className="flex size-11 shrink-0 items-center justify-center rounded-md bg-bg3 text-fg2"
+            className="flex size-8.5 shrink-0 items-center justify-center rounded-md bg-bg3 text-fg2"
           >
-            <LogOut size={20} strokeWidth={1.75} />
+            <LogOut size={17} strokeWidth={1.75} />
           </span>
           <span className="flex-1 text-base">Sign out</span>
           <ChevronRight aria-hidden="true" size={16} strokeWidth={1.75} className="text-fg3" />

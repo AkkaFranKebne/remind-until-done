@@ -43,7 +43,7 @@ const buttonVariants = cva(
         // Quiet second choice next to a primary one (Cancel in a confirm sheet).
         neutral: 'bg-bg3 text-fg2',
         // Card-coloured with a border: "Continue with Google" (Google's own button style).
-        surface: 'border border-border bg-bg2 text-fg',
+        surface: 'border-strong border-border bg-bg2 text-fg',
       },
       /** md: everyday buttons (48px). lg: the one hero action on a screen (52px, Install app). */
       size: {

@@ -123,6 +123,15 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(client.signOutCalls).toBe(1))
   })
 
+  it('offline: shows the connection message but keeps the Firebase session', async () => {
+    setHttp(() => Promise.reject(new TypeError('Failed to fetch')))
+    const client = new FakeAuthClient(ewa)
+    renderAuth(client)
+
+    expect(await screen.findByText(/^signedOut error: Can't reach the server/)).toBeInTheDocument()
+    expect(client.signOutCalls).toBe(0)
+  })
+
   it('shows the error when coming back from a failed Google sign-in', async () => {
     const client = new FakeAuthClient(null)
     client.pendingRedirectError = new Error('auth/network-request-failed')

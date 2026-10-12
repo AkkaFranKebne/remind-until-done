@@ -9,7 +9,7 @@ describe('signed-in pages (RequireAuth)', () => {
     renderApp('/settings', client)
 
     expect(await screen.findByText('Checking your session…')).toBeInTheDocument()
-    expect(screen.getByRole('status', { name: 'Checking your session' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Checking your session…')
   })
 
   it('sends signed-out visitors to /login and remembers where they were going', async () => {

@@ -3,6 +3,7 @@ import { CircleAlert, Lock } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Wordmark } from '../../components/ui/Wordmark'
+import { cn } from '../../lib/cn'
 import { useAuth } from './useAuth'
 import { GoogleIcon } from './GoogleIcon'
 import { SplashScreen } from './SplashScreen'
@@ -26,16 +27,35 @@ export function LoginPage() {
     void signIn().finally(() => setLeaving(false))
   }
 
+  // Inventory spacing per state: roomy when there's one action, tighter when an
+  // error box is added, and everything centred on the invite-only screen.
+  const notInvited = state.status === 'notInvited'
+  const layout = notInvited
+    ? 'justify-center pt-[env(safe-area-inset-top)]'
+    : state.error
+      ? 'pt-[calc(1.75rem+env(safe-area-inset-top))]'
+      : 'pt-[calc(3.5rem+env(safe-area-inset-top))]'
+
   return (
-    <main className="flex min-h-dvh flex-col items-center px-4 pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-center">
-      <div className="flex flex-col items-center gap-2.5 pb-7">
+    <main
+      className={cn(
+        'flex min-h-dvh flex-col items-center px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-center',
+        layout,
+      )}
+    >
+      <div
+        className={cn(
+          'flex flex-col items-center gap-2.5',
+          notInvited ? 'pb-7' : state.error ? 'pb-5.5' : 'pb-12',
+        )}
+      >
         <Wordmark as="h1" />
-        <p className="text-base text-balance text-fg2">
+        <p className="text-sm text-balance text-fg3">
           The reminder app that won&apos;t let you forget.
         </p>
       </div>
 
-      {state.status === 'notInvited' ? (
+      {notInvited ? (
         <section className="flex flex-col items-center gap-3.5" aria-labelledby="invite-only">
           <span
             aria-hidden="true"
@@ -43,7 +63,7 @@ export function LoginPage() {
           >
             <Lock size={24} strokeWidth={1.75} />
           </span>
-          <h2 id="invite-only" className="text-xl font-bold text-balance">
+          <h2 id="invite-only" className="text-lg font-bold text-balance">
             This app is invite-only.
           </h2>
           {state.email ? (
@@ -51,7 +71,7 @@ export function LoginPage() {
               {state.email}
             </p>
           ) : null}
-          <p className="text-base text-balance text-fg2">
+          <p className="text-sm text-balance text-fg2">
             Your account isn&apos;t on the list. Ask Ewa to add you.
           </p>
         </section>

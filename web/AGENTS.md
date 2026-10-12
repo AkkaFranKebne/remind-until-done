@@ -6,16 +6,16 @@ Also read the root [`AGENTS.md`](../AGENTS.md). Design: design doc section 5.
 
 Run in `web/`, after `nvm use`.
 
-| Task                                               | Command                                   |
-| -------------------------------------------------- | ----------------------------------------- |
-| Dev server (proxies `/api` to the Go API on :8080) | `npm run dev`                             |
-| Lint (type-aware; any warning fails)               | `npm run lint`                            |
-| Format / check format                              | `npm run format` / `npm run format:check` |
-| Type check                                         | `npm run typecheck`                       |
-| Unit tests (Jest)                                  | `npm test`                                |
-| Production build                                   | `npm run build`                           |
-| Storybook (component catalogue) on :6006           | `npm run storybook`                       |
-| Storybook build (CI checks it)                     | `npm run build-storybook`                 |
+| Task                                                                                                                          | Command                                   |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Dev server on **https**://localhost:5173 (proxies `/api` to the Go API on :8080; first visit: accept the certificate warning) | `npm run dev`                             |
+| Lint (type-aware; any warning fails)                                                                                          | `npm run lint`                            |
+| Format / check format                                                                                                         | `npm run format` / `npm run format:check` |
+| Type check                                                                                                                    | `npm run typecheck`                       |
+| Unit tests (Jest)                                                                                                             | `npm test`                                |
+| Production build                                                                                                              | `npm run build`                           |
+| Storybook (component catalogue) on :6006                                                                                      | `npm run storybook`                       |
+| Storybook build (CI checks it)                                                                                                | `npm run build-storybook`                 |
 
 ## Rules (enforced)
 
@@ -185,6 +185,7 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   - The app talks to Firebase only through the `AuthClient` interface (`src/lib/authClient.ts`); the real one is `src/lib/firebase.ts`. Tests use `FakeAuthClient` (`src/test-utils/fakeAuthClient.ts`), never Firebase.
   - Signed-in pages are behind `RequireAuth` (the `app` route). After sign-in, `/login?next=` sends people back; `safeNext()` only allows paths inside the app.
   - Firebase web settings come from Hosting's `/__/firebase/init.json` (one build for dev and prod). Locally Vite forwards `/__` to the dev site.
+  - The dev server is https (Vite basic-ssl plugin): Firebase always returns from Google sign-in to `https://<host>`. Storybook stays http (`.storybook/main.ts` drops the plugin).
 - API calls: `src/lib/api/client.ts` (`getMe`, `updateMe`) checks the shape of every answer. Tests swap the server with `setHttp()`. Page tests: `renderApp(path, client)` + `mockMe()` (`src/test-utils/renderApp.tsx`).
 - Navigating from code (`useNavigate`) happens in an event handler or an effect, never during render: TanStack's `<Navigate>` in a page that is being left can fire again and loop.
 - The app is mobile-first and supports light and dark mode (follows the phone's setting).

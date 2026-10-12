@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { LogOut } from 'lucide-react'
+import { type ComponentProps, useState } from 'react'
 import { fn } from 'storybook/test'
+import { Button } from './Button'
 import { ConfirmSheet } from './ConfirmSheet'
 
 const meta = {
@@ -28,3 +30,16 @@ export const SignOut: Story = {}
 export const Confirming: Story = { args: { confirming: true } }
 
 export const WithoutNote: Story = { args: { note: undefined } }
+
+function InteractiveDemo(args: ComponentProps<typeof ConfirmSheet>) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="p-4">
+      <Button onClick={() => setOpen(true)}>Sign out</Button>
+      <ConfirmSheet {...args} open={open} onOpenChange={setOpen} onConfirm={() => setOpen(false)} />
+    </div>
+  )
+}
+
+/** Try it like on a phone: open it, then close it with Cancel, a tap outside, Escape or a swipe down. */
+export const Interactive: Story = { render: (args) => <InteractiveDemo {...args} /> }

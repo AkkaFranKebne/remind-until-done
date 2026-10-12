@@ -41,8 +41,11 @@ services:
       FLYWAY_USER: rud
       FLYWAY_PASSWORD: rud
       FLYWAY_CONNECT_RETRIES: 5 # Neon may need a moment to wake up
+      # Said explicitly: Flyway's default folder (/flyway/sql) is deprecated and may stop being scanned.
+      FLYWAY_LOCATIONS: filesystem:/flyway/migrations
+      FLYWAY_FAIL_ON_MISSING_LOCATIONS: 'true' # a wrong folder is an error, not a silent "0 migrations"
     volumes:
-      - ./api/db/migrations:/flyway/sql:ro
+      - ./api/db/migrations:/flyway/migrations:ro
 
 volumes:
   db-data:

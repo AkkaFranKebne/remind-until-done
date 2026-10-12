@@ -27,20 +27,14 @@ export function LoginPage() {
     void signIn().finally(() => setLeaving(false))
   }
 
-  // Inventory spacing per state: roomy when there's one action, tighter when an
-  // error box is added, and everything centred on the invite-only screen.
+  // Centred top-to-bottom in every state, like the splash (Inventory → Phone Screens → Login).
   const notInvited = state.status === 'notInvited'
-  const layout = notInvited
-    ? 'justify-center pt-[env(safe-area-inset-top)]'
-    : state.error
-      ? 'pt-[calc(1.75rem+env(safe-area-inset-top))]'
-      : 'pt-[calc(3.5rem+env(safe-area-inset-top))]'
 
   return (
     <main
       className={cn(
-        'flex min-h-dvh flex-col items-center px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-center',
-        layout,
+        'flex min-h-dvh flex-col items-center justify-center px-4 text-center',
+        'pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
       )}
     >
       <div

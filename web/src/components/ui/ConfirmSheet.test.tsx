@@ -68,3 +68,25 @@ test('focus starts on Cancel, so a reflexive Enter does not run the action', asy
 
   await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus())
 })
+
+test('a tap outside the sheet closes it', async () => {
+  const { onOpenChange } = renderSheet()
+  await screen.findByRole('alertdialog')
+
+  fireEvent.pointerDown(document.body)
+  fireEvent.mouseDown(document.body)
+  fireEvent.click(document.body)
+
+  await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false))
+})
+
+test('while confirming, a tap outside does not close it', async () => {
+  const { onOpenChange } = renderSheet({ confirming: true })
+  await screen.findByRole('alertdialog')
+
+  fireEvent.pointerDown(document.body)
+  fireEvent.mouseDown(document.body)
+  fireEvent.click(document.body)
+
+  expect(onOpenChange).not.toHaveBeenCalled()
+})

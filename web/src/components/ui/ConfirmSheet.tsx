@@ -1,12 +1,13 @@
-import { AlertDialog } from '@base-ui/react/alert-dialog'
+import { Dialog } from '@base-ui/react/dialog'
 import { CircleAlert, type LucideIcon } from 'lucide-react'
 import { useRef, type ReactNode } from 'react'
 import { Button } from './Button'
 
 /**
  * "Are you sure?" sheet that slides up from the bottom (Sign out, later Delete account).
- * Built on Base UI's AlertDialog: focus moves into the sheet and stays there, Escape
- * and the backdrop close it, and screen readers announce the title and text.
+ * Built on Base UI's Dialog (not AlertDialog, which ignores taps outside): focus moves
+ * into the sheet and stays there; Cancel, a tap outside and Escape close it; screen
+ * readers hear it as an alert dialog with its title and text.
  * Design Inventory → Phone Screens → Settings → "Sign-out confirm".
  */
 export function ConfirmSheet({
@@ -39,18 +40,19 @@ export function ConfirmSheet({
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <AlertDialog.Root
+    <Dialog.Root
       open={open}
       // While the action runs, it can't be cancelled (Escape, backdrop, Cancel).
       onOpenChange={(next) => {
         if (!confirming) onOpenChange(next)
       }}
     >
-      <AlertDialog.Portal>
+      <Dialog.Portal>
         {/* Inventory → Motion: the backdrop fades and the sheet slides up (--duration-base). */}
-        <AlertDialog.Backdrop className="fixed inset-0 bg-scrim backdrop-blur-sm transition-opacity duration-(--duration-base) ease-std data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+        <Dialog.Backdrop className="fixed inset-0 bg-scrim backdrop-blur-sm transition-opacity duration-(--duration-base) ease-std data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
         {/* Focus starts on Cancel: a reflexive Enter must not run the hard-to-undo action. */}
-        <AlertDialog.Popup
+        <Dialog.Popup
+          role="alertdialog"
           initialFocus={cancelRef}
           className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] mx-auto flex max-w-sm flex-col items-center gap-3 rounded-lg bg-bg2 px-5 pt-3 pb-5 text-center shadow-md transition-transform duration-(--duration-base) ease-std focus-visible:outline-none data-ending-style:translate-y-full data-starting-style:translate-y-full motion-reduce:transition-none"
         >
@@ -61,10 +63,10 @@ export function ConfirmSheet({
           >
             <Icon size={22} strokeWidth={1.75} />
           </span>
-          <AlertDialog.Title className="text-lg font-bold text-balance">{title}</AlertDialog.Title>
-          <AlertDialog.Description className="text-sm text-balance text-fg2">
+          <Dialog.Title className="text-lg font-bold text-balance">{title}</Dialog.Title>
+          <Dialog.Description className="text-sm text-balance text-fg2">
             {children}
-          </AlertDialog.Description>
+          </Dialog.Description>
           {note ? (
             <p className="flex w-full items-start gap-2 rounded-md bg-bg3 px-3 py-2.5 text-left text-xs text-fg2">
               <CircleAlert
@@ -90,8 +92,8 @@ export function ConfirmSheet({
               {cancelLabel}
             </Button>
           </div>
-        </AlertDialog.Popup>
-      </AlertDialog.Portal>
-    </AlertDialog.Root>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

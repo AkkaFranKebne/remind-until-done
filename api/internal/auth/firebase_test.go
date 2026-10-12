@@ -3,11 +3,13 @@ package auth
 import (
 	"context"
 	"crypto"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 )
@@ -60,9 +62,16 @@ func TestRealCheckerRefusesForgedTokens(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// "Algorithm confusion": a token signed with a shared-secret algorithm (HS256)
+	// instead of Google's RSA keys. Libraries that trust the token's own "alg" fall for it.
+	hsUnsigned := b64(map[string]any{"alg": "HS256", "typ": "JWT"}) + "." + b64(claims())
+	mac := hmac.New(sha256.New, []byte("guessable-secret"))
+	mac.Write([]byte(hsUnsigned))
+
 	forged := map[string]string{
 		"signed with our own key":     signed(t, map[string]any{"alg": "RS256", "typ": "JWT", "kid": "made-up"}, claims()),
 		"no signature (alg none)":     b64(map[string]any{"alg": "none", "typ": "JWT"}) + "." + b64(claims()) + ".",
+		"shared-secret algorithm":     hsUnsigned + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil)),
 		"random bytes as a signature": b64(map[string]any{"alg": "RS256", "typ": "JWT", "kid": "made-up"}) + "." + b64(claims()) + ".c2lnbmF0dXJl",
 		"not a token at all":          "hello",
 		"empty":                       "",
@@ -74,6 +83,13 @@ func TestRealCheckerRefusesForgedTokens(t *testing.T) {
 			}
 		})
 	}
+
+	// The well-formed forgery must be refused at the signature check itself, i.e.
+	// after downloading Google's keys, not for some earlier reason (like no network).
+	_, err = fb.Verify(context.Background(), forged["signed with our own key"])
+	if err == nil || !strings.Contains(err.Error(), "signature") {
+		t.Errorf("own-key forgery refused with %v; want a signature error (is the network up?)", err)
+	}
 }
 
 func TestRealCheckerRefusesTokensForAnotherProject(t *testing.T) {
@@ -81,9 +97,15 @@ func TestRealCheckerRefusesTokensForAnotherProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Made for the dev project; prod must not accept it even if the signature were real.
+	// Made for the dev project. The library checks the project ("aud", the audience)
+	// before the signature, so the error must be about "aud": that proves the project
+	// check itself refused it, not only the (missing) Google signature.
 	token := signed(t, map[string]any{"alg": "RS256", "typ": "JWT", "kid": "made-up"}, claims())
-	if _, err := fb.Verify(context.Background(), token); err == nil {
+	_, err = fb.Verify(context.Background(), token)
+	if err == nil {
 		t.Fatal("prod accepted a token made for the dev project")
+	}
+	if !strings.Contains(err.Error(), "aud") {
+		t.Errorf("refused with %q; want the audience (project) check to refuse it", err)
 	}
 }

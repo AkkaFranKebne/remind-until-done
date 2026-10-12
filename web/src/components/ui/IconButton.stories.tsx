@@ -37,3 +37,8 @@ export const Coloured: Story = {
 }
 
 export const Disabled: Story = { args: { disabled: true } }
+
+/** Small: the ‹ Back next to a page title (16px icon, same 44 × 44 tap area). */
+export const Small: Story = {
+  args: { icon: ChevronLeft, label: 'Back', size: 'sm', className: 'text-accent' },
+}

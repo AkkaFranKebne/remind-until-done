@@ -37,3 +37,11 @@ test('a disabled IconButton ignores clicks', () => {
 
   expect(onClick).not.toHaveBeenCalled()
 })
+
+test('size sm draws a smaller icon but keeps the 44 × 44 tap area', () => {
+  render(<IconButton icon={X} label="Close" size="sm" />)
+
+  const button = screen.getByRole('button', { name: 'Close' })
+  expect(button).toHaveClass('size-11')
+  expect(button.querySelector('svg')).toHaveAttribute('width', '16')
+})

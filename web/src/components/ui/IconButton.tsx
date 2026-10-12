@@ -6,7 +6,8 @@ import { cn } from '../../lib/cn'
 
 /**
  * Icon-only controls: IconButton (actions: Close) and IconLink (navigation: Settings, Back).
- * 44 × 44 px, 20px icon, no visible background until hovered or pressed, so it sits on any
+ * 44 × 44 px, 20px icon (size "sm": 16px, for ‹ Back next to a page title), no visible
+ * background until hovered or pressed, so it sits on any
  * screen or gradient. The icon takes the current text colour: pass a text-* token class.
  * IconButton is built on Base UI's Button; IconLink is a real link (TanStack <Link>).
  * Design Inventory → Components → "IconButton".
@@ -20,8 +21,13 @@ const base = [
   'focus-visible:outline-2 focus-visible:outline-current',
 ]
 
+/** Drawn icon size; the tap area stays 44 × 44 either way. */
+const iconSizes = { md: { size: 20, strokeWidth: 1.75 }, sm: { size: 16, strokeWidth: 2 } }
+
 type Shared = {
   icon: LucideIcon
+  /** md: Settings, Close (default). sm: ‹ Back next to a page title (Inventory → IconButton). */
+  size?: keyof typeof iconSizes
   /** What it does, for screen readers ("Settings", "Close", "Back"). Required: there's no visible text. */
   label: string
   className?: string
@@ -30,6 +36,7 @@ type Shared = {
 /** For actions: Close. */
 export function IconButton({
   icon: Icon,
+  size = 'md',
   label,
   className = 'text-fg',
   ...rest
@@ -37,7 +44,7 @@ export function IconButton({
   Omit<ComponentProps<typeof BaseButton>, 'className' | 'render' | 'children' | 'aria-label'>) {
   return (
     <BaseButton aria-label={label} className={cn(base, className)} {...rest}>
-      <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+      <Icon {...iconSizes[size]} aria-hidden="true" />
     </BaseButton>
   )
 }
@@ -45,13 +52,14 @@ export function IconButton({
 /** For navigation: Settings, Back. */
 export function IconLink({
   icon: Icon,
+  size = 'md',
   label,
   className = 'text-fg',
   ...linkProps
 }: Shared & Omit<LinkProps, 'className' | 'children'>) {
   return (
     <Link aria-label={label} className={cn(base, className)} {...linkProps}>
-      <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+      <Icon {...iconSizes[size]} aria-hidden="true" />
     </Link>
   )
 }

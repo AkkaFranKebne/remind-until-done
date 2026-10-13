@@ -13,17 +13,16 @@ import { useMe } from '../auth/useMe'
  * Design Inventory → Phone Screens → Settings ("Default", "Sign-out confirm").
  */
 export function SettingsPage() {
-  const { state, signOut } = useAuth()
-  const me = useMe()
+  const { user, signOut } = useAuth()
+  const me = useMe() // email and settings: our API (GET /me)
   const navigate = useNavigate()
   const [confirming, setConfirming] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
   // RequireAuth only shows this page when signed in.
-  if (state.status !== 'signedIn') return null
-  const { user } = state
+  if (!user) return null
   const email = me?.email ?? user.email ?? ''
-  const name = user.name ?? email
+  const name = user.name ?? email // the name comes from Google only; the API doesn't store it
 
   const confirmSignOut = async () => {
     setSigningOut(true)

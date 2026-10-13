@@ -55,6 +55,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
   const value = useMemo<AuthContextValue>(
     () => ({
       state,
+      user: state.status === 'signedIn' ? state.user : null,
       signIn: async () => {
         try {
           await client.signIn() // leaves the page for Google

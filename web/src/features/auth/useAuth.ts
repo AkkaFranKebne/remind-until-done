@@ -17,6 +17,8 @@ export type AuthState =
 
 export type AuthContextValue = {
   state: AuthState
+  /** Who is signed in (Google name and email), or null. Same as `state.user` when signedIn. */
+  user: AuthUser | null
   signIn: () => Promise<void>
   signOut: () => Promise<void>
 }

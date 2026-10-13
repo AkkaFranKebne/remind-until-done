@@ -186,7 +186,7 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
 - Before building UI, ask the `storybook` MCP server what exists (`docs-list`, then `docs-show` for props). It only reports documented props: a prop that isn't there doesn't exist. Doc comments on components become its descriptions, so keep them accurate.
 - Components with `<Link>` need a router in tests and stories: wrap them in `WithRouter` (`src/test-utils/withRouter.tsx`).
 - Sign-in (`src/features/auth/`):
-  - `useAuth()` gives `state` (`checking`, `signedOut`, `notInvited`, `signedIn`), `signIn()` and `signOut()`. `AuthProvider` sits above the router, inside `QueryClientProvider` (`App.tsx`).
+  - `useAuth()` gives `state` (`checking`, `signedOut`, `notInvited`, `signedIn`), `user` (Google name and email, or `null`), `signIn()` and `signOut()`. Pages that only need who is signed in use `user`, not `state`. `AuthProvider` sits above the router, inside `QueryClientProvider` (`App.tsx`).
   - `useMe()` gives the signed-in user's settings (GET /me). AuthProvider loads them into the query cache during sign-in, so signed-in pages have them at once. The same query sends the phone's time zone (PATCH /me) when it differs. Sign-out clears the whole cache.
   - The app talks to Firebase only through the `AuthClient` interface (`src/lib/authClient.ts`); the real one is `src/lib/firebase.ts`. Tests use `FakeAuthClient` (`src/test-utils/fakeAuthClient.ts`), never Firebase.
   - Signed-in pages are behind `RequireAuth` (the `app` route). After sign-in, `/login?next=` sends people back; `safeNext()` only allows paths inside the app.

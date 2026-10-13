@@ -32,6 +32,6 @@ export function meQueryOptions() {
 
 /** The signed-in user's settings (GET /me), or undefined when nobody is signed in. */
 export function useMe(): User | undefined {
-  const { state } = useAuth()
-  return useQuery({ ...meQueryOptions(), enabled: state.status === 'signedIn' }).data
+  const { user } = useAuth()
+  return useQuery({ ...meQueryOptions(), enabled: user !== null }).data
 }

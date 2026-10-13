@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-// The web app's API code is generated from swagger.json (orval, from M2), so the
-// contract must match what the server really does.
+// The web app's API code is generated from swagger.json (orval), so the contract
+// must match what the server really does, in both directions.
 
 type swaggerSpec struct {
 	Paths      map[string]map[string]json.RawMessage `json:"paths"`
@@ -41,6 +41,51 @@ func TestEveryRouteIsInSwagger(t *testing.T) {
 	for _, r := range api.routes() {
 		if _, ok := spec.Paths[r.path][strings.ToLower(r.method)]; !ok {
 			t.Errorf("%s %s is served but missing from swagger.json", r.method, r.path)
+		}
+	}
+}
+
+// notBuiltYet lists the swagger.json routes the server doesn't serve yet, with the
+// milestone that builds them. Building one? Remove it here: the test below fails
+// until you do, so the list stays true.
+var notBuiltYet = map[string]string{
+	"DELETE /me":                "M6 (delete account)",
+	"GET /reminders":            "M2",
+	"POST /reminders":           "M2",
+	"GET /reminders/{id}":       "M2",
+	"PATCH /reminders/{id}":     "M2",
+	"DELETE /reminders/{id}":    "M2",
+	"POST /reminders/{id}/done": "M2",
+	"GET /devices":              "M3",
+	"POST /devices":             "M3",
+	"DELETE /devices/{id}":      "M3",
+	"POST /actions/{token}":     "M5",
+}
+
+func TestEverySwaggerRouteIsServed(t *testing.T) {
+	served := map[string]bool{}
+	for _, r := range New(nil, Deps{DB: fakeDB{}}).routes() {
+		served[r.method+" "+r.path] = true
+	}
+	for path, ops := range loadSwagger(t).Paths {
+		for method := range ops {
+			if !slices.Contains([]string{"get", "post", "put", "patch", "delete"}, method) {
+				continue // e.g. "parameters" shared by the path's operations
+			}
+			route := strings.ToUpper(method) + " " + path
+			_, planned := notBuiltYet[route]
+			switch {
+			case !served[route] && !planned:
+				t.Errorf("%s is in swagger.json but not served (build it, or add it to notBuiltYet)", route)
+			case served[route] && planned:
+				t.Errorf("%s is served now: remove it from notBuiltYet", route)
+			}
+		}
+	}
+	for route := range notBuiltYet {
+		method, path, _ := strings.Cut(route, " ")
+		if _, ok := loadSwagger(t).Paths[path][strings.ToLower(method)]; !ok {
+			t.Errorf("notBuiltYet has %s, which isn't in swagger.json", route)
 		}
 	}
 }

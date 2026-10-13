@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
-import { mockMe, renderApp } from '../../test-utils/renderApp'
+import { mockMe, renderApp, testMe } from '../../test-utils/renderApp'
 
 describe('SettingsPage', () => {
   beforeEach(() => mockMe())
@@ -11,6 +11,13 @@ describe('SettingsPage', () => {
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument()
     expect(screen.getByText('Tess')).toBeInTheDocument()
     expect(screen.getByText('tester@example.com')).toBeInTheDocument()
+  })
+
+  it("shows the API's email (GET /me), not only Google's", async () => {
+    mockMe(200, { ...testMe, email: 'api@example.com' })
+    renderApp('/settings', new FakeAuthClient(tester))
+
+    expect(await screen.findByText('api@example.com')).toBeInTheDocument()
   })
 
   it('falls back to the email when Google has no name', async () => {

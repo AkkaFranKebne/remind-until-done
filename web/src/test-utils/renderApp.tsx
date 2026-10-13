@@ -1,11 +1,14 @@
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router'
 import { render } from '@testing-library/react'
+import { http, HttpResponse, type JsonBodyType } from 'msw'
 import { createAppRouter } from '../app/router'
 import { AuthProvider } from '../features/auth/AuthProvider'
-import { setHttp, type Me } from '../lib/api/client'
+import type { User } from '../lib/api/generated/model'
+import { server } from '../mocks/server'
 import type { FakeAuthClient } from './fakeAuthClient'
+import { TestQueryProvider } from './TestQueryProvider'
 
-export const testMe: Me = {
+export const testMe: User = {
   id: 'u1',
   email: 'tester@example.com',
   timezone: 'Europe/Stockholm',
@@ -13,18 +16,32 @@ export const testMe: Me = {
   defaultNagIntervalMin: 60,
 }
 
-/** Fake API: GET /api/v1/me answers with `status` and `body` (default: testMe). */
-export function mockMe(status = 200, body: unknown = testMe) {
-  setHttp(() => Promise.resolve({ ok: status < 400, status, json: () => Promise.resolve(body) }))
+/**
+ * The fake API (MSW) answers GET /api/v1/me with `status` and `body` (default: testMe).
+ * PATCH /api/v1/me (the time zone update) answers with that user plus the changes.
+ */
+export function mockMe(status = 200, body: JsonBodyType = testMe) {
+  server.use(
+    http.get('*/api/v1/me', () => HttpResponse.json(body, { status })),
+    http.patch('*/api/v1/me', async ({ request }) => {
+      const changes: unknown = await request.json()
+      const base = typeof body === 'object' && body !== null ? body : {}
+      const merged =
+        typeof changes === 'object' && changes !== null ? { ...base, ...changes } : base
+      return HttpResponse.json(merged)
+    }),
+  )
 }
 
 /** The whole app (real routes) at `path`, signed in or out through `client`. */
 export function renderApp(path: string, client: FakeAuthClient) {
   const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }))
   render(
-    <AuthProvider client={client}>
-      <RouterProvider router={router} />
-    </AuthProvider>,
+    <TestQueryProvider>
+      <AuthProvider client={client}>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </TestQueryProvider>,
   )
   return router
 }

@@ -52,7 +52,7 @@ Run from the folder named.
 - Never run `terraform apply` against **prod**. Prepare a saved plan (`terraform plan -out=...`); the owner applies it.
 - Never skip hooks (`--no-verify`) or turn off a lint rule to make a check pass. Fix the code, or ask.
 - Never deploy by hand. Deploys go through `deploy.yml` (merge → dev; manual run with `prod` → prod).
-- Never edit generated files (e.g. `web/src/lib/api/generated/` once it exists).
+- Never edit generated files (`web/src/lib/api/generated/`: regenerate with `npm run api:generate`).
 
 ## Environments
 | | dev | prod |
@@ -74,15 +74,18 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - Any time: Terraform Google provider is pinned `~> 6.0`; the registry has 8.x (two major versions). Upgrade in its own PR, dev first, read both upgrade guides.
 - M2 (reminders): first skills ("new endpoint", "new migration"); semgrep.
 - M3 (push, Settings): revisit the sign-out warning "You'll need to reinstall the app to sign back in on this device" (Inventory copy, kept for now). Signing in again works without reinstalling; the real effect is that the phone stops getting pushes (design doc 5.7).
-- M2 (first settings form): move `me` (GET/PATCH /me) from `AuthProvider` into TanStack Query (cache, refetch after a change, loading states). `AuthProvider` then only answers "who is signed in?" (design doc 5.4: TanStack Query for all server data).
-- M2 (orval): the contract test also checks the other direction: every route in `api/swagger.json` is served, or is on an explicit "not built yet" list.
+- M2 (create sheet PR): `npm run dev:mock` (the app on MSW only, for frontend work without the API; design doc 6.7). Needs a fake sign-in too.
 - M2 (detail screens): TopBar tones for the vivid detail gradients (nag-low, overdue, done, waiting, nag-high). The current logo/icon colours fail contrast there; decide the look with the screens, update the Inventory, then add the tones.
 - M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.
 - M6 (delete account): the Delete account sheet closes only on Cancel, so the typed DELETE isn't lost by a swipe or a tap outside (Inventory). `ConfirmSheet` has no option for that yet; add one (blocks swipe, tap outside and Escape).
+- M5 (actions): `/actions/{token}` puts the token into the URL path unencoded (orval's generated code). Check that tokens are URL-safe, or encode them, when building it.
 - M7 (hardening): Content-Security-Policy in `web/firebase.json`, report-only first (design doc 7.1).
 - M7 (hardening): database TLS with certificate check (`sslmode=verify-full`) for the API and Flyway. Today `require` encrypts but doesn't verify the server.
 - M7 (hardening): a separate Neon role for the app that can only read and write rows; Flyway keeps the owner role for schema changes.
 - M7 (e2e tests): Firebase Auth emulator, only if Playwright needs it (Google blocks automated logins; design doc decision 32).
+- Any time: `npm audit` in `web/` reports 31 findings, all inside `firebase-tools` (the deploy CLI, a dev tool; none in app code). Check for a `firebase-tools` release that fixes them.
+- Any time: a lint rule (or a check of the built bundle) so app code can't import test-only code (`msw`, `@faker-js/faker`, `*.msw.ts`). Today only reviews catch it.
+- Any time: MSW 3 (ES modules only). Under Jest it needs an experimental Node flag plus patches; MSW's docs suggest Vitest. Upgrade together with a Jest → Vitest decision (ask the owner).
 - Any time: pin GitHub Actions by commit SHA; remove Editor from the default compute service account.
 
 ## Agent tools (MCP) and library docs

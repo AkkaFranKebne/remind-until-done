@@ -172,7 +172,7 @@
               ],
               "default": "upcoming"
             },
-            "description": "upcoming = not done (waiting, nagging or overdue); done = done"
+            "description": "upcoming = not done (waiting, nagging or overdue), soonest dueAt first; done = most recently done first"
           },
           {
             "name": "cursor",
@@ -745,16 +745,18 @@
           "title": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Leading and trailing spaces are removed"
           },
           "note": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "Empty or blank = no note"
           },
           "dueAt": {
             "type": "string",
             "format": "date-time",
-            "description": "UTC instant, at most 1 year ahead"
+            "description": "UTC instant: not in the past (a minute of phone clock difference is allowed), at most 1 year ahead"
           },
           "nagIntervalMin": {
             "type": "integer",
@@ -774,11 +776,13 @@
           },
           "note": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "null or blank clears the note; left out = unchanged"
           },
           "dueAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "A new time restarts the push cycle; same rules as on create"
           },
           "nagIntervalMin": {
             "type": "integer",

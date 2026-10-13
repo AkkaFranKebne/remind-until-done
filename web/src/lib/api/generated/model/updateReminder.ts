@@ -12,8 +12,12 @@ export interface UpdateReminder {
    * @maxLength 200
    */
   title?: string
-  /** @nullable */
+  /**
+   * null or blank clears the note; left out = unchanged
+   * @nullable
+   */
   note?: string | null
+  /** A new time restarts the push cycle; same rules as on create */
   dueAt?: string
   /**
    * @minimum 15

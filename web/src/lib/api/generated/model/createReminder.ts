@@ -8,13 +8,17 @@
 
 export interface CreateReminder {
   /**
+   * Leading and trailing spaces are removed
    * @minLength 1
    * @maxLength 200
    */
   title: string
-  /** @nullable */
+  /**
+   * Empty or blank = no note
+   * @nullable
+   */
   note?: string | null
-  /** UTC instant, at most 1 year ahead */
+  /** UTC instant: not in the past (a minute of phone clock difference is allowed), at most 1 year ahead */
   dueAt: string
   /**
    * Defaults to the user's defaultNagIntervalMin

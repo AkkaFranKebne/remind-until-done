@@ -69,7 +69,7 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "prettier --write",
-      "oxlint --type-aware --deny-warnings"
+      "oxlint --type-aware --deny-warnings --no-error-on-unmatched-pattern"
     ],
     "*.{js,cjs,css,json,md,html}": "prettier --write"
   },

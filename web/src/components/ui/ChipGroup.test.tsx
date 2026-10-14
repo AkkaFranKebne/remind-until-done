@@ -1,0 +1,40 @@
+import { fireEvent, render, screen } from '@testing-library/react'
+import { ChipGroup } from './ChipGroup'
+
+const options = [
+  { value: '30', label: '30 min' },
+  { value: '60', label: '1 h' },
+]
+
+test('is a radio group named by its question, with the picked option checked', () => {
+  render(<ChipGroup legend="Then nag me every" options={options} value="60" onChange={jest.fn()} />)
+
+  expect(screen.getByRole('radiogroup', { name: 'Then nag me every' })).toBeInTheDocument()
+  expect(screen.getByRole('radio', { name: '1 h' })).toBeChecked()
+  expect(screen.getByRole('radio', { name: '30 min' })).not.toBeChecked()
+})
+
+test('tapping a chip picks it', () => {
+  const onChange = jest.fn()
+  render(
+    <ChipGroup legend="Then nag me every" options={options} value={null} onChange={onChange} />,
+  )
+
+  fireEvent.click(screen.getByRole('radio', { name: '30 min' }))
+
+  expect(onChange).toHaveBeenCalledWith('30')
+})
+
+test('an error shows right under the question, as an alert', () => {
+  render(
+    <ChipGroup
+      legend="When should we start?"
+      options={options}
+      value={null}
+      onChange={jest.fn()}
+      error="Pick a time."
+    />,
+  )
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Pick a time.')
+})

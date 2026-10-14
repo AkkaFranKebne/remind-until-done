@@ -97,14 +97,17 @@ func TestCreateRefusesBadValues(t *testing.T) {
 		"due over a year":   {Title: "x", DueAt: time.Now().AddDate(1, 0, 1)},
 		"nag interval low":  {Title: "x", DueAt: in(1), NagIntervalMin: ptr(14)},
 		"nag interval high": {Title: "x", DueAt: in(1), NagIntervalMin: ptr(1441)},
+		"NUL in title":      {Title: "a\x00b", DueAt: in(1)},
+		"NUL in note":       {Title: "x", Note: ptr("a\x00b"), DueAt: in(1)},
+		"note too long":     {Title: "x", Note: ptr(strings.Repeat("ö", 201)), DueAt: in(1)},
 	}
 	for name, c := range cases {
 		if _, err := s.Create(ctx, user, c); !isValidation(err) {
 			t.Errorf("%s: got %v, want a ValidationError", name, err)
 		}
 	}
-	// 200 characters (not bytes) is fine.
-	if _, err := s.Create(ctx, user, reminders.CreateInput{Title: strings.Repeat("ä", 200), DueAt: in(1)}); err != nil {
+	// 200 characters (not bytes) is fine, for the title and the note.
+	if _, err := s.Create(ctx, user, reminders.CreateInput{Title: strings.Repeat("ä", 200), Note: ptr(strings.Repeat("ö", 200)), DueAt: in(1)}); err != nil {
 		t.Errorf("200 characters: %v", err)
 	}
 }
@@ -246,6 +249,9 @@ func TestUpdate(t *testing.T) {
 	}
 	if _, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{Title: ptr("")}); !isValidation(err) {
 		t.Errorf("empty title: %v, want a ValidationError", err)
+	}
+	if _, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{NoteSet: true, Note: ptr(strings.Repeat("ö", 201))}); !isValidation(err) {
+		t.Errorf("note of 201 characters: %v, want a ValidationError", err)
 	}
 }
 

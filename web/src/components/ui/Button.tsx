@@ -12,7 +12,7 @@ import { Spinner } from './Spinner'
  *   long-press / open-in-new-tab work. Never make a navigation a button, or the reverse.
  * Design Inventory → Components → "Done / Remind later — primary pair", "Button — loading",
  * Phone Screens → Login "Install app" (size lg) and "Continue with Google" (surface), and
- * Settings → "Sign-out confirm" (neutral Cancel).
+ * Settings → "Sign-out confirm" (neutral Cancel), ConfirmSheet — delete (danger).
  */
 
 /**
@@ -44,6 +44,8 @@ const buttonVariants = cva(
         neutral: 'bg-bg3 text-fg2',
         // Card-coloured with a border: "Continue with Google" (Google's own button style).
         surface: 'border-strong border-border bg-bg2 text-fg',
+        // Hard-to-undo actions in a confirm sheet: Delete, Discard (Inventory → ConfirmSheet "red danger").
+        danger: 'bg-error text-on-solid',
       },
       /** md: everyday buttons (48px). lg: the one hero action on a screen (52px, Install app). */
       size: {

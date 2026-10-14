@@ -15,6 +15,7 @@ export interface CreateReminder {
   title: string
   /**
    * Empty or blank = no note
+   * @maxLength 200
    * @nullable
    */
   note?: string | null

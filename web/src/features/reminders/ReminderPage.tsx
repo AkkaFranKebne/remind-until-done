@@ -1,5 +1,10 @@
+import { AppScreen } from '../../app/AppScreen'
 import { Placeholder } from '../../app/Placeholder'
 
 export function ReminderPage() {
-  return <Placeholder title="Reminder" milestone="M2" />
+  return (
+    <AppScreen>
+      <Placeholder title="Reminder" milestone="M2" />
+    </AppScreen>
+  )
 }

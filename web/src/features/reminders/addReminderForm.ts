@@ -1,0 +1,105 @@
+import { z } from 'zod'
+import type { ChipOption } from '../../components/ui/ChipGroup'
+import { fromLocalInputValue, toMinute, tomorrowAt } from '../../lib/dates'
+import { countCharacters } from '../../lib/text'
+
+/** Same limits as the API (design doc 5.5; api/internal/reminders). */
+export const MAX_TITLE = 200
+export const MAX_NOTE = 200
+const YEAR_DAYS = 365
+
+/** Inventory → IntervalChips: 15 min to 24 h (values in minutes, as the API wants them). */
+export const intervalOptions: ChipOption<string>[] = [
+  { value: '15', label: '15 min' },
+  { value: '30', label: '30 min' },
+  { value: '60', label: '1 h' },
+  { value: '120', label: '2 h' },
+  { value: '240', label: '4 h' },
+  { value: '720', label: '12 h' },
+  { value: '1440', label: '24 h' },
+]
+
+/** Inventory → TimeChips: quick picks, plus Custom… (the phone's own date-time picker). */
+export type WhenChoice = 'in1h' | 'tomorrow' | 'in3h' | 'custom'
+
+export type AddReminderValues = {
+  title: string
+  note: string
+  when: WhenChoice | null
+  /** The datetime-local value when `when` is custom, e.g. "2026-10-16T14:30". */
+  customAt: string
+  interval: string
+}
+
+/** The moment a choice means, in the phone's zone. Null if Custom has no valid value yet. */
+export function resolveDue(
+  when: WhenChoice | null,
+  customAt: string,
+  defaultTimeOfDay: string,
+  now: Date = new Date(),
+): Date | null {
+  switch (when) {
+    case 'in1h':
+      return toMinute(new Date(now.getTime() + 60 * 60_000))
+    case 'in3h':
+      return toMinute(new Date(now.getTime() + 3 * 60 * 60_000))
+    case 'tomorrow':
+      return tomorrowAt(defaultTimeOfDay, now)
+    case 'custom':
+      return fromLocalInputValue(customAt)
+    default:
+      return null
+  }
+}
+
+/**
+ * The form's rules, with the user's copy (Inventory → UX Copy). The time is checked when
+ * the form is sent, against the clock at that moment.
+ */
+export function addReminderSchema(defaultTimeOfDay: string) {
+  return z
+    .object({
+      title: z
+        .string()
+        .trim()
+        .min(1, { error: 'Title is required' })
+        .refine((t) => countCharacters(t) <= MAX_TITLE, {
+          error: `Keep the title under ${MAX_TITLE} characters.`,
+        }),
+      note: z
+        .string()
+        .trim()
+        .refine((t) => countCharacters(t) <= MAX_NOTE, {
+          error: "Keep it under 200 characters. It's a reminder, not a diary.",
+        }),
+      when: z.enum(['in1h', 'tomorrow', 'in3h', 'custom']).nullable(),
+      customAt: z.string(),
+      interval: z.string().refine((v) => intervalOptions.some((o) => o.value === v), {
+        error: 'Pick how often to nag you.',
+      }),
+    })
+    .superRefine((v, ctx) => {
+      const now = new Date()
+      if (v.when === null) {
+        ctx.addIssue({ code: 'custom', path: ['when'], message: 'Pick a time.' })
+        return
+      }
+      const due = resolveDue(v.when, v.customAt, defaultTimeOfDay, now)
+      if (due === null) {
+        ctx.addIssue({ code: 'custom', path: ['customAt'], message: 'Pick a date and time.' })
+      } else if (due.getTime() < now.getTime() - 60_000) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['customAt'],
+          message: 'That time has already passed.',
+        })
+      } else if (due.getTime() > now.getTime() + YEAR_DAYS * 86_400_000) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['customAt'],
+          message:
+            "We're not scheduling anything more than a year out. Come back closer to the time.",
+        })
+      }
+    })
+}

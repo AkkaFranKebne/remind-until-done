@@ -23,6 +23,7 @@
   --on-solid: #ffffff; /* text and icons on accent-solid */
   --on-grad: #6d28d9; /* logo and icons on gradient screens */
   --on-grad-fg2: #5a5850; /* secondary text on gradient screens */
+  --on-row: #1a1915; /* titles on the light row tints (they stay light in dark mode too) */
   --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
 
   /* Status, error and nag tints: the same in both themes (hue carries meaning). */
@@ -33,7 +34,17 @@
   --tag-done: #e6f4ea;
   --tag-done-fg: #1e6b38;
   --tag-overdue: #7f1d1d;
-  --tag-overdue-fg: #fef2f2;
+  --tag-overdue-fg: #fef2f2; /* overdue row (dark red) */
+  --tag-overdue-chip: #f3e8ff; /* overdue chip and tile (purple) */
+  --tag-overdue-chip-fg: #6b21a8;
+  /* Inventory → StatusTiles: icon circle, the overdue tile's red tint and ring, the active Waiting tile. */
+  --tile-icon-bg: rgba(255, 255, 255, 0.55);
+  --tile-overdue: #f2c9c8; /* the Inventory's red at 22% on a light page, solid so dark mode can't show through */
+  --tile-overdue-fg: #991b1b;
+  --tile-overdue-ring: rgba(185, 28, 28, 0.35);
+  --tile-waiting-active: #ddd6fe;
+  /* Inventory → ReminderRow: the chip on a dark red (nag-high) row is a white pill. */
+  --chip-on-nag-high: rgba(255, 255, 255, 0.88);
   --tag-shared: #e8f0fe;
   --tag-shared-fg: #1a56c4;
   --waiting-row-bg: #ede9fe;
@@ -49,8 +60,10 @@
   /* Gradients: screen backgrounds by filter/status, and UI elements. Same in both themes. */
   --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 28%, var(--bg3) 60%);
   --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
-  --grad-shell-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
-  --grad-shell-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
+  /* Overdue and Done list filters: pastel tops, so the violet logo and the grey context line
+     keep at least 4.5:1 (decided 2026-10-14). The detail screens keep their vivid versions. */
+  --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 40%, var(--bg3) 74%);
+  --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 38%, var(--bg3) 70%);
   --grad-detail-waiting: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 38%, var(--bg3) 68%);
   --grad-detail-nag-low: linear-gradient(180deg, #f59e0b 0%, #fde8c8 38%, var(--bg3) 68%);
   --grad-detail-nag-mid: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
@@ -114,6 +127,8 @@
   --text-sm--line-height: 1.5;
   --text-base: 0.9375rem; /* 15px: body, row titles, buttons */
   --text-base--line-height: 1.5;
+  --text-input: 1rem; /* 16px: typed text in fields only (smaller makes iOS zoom in on focus) */
+  --text-input--line-height: 1.5;
   --text-lg: 1.125rem; /* 18px: page and screen headings */
   --text-lg--line-height: 1.35;
   --text-xl: 1.375rem; /* 22px: logo, reminder title on the detail page */
@@ -128,6 +143,27 @@
 
   /* Inventory → Tokens → Motion: animate-spin-fast, one turn every 0.7s (Tailwind's animate-spin is 1s). */
   --animate-spin-fast: spin 0.7s linear infinite;
+
+  /* Inventory → Motion 3b "Skeleton shimmer": the light band of bg-shimmer slides left → right.
+     Pair with motion-reduce:animate-none. */
+  --animate-shimmer: shimmer 1.5s linear infinite;
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
+    }
+  }
+
+  /* Inventory → Motion 3 "Nag pulse dot": on nagging rows from push 4. Pair with motion-reduce:animate-none. */
+  --animate-nag-pulse: nag-pulse 2s ease-in-out infinite;
+  @keyframes nag-pulse {
+    50% {
+      scale: 0.65;
+      opacity: 0.35;
+    }
+  }
 }
 
 /* Inventory → Tokens → Border: border-strong, 1.5px for ghost buttons, inputs, selector chips
@@ -144,8 +180,11 @@
   transition-property: translate, transform;
   transition-duration: var(--duration-base);
   transition-timing-function: var(--easing-std);
-  /* Swipe down to close (Base UI Drawer): the sheet follows the finger ... */
-  transform: translateY(var(--drawer-swipe-movement-y, 0px));
+  /* Swipe down to close (Base UI Drawer): the sheet follows the finger ... Sheets with snap
+     points (sheet-tall) also sit lower by the snap offset. */
+  transform: translateY(
+    calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))
+  );
   &[data-swiping] {
     transition-duration: 0ms; /* ... immediately, not with a delay */
   }
@@ -156,6 +195,39 @@
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
+}
+
+/* Inventory → AddReminderSheet: a form sheet that is 85% of the screen tall when dragged up
+   and peeks at 55% by default (Base UI snap points). The bottom padding grows with the snap
+   offset, so the content above the CTA shrinks and the CTA stays visible in both positions. */
+@utility sheet-tall {
+  height: 85dvh;
+  padding-bottom: max(
+    0px,
+    calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))
+  );
+}
+
+/* Inventory → StatusTiles: rings drawn inside the tile (no layout shift), together with the tile's
+   shadow (both are box-shadow, so one utility sets both). The overdue tile has a thin red ring;
+   the picked tile a 2.5px violet ring. */
+@utility tile-ring-overdue {
+  box-shadow:
+    inset 0 0 0 1.5px var(--tile-overdue-ring),
+    var(--shadow-sm);
+}
+/* Fixed violet (--on-grad), not --accent: the tiles stay light in dark mode, where --accent is pale. */
+@utility tile-ring-active {
+  box-shadow:
+    inset 0 0 0 2.5px var(--on-grad),
+    var(--shadow-sm);
+}
+
+/* The skeleton placeholder's background (Inventory → --grad-shimmer), twice as wide as the
+   element so animate-shimmer can slide the light band across it. */
+@utility bg-shimmer {
+  background-image: var(--grad-shimmer);
+  background-size: 200% 100%;
 }
 
 @utility backdrop-fade {
@@ -190,6 +262,7 @@
   --color-on-solid: var(--on-solid);
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
+  --color-on-row: var(--on-row);
   --color-scrim: var(--scrim);
   --color-waiting-row-bg: var(--waiting-row-bg);
   --color-tag-shared: var(--tag-shared);
@@ -204,6 +277,14 @@
   --color-tag-done-fg: var(--tag-done-fg);
   --color-tag-overdue: var(--tag-overdue);
   --color-tag-overdue-fg: var(--tag-overdue-fg);
+  --color-tag-overdue-chip: var(--tag-overdue-chip);
+  --color-tag-overdue-chip-fg: var(--tag-overdue-chip-fg);
+  --color-tile-icon-bg: var(--tile-icon-bg);
+  --color-tile-overdue: var(--tile-overdue);
+  --color-tile-overdue-fg: var(--tile-overdue-fg);
+  --color-tile-overdue-ring: var(--tile-overdue-ring);
+  --color-tile-waiting-active: var(--tile-waiting-active);
+  --color-chip-on-nag-high: var(--chip-on-nag-high);
   --color-nag-low: var(--nag-low);
   --color-nag-low-fg: var(--nag-low-fg);
   --color-nag-mid: var(--nag-mid);

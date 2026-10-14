@@ -13,7 +13,6 @@ import { safeNext } from '../features/auth/safeNext'
 import { ReminderPage } from '../features/reminders/ReminderPage'
 import { RemindersPage } from '../features/reminders/RemindersPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
-import { AppLayout } from './AppLayout'
 import { NotFoundPage } from './NotFoundPage'
 
 // Routes from design doc 5.1, defined in code (no generated route files).
@@ -23,13 +22,13 @@ const rootRoute = createRootRoute({
   notFoundComponent: NotFoundPage,
 })
 
-/** Signed-in pages: behind RequireAuth, sharing the header (AppLayout). */
+/** Signed-in pages: behind RequireAuth. Each page draws its own frame (AppScreen). */
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
   component: () => (
     <RequireAuth>
-      <AppLayout />
+      <Outlet />
     </RequireAuth>
   ),
 })

@@ -54,7 +54,7 @@ features that need them are added.
 | `GET /api/v1/me` | Signed-in user and settings. Creates the user on the first visit. `401` without a valid token, `403 not_invited` if not on the list |
 | `PATCH /api/v1/me` | Change `timezone`, `defaultTimeOfDay`, `defaultNagIntervalMin` (15–1440). `400 validation_failed` for bad values |
 | `GET /api/v1/reminders` | `?status=upcoming` (default, soonest first) or `done` (most recently done first); `limit` 1–100 (50); `cursor` = `nextCursor` of the previous page |
-| `POST /api/v1/reminders` | `{title, note?, dueAt, nagIntervalMin?}`. `201`. `409 limit_reached` with 5 active (not done) already |
+| `POST /api/v1/reminders` | `{title, note?, dueAt, nagIntervalMin?}` (title 1–200, note up to 200 characters). `201`. `409 limit_reached` with 5 active (not done) already |
 | `GET /api/v1/reminders/{id}` | One reminder. `404 not_found` if it doesn't exist **or isn't yours** |
 | `PATCH /api/v1/reminders/{id}` | Fields left out stay; `"note": null` clears. A new `dueAt` restarts the push cycle (and makes a done reminder active again: `409` at the limit) |
 | `DELETE /api/v1/reminders/{id}` | `204`, no body |

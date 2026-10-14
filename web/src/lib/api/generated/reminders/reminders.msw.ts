@@ -19,7 +19,7 @@ export const getListRemindersResponseMock = (
   items: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     id: faker.string.uuid(),
     title: faker.string.alpha({ length: { min: 1, max: 200 } }),
-    note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 200 } }), null]),
     dueAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
     status: faker.helpers.arrayElement(Object.values(ReminderStatus)),
     sentAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
@@ -42,7 +42,7 @@ export const getCreateReminderResponseMock = (
 ): Reminder => ({
   id: faker.string.uuid(),
   title: faker.string.alpha({ length: { min: 1, max: 200 } }),
-  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 200 } }), null]),
   dueAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
   status: faker.helpers.arrayElement(Object.values(ReminderStatus)),
   sentAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
@@ -60,7 +60,7 @@ export const getGetReminderResponseMock = (
 ): Reminder => ({
   id: faker.string.uuid(),
   title: faker.string.alpha({ length: { min: 1, max: 200 } }),
-  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 200 } }), null]),
   dueAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
   status: faker.helpers.arrayElement(Object.values(ReminderStatus)),
   sentAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
@@ -78,7 +78,7 @@ export const getUpdateReminderResponseMock = (
 ): Reminder => ({
   id: faker.string.uuid(),
   title: faker.string.alpha({ length: { min: 1, max: 200 } }),
-  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 200 } }), null]),
   dueAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
   status: faker.helpers.arrayElement(Object.values(ReminderStatus)),
   sentAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
@@ -96,7 +96,7 @@ export const getMarkReminderDoneResponseMock = (
 ): Reminder => ({
   id: faker.string.uuid(),
   title: faker.string.alpha({ length: { min: 1, max: 200 } }),
-  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 200 } }), null]),
   dueAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
   status: faker.helpers.arrayElement(Object.values(ReminderStatus)),
   sentAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),

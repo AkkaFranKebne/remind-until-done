@@ -30,6 +30,9 @@ export const SurfaceLoading: Story = {
 }
 /** Cancel next to a primary action, e.g. in the sign-out confirm sheet. */
 export const Neutral: Story = { args: { variant: 'neutral', size: 'lg', children: 'Cancel' } }
+
+/** Hard-to-undo action in a confirm sheet (Delete, Discard). */
+export const Danger: Story = { args: { variant: 'danger', size: 'lg', children: 'Discard' } }
 export const Loading: Story = { args: { loading: true, children: 'Signing in' } }
 export const Disabled: Story = { args: { disabled: true } }
 export const GhostLoading: Story = { args: { variant: 'ghost', loading: true, children: 'Saving' } }

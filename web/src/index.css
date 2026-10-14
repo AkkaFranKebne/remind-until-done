@@ -23,6 +23,8 @@
   --on-solid: #ffffff; /* text and icons on accent-solid */
   --on-grad: #6d28d9; /* logo and icons on gradient screens */
   --on-grad-fg2: #5a5850; /* secondary text on gradient screens */
+  --note-on-gradient-bg: transparent; /* notes on the list gradient: plain text (Inventory); dark mode: a card */
+  --on-row: #1a1915; /* titles on the light row tints (they stay light in dark mode too) */
   --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
 
   /* Status, error and nag tints: the same in both themes (hue carries meaning). */
@@ -33,11 +35,33 @@
   --tag-done: #e6f4ea;
   --tag-done-fg: #1e6b38;
   --tag-overdue: #7f1d1d;
-  --tag-overdue-fg: #fef2f2;
+  --tag-overdue-fg: #fef2f2; /* overdue row (dark red) */
+  --tag-overdue-chip: #f3e8ff; /* overdue chip and tile (purple) */
+  --tag-overdue-chip-fg: #6b21a8;
+  /* Inventory → StatusTiles (as the phone mockup): slightly see-through tiles on the light list gradient. */
+  --tile-icon-bg: rgba(255, 255, 255, 0.55);
+  --tile-waiting: rgba(237, 233, 254, 0.82);
+  --tile-nagging: rgba(254, 226, 226, 0.82);
+  --tile-overdue: rgba(220, 38, 38, 0.25);
+  --tile-overdue-fg: #7f1d1d; /* #991b1b of the mockup was 3.9–4.2:1 on the see-through tile */
+  --tile-overdue-ring: rgba(185, 28, 28, 0.35);
+  --tile-done: rgba(209, 250, 229, 0.82);
+  /* Inventory → ReminderRow: chips on the waiting and done rows (on their own tint). */
+  --chip-on-waiting-row: rgba(109, 40, 217, 0.12);
+  --chip-on-done-row: rgba(5, 150, 105, 0.12);
+  /* Inventory → ReminderRow: shadows deepen down the stack (row 1 … 5). */
+  --shadow-row-1: 0 1px 4px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-row-2: 0 2px 6px rgba(0, 0, 0, 0.09), 0 4px 12px rgba(0, 0, 0, 0.07);
+  --shadow-row-3: 0 3px 8px rgba(0, 0, 0, 0.11), 0 6px 16px rgba(0, 0, 0, 0.08);
+  --shadow-row-4: 0 4px 12px rgba(0, 0, 0, 0.14), 0 8px 20px rgba(0, 0, 0, 0.1);
+  --shadow-row-5: 0 4px 16px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.12);
+  /* Inventory → ReminderRow: the chip on a dark red (nag-high) row is a white pill. */
+  --chip-on-nag-high: rgba(255, 255, 255, 0.88);
   --tag-shared: #e8f0fe;
   --tag-shared-fg: #1a56c4;
   --waiting-row-bg: #ede9fe;
   --error: #c0392b;
+  --error-text: #c0392b; /* form error messages and invalid borders; lighter in dark mode */
   --error-bg: #fdecea;
   --nag-low: #fde8c8;
   --nag-low-fg: #7a4a10;
@@ -49,20 +73,24 @@
   /* Gradients: screen backgrounds by filter/status, and UI elements. Same in both themes. */
   --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 28%, var(--bg3) 60%);
   --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
-  --grad-shell-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
-  --grad-shell-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
+  /* Overdue and Done list filters: pastel tops, so the violet logo and the grey context line
+     keep at least 4.5:1 (decided 2026-10-14). The detail screens keep their vivid versions. */
+  --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 40%, var(--bg3) 74%);
+  --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 38%, var(--bg3) 70%);
   --grad-detail-waiting: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 38%, var(--bg3) 68%);
   --grad-detail-nag-low: linear-gradient(180deg, #f59e0b 0%, #fde8c8 38%, var(--bg3) 68%);
   --grad-detail-nag-mid: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
   --grad-detail-nag-high: linear-gradient(180deg, #f97316 0%, #fca5a5 38%, var(--bg3) 70%);
   --grad-detail-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
   --grad-detail-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
-  --grad-shimmer: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+  /* Skeleton rows stay light in dark mode too, like the reminder rows that replace them. */
+  --grad-shimmer: linear-gradient(90deg, #f0efe9 25%, #e2e0d8 50%, #f0efe9 75%);
   --grad-install-card: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 60%, #ede9fe 100%);
   --grad-login-icon: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 100%);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-fab: 0 4px 16px rgba(109, 40, 217, 0.4); /* the FAB's violet glow (visible on the violet gradient) */
   --duration-fast: 120ms;
   --duration-base: 220ms;
   --easing-std: cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,8 +111,16 @@
     --accent2: #c4b5fd;
     --accent-bg: #2e1f5e;
     --border: #2e2d28;
+    --error-text: #f87171; /* #c0392b is only 3.3:1 on the dark sheet */
+    --note-on-gradient-bg: var(--bg2); /* readable where the gradient fades to dark */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
+       light in both themes, and the centred empty state must not sit in the fade (decided 2026-10-14). */
+    --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 70%, var(--bg3) 95%);
+    --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 70%, var(--bg3) 95%);
+    --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 70%, var(--bg3) 95%);
+    --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 70%, var(--bg3) 95%);
     color-scheme: dark;
   }
 }
@@ -99,8 +135,16 @@
   --accent2: #c4b5fd;
   --accent-bg: #2e1f5e;
   --border: #2e2d28;
+  --error-text: #f87171;
+  --note-on-gradient-bg: var(--bg2);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
+     light in both themes, and the centred empty state must not sit in the fade (decided 2026-10-14). */
+  --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 70%, var(--bg3) 95%);
+  --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 70%, var(--bg3) 95%);
+  --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 70%, var(--bg3) 95%);
+  --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 70%, var(--bg3) 95%);
   color-scheme: dark;
 }
 
@@ -114,6 +158,8 @@
   --text-sm--line-height: 1.5;
   --text-base: 0.9375rem; /* 15px: body, row titles, buttons */
   --text-base--line-height: 1.5;
+  --text-input: 1rem; /* 16px: typed text in fields only (smaller makes iOS zoom in on focus) */
+  --text-input--line-height: 1.5;
   --text-lg: 1.125rem; /* 18px: page and screen headings */
   --text-lg--line-height: 1.35;
   --text-xl: 1.375rem; /* 22px: logo, reminder title on the detail page */
@@ -128,6 +174,27 @@
 
   /* Inventory → Tokens → Motion: animate-spin-fast, one turn every 0.7s (Tailwind's animate-spin is 1s). */
   --animate-spin-fast: spin 0.7s linear infinite;
+
+  /* Inventory → Motion 3b "Skeleton shimmer": the light band of bg-shimmer slides left → right.
+     Pair with motion-reduce:animate-none. */
+  --animate-shimmer: shimmer 1.5s linear infinite;
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
+    }
+  }
+
+  /* Inventory → Motion 3 "Nag pulse dot": on nagging rows from push 4. Pair with motion-reduce:animate-none. */
+  --animate-nag-pulse: nag-pulse 2s ease-in-out infinite;
+  @keyframes nag-pulse {
+    50% {
+      scale: 0.65;
+      opacity: 0.35;
+    }
+  }
 }
 
 /* Inventory → Tokens → Border: border-strong, 1.5px for ghost buttons, inputs, selector chips
@@ -144,8 +211,11 @@
   transition-property: translate, transform;
   transition-duration: var(--duration-base);
   transition-timing-function: var(--easing-std);
-  /* Swipe down to close (Base UI Drawer): the sheet follows the finger ... */
-  transform: translateY(var(--drawer-swipe-movement-y, 0px));
+  /* Swipe down to close (Base UI Drawer): the sheet follows the finger ... Sheets with snap
+     points (sheet-tall) also sit lower by the snap offset. */
+  transform: translateY(
+    calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))
+  );
   &[data-swiping] {
     transition-duration: 0ms; /* ... immediately, not with a delay */
   }
@@ -156,6 +226,35 @@
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
+}
+
+/* Inventory → AddReminderSheet: a form sheet that is 85% of the screen tall when dragged up
+   and peeks at 55% by default (Base UI snap points). The bottom padding grows with the snap
+   offset, so the content above the CTA shrinks and the CTA stays visible in both positions. */
+@utility sheet-tall {
+  height: 85dvh;
+  padding-bottom: max(
+    0px,
+    calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))
+  );
+}
+
+/* Inventory → StatusTiles: rings drawn inside the tile (no layout shift). The overdue tile has a
+   thin red ring. */
+@utility tile-ring-overdue {
+  box-shadow: inset 0 0 0 1.5px var(--tile-overdue-ring);
+}
+/* The picked tile: a 2px ring in the tile's own text colour (3:1 or more against the tile, so the
+   state is visible without the dimming of the others). */
+@utility tile-ring-picked {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+/* The skeleton placeholder's background (Inventory → --grad-shimmer), twice as wide as the
+   element so animate-shimmer can slide the light band across it. */
+@utility bg-shimmer {
+  background-image: var(--grad-shimmer);
+  background-size: 200% 100%;
 }
 
 @utility backdrop-fade {
@@ -190,11 +289,14 @@
   --color-on-solid: var(--on-solid);
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
+  --color-on-row: var(--on-row);
+  --color-note-on-gradient-bg: var(--note-on-gradient-bg);
   --color-scrim: var(--scrim);
   --color-waiting-row-bg: var(--waiting-row-bg);
   --color-tag-shared: var(--tag-shared);
   --color-tag-shared-fg: var(--tag-shared-fg);
   --color-error: var(--error);
+  --color-error-text: var(--error-text);
   --color-error-bg: var(--error-bg);
   --color-tag-pending: var(--tag-pending);
   --color-tag-pending-fg: var(--tag-pending-fg);
@@ -204,6 +306,18 @@
   --color-tag-done-fg: var(--tag-done-fg);
   --color-tag-overdue: var(--tag-overdue);
   --color-tag-overdue-fg: var(--tag-overdue-fg);
+  --color-tag-overdue-chip: var(--tag-overdue-chip);
+  --color-tag-overdue-chip-fg: var(--tag-overdue-chip-fg);
+  --color-tile-icon-bg: var(--tile-icon-bg);
+  --color-tile-waiting: var(--tile-waiting);
+  --color-tile-nagging: var(--tile-nagging);
+  --color-tile-overdue: var(--tile-overdue);
+  --color-tile-overdue-fg: var(--tile-overdue-fg);
+  --color-tile-overdue-ring: var(--tile-overdue-ring);
+  --color-tile-done: var(--tile-done);
+  --color-chip-on-waiting-row: var(--chip-on-waiting-row);
+  --color-chip-on-done-row: var(--chip-on-done-row);
+  --color-chip-on-nag-high: var(--chip-on-nag-high);
   --color-nag-low: var(--nag-low);
   --color-nag-low-fg: var(--nag-low-fg);
   --color-nag-mid: var(--nag-mid);
@@ -213,6 +327,12 @@
 
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
+  --shadow-fab: var(--shadow-fab);
+  --shadow-row-1: var(--shadow-row-1);
+  --shadow-row-2: var(--shadow-row-2);
+  --shadow-row-3: var(--shadow-row-3);
+  --shadow-row-4: var(--shadow-row-4);
+  --shadow-row-5: var(--shadow-row-5);
   --ease-std: var(--easing-std);
 }
 

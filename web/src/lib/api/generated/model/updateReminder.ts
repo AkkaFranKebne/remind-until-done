@@ -14,6 +14,7 @@ export interface UpdateReminder {
   title?: string
   /**
    * null or blank clears the note; left out = unchanged
+   * @maxLength 200
    * @nullable
    */
   note?: string | null

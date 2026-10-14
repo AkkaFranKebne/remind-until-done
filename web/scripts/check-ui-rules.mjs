@@ -18,6 +18,7 @@ const tailwindPalette =
   'slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose'
 
 // Line rules: [rule id, regex, message]
+/** @type {Array<[string, RegExp | ((line: string, above: string) => boolean), string]>} */
 const lineRules = [
   ['ui-tokens-only', /#[0-9a-fA-F]{3,8}\b/, 'raw hex colour; use a token from src/index.css'],
   [
@@ -56,7 +57,14 @@ const lineRules = [
   ['ui-icons-lucide', /<svg[\s>]/, 'inline <svg>; use an icon from lucide-react'],
   [
     'ui-base-ui-first',
-    /<(button|input|select|textarea|dialog)[\s>]/,
+    // Allowed only inside a Base UI part's render prop (<Part.Name ... render={<textarea />} />),
+    // not after just any `render={`. Checked with the lines above, because Prettier puts the
+    // props of <Field.Control> on their own lines.
+    (line, above) =>
+      /<(button|input|select|textarea|dialog)[\s>]/.test(line) &&
+      !/<[A-Z]\w*\.[A-Z]\w*\b[^<>]*render=\{<(button|input|select|textarea|dialog)[\s>]/.test(
+        above + '\n' + line,
+      ),
     'raw form/dialog element; use our components built on Base UI (Button, IconButton ...) or a Base UI component',
   ],
 ]
@@ -67,9 +75,11 @@ const sourceFiles = filesIn(src).filter((f) => /\.(tsx?|css)$/.test(f) && f !== 
 for (const file of sourceFiles) {
   readFileSync(file, 'utf8')
     .split('\n')
-    .forEach((line, i) => {
-      for (const [id, regex, message] of lineRules) {
-        if (regex.test(line)) problems.push(`${relative(root, file)}:${i + 1}  [${id}] ${message}`)
+    .forEach((line, i, lines) => {
+      const above = lines.slice(Math.max(0, i - 5), i).join('\n')
+      for (const [id, check, message] of lineRules) {
+        const broken = typeof check === 'function' ? check(line, above) : check.test(line)
+        if (broken) problems.push(`${relative(root, file)}:${i + 1}  [${id}] ${message}`)
       }
     })
 }

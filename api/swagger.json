@@ -691,7 +691,8 @@
           },
           "note": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "maxLength": 200
           },
           "dueAt": {
             "type": "string",
@@ -751,6 +752,7 @@
           "note": {
             "type": "string",
             "nullable": true,
+            "maxLength": 200,
             "description": "Empty or blank = no note"
           },
           "dueAt": {
@@ -777,6 +779,7 @@
           "note": {
             "type": "string",
             "nullable": true,
+            "maxLength": 200,
             "description": "null or blank clears the note; left out = unchanged"
           },
           "dueAt": {

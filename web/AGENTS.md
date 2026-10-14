@@ -68,11 +68,15 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     "No raw colours (hex, rgb(), hsl(), oklch(), text-white, bg-red-500). Use the colour tokens from
     src/index.css: bg-bg2, text-fg2, text-accent, bg-(image:--grad-shell-brand) ...
     No pixel sizes (text-[13px], rounded-[10px]). Text sizes come from the type scale only:
-    text-xs 11 · text-sm 13 · text-base 15 · text-lg 18 · text-xl 22 · text-display 72 (in rem).
+    text-xs 11 · text-sm 13 · text-base 15 · text-input 16 (typed text in fields only) · text-lg 18 ·
+    text-xl 22 · text-display 72 (in rem).
     Radii: rounded-sm 6 · rounded-md 12 · rounded-lg 20 (and rounded-full).
     No one-off values in [ ] at all (border-[1.5px], tracking-[-3px], h-[844px]); only env(...)
     for safe areas. Named extras: border-strong (1.5px), animate-spin-fast (0.7s), sheet-slide and
-    backdrop-fade (every bottom sheet and its backdrop). Spacing uses
+    backdrop-fade (every bottom sheet and its backdrop), sheet-tall (the 85% form sheet with snap
+    points), bg-shimmer + animate-shimmer (Skeleton), animate-nag-pulse (the nag dot),
+    tile-ring-overdue and tile-ring-picked (status tiles), shadow-fab (the + button's glow),
+    shadow-row-1 … shadow-row-5 (reminder rows, deeper down the stack). Spacing uses
     Tailwind's 4px scale, whole or half steps (gap-2, size-4.5); letter spacing too (tracking-tight).
     Tailwind's own text sizes and radii (text-2xl, rounded-xl) are removed. New value? Add it to
     the Inventory first, then to src/index.css."
@@ -95,7 +99,8 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   check: 'Interactive UI is built on Base UI (@base-ui/react) whenever Base UI has the component:
     Button, Dialog, Drawer, Menu, Select, Field/Input, Checkbox, Switch, Tabs, Toast, Tooltip ...
     We add only the styling (tokens) and our API on top. Enforced: no raw <button>, <input>,
-    <select>, <textarea> or <dialog> in src/ (use our ui components or Base UI).
+    <select>, <textarea> or <dialog> in src/ (use our ui components or Base UI). The one exception: a
+    raw element given to a Base UI part's render prop, e.g. Field.Control render={<textarea />}.
     Exception: navigation is a real link (TanStack <Link>, ButtonLink, IconLink), never a Base UI
     Button, so screen readers say "link" and open-in-new-tab works. Hand-build behaviour only when
     Base UI has nothing for it, and say why in the doc comment.'
@@ -167,16 +172,17 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
 - id: ui-mobile-inputs
   status: advisory
   applies_to: 'src/**/*.tsx'
-  check: 'Text inputs use at least 16px font (smaller makes iOS zoom in on focus).'
+  check: 'Text inputs use text-input (16px, only for typed text). Smaller makes iOS zoom in on focus.
+    Never fight the zoom with maximum-scale or user-scalable=no (see Never).'
 ```
 
 ## Conventions (design doc 5.4)
 
 - Folders: `src/app/` (shell, router), `src/lib/` (shared helpers, API client), `src/features/<feature>/` (pages and components per feature), `src/components/ui/` (our own components, built on Base UI).
 - Tests sit next to the code: `Thing.test.tsx`.
-- Server data: **TanStack Query**, one cache (`src/lib/api/queryClient.ts`). API calls: **orval** reads `api/swagger.json` (`orval.config.ts`) and generates typed hooks (`useGetMe`, `useListReminders` ...) and MSW mocks into `src/lib/api/generated/`. Use a generated hook, or `queryOptions` around a generated function when a query needs more (like `useMe`, which adds the time zone PATCH and shares orval's key for GET /me). Never write `fetch` for the API, and never edit `generated/` (it's left out of lint; CI regenerates it and fails on any difference). Contract changed? Edit `api/swagger.json`, then `npm run api:generate`.
+- Server data: **TanStack Query**, one cache (`src/lib/api/queryClient.ts`). API calls: **orval** reads `api/swagger.json` (`orval.config.ts`) and generates typed hooks (`useGetMe`, `useListReminders` ...), MSW mocks and Zod schemas (`generated/zod/`, Zod Mini so unused ones drop out of the build) into `src/lib/api/generated/`. Form limits come from the generated constants (`createReminderBodyTitleMax` ...), never typed twice. Use a generated hook, or `queryOptions` around a generated function when a query needs more (like `useMe`, which adds the time zone PATCH and shares orval's key for GET /me). Never write `fetch` for the API, and never edit `generated/` (it's left out of lint; CI regenerates it and fails on any difference). Contract changed? Edit `api/swagger.json`, then `npm run api:generate`.
 - Every generated call goes through `src/lib/api/mutator.ts` (`apiFetch`): it adds the sign-in token and turns error answers into `ApiError` (`status`, `code`; status 0 = no connection). It doesn't check the shape of answers: the contract tests on both sides (`api/.../router_contract_test.go`) keep the API and `swagger.json` in step.
-- UI components: built on **Base UI** (`@base-ui/react`) for behaviour and accessibility (rule `ui-base-ui-first`), styled with **Tailwind 4** and our tokens. They live in `src/components/ui/`: `Button`/`ButtonLink`, `IconButton`/`IconLink`, `TopBar`, `Spinner`, `Wordmark`, `ConfirmSheet`, `CenteredScreen` (Login, Splash, 404, Offline, iOS gate), `PageHeader` (‹ Back + title). **No shadcn.** Signed-in pages render inside `AppLayout` (`src/app/`: TopBar + content); pages draw only their content.
+- UI components: built on **Base UI** (`@base-ui/react`) for behaviour and accessibility (rule `ui-base-ui-first`), styled with **Tailwind 4** and our tokens. They live in `src/components/ui/`: `Button`/`ButtonLink`, `IconButton`/`IconLink`, `TopBar`, `Spinner`, `Wordmark`, `ConfirmSheet`, `CenteredScreen` (Login, Splash, 404, Offline, iOS gate), `PageHeader` (‹ Back + title), `Sheet` (every bottom sheet: card or full, optional snap points), `TextField` (input or textarea, error, counter), `ChipGroup` (pick-one pills on Radio Group), `StatusChip`, `StatusTiles` (the list filter, on Toggle Group), `Skeleton` (shimmering placeholder block, sized by className), `Fab`. **No shadcn.** Every signed-in page wraps itself in `AppScreen` (`src/app/`: TopBar + content on the page's own background and TopBar tone).
 - Variants (size, tone, look) use **cva** (`class-variance-authority`): one `thingVariants = cva(base, { variants })`, and the prop types come from `VariantProps`. No hand-built `if`/`join(' ')` class strings.
 - Combine classes with **`cn()`** (`src/lib/cn.ts`: clsx + tailwind-merge). A `className` passed from outside wins over the component's own class (`px-5` + `px-6` → `px-6`).
 - Every custom utility in `src/index.css` (`text-*` sizes, `border-*` widths, `animate-*`) is registered in `src/lib/cn.ts`, with a case in `cn.test.ts`. tailwind-merge only knows Tailwind's built-in names: unregistered, `cn('text-display', 'text-accent')` keeps only `text-accent`.
@@ -192,7 +198,10 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   - Signed-in pages are behind `RequireAuth` (the `app` route). After sign-in, `/login?next=` sends people back; `safeNext()` only allows paths inside the app.
   - Firebase web settings come from Hosting's `/__/firebase/init.json` (one build for dev and prod). Locally Vite forwards `/__` to the dev site.
   - The dev server is https (Vite basic-ssl plugin): Firebase always returns from Google sign-in to `https://<host>`. Storybook runs its own server and stays on plain http.
-- Tests talk to a fake API: **MSW** (`src/mocks/server.ts`, started in `jest.setup.ts`) with orval's generated handlers. A request with no handler fails the test. Change one answer with `server.use(getGetMeMockHandler(...))` or `http.get('*/api/v1/...', ...)`. Page tests: `renderApp(path, client)` + `mockMe()` (`src/test-utils/renderApp.tsx`); components with hooks: wrap in `TestQueryProvider`.
+- Forms: **React Hook Form + Zod** with the API's limits (design doc 5.5). One schema per form (e.g. `features/reminders/addReminderForm.ts`), `zodResolver`, a `Controller` per field around our components, `useWatch` (not `watch`: the React compiler can't memoize it). Read form states you need (`isDirty`) while rendering, or React Hook Form doesn't track them. Errors inline, never a toast.
+- Time: `src/lib/dates.ts` turns UTC instants into words in the phone's zone ("Tomorrow 09:00", "Done 3h ago"). Components that show time-dependent text take "now" from `useNow()` (updates every minute), never `new Date()` during render. Character limits count like the API: `countCharacters()` (`src/lib/text.ts`).
+- Row tints and status tiles keep the same colours in dark mode (status hue never inverts), so text on them uses fixed tokens (`text-on-row`, `text-on-grad`, `text-on-grad-fg2`, the `*-fg` status tokens), never `text-fg`/`text-fg2`.
+- Tests talk to a fake API: **MSW** (`src/mocks/server.ts`, started in `jest.setup.ts`) with orval's generated handlers. A request with no handler fails the test. Change one answer with `server.use(getGetMeMockHandler(...))` or `http.get('*/api/v1/...', ...)`. Page tests: `renderApp(path, client)` + `mockMe()` (`src/test-utils/renderApp.tsx`), `aReminder()` + `mockReminders()` (`src/test-utils/reminders.ts`); components with hooks: wrap in `TestQueryProvider`. The fake API answers the reminders list with an empty list by default. Jest runs in UTC (`jest.config.js`).
 - Navigating from code (`useNavigate`) happens in an event handler or an effect, never during render: TanStack's `<Navigate>` in a page that is being left can fire again and loop.
 - Hosting caching (`firebase.json`): every app file is `Cache-Control: no-cache`. The phone may keep files, but asks Firebase "still the same?" (a quick `304 Not Modified`) every time it opens the app, so a deploy shows up on the next open. The rule is a `regex` that skips `/api/...`: API answers are per user, and the API sets `no-store` on them itself. `deploy.yml` checks both headers after every deploy.
 - The app is mobile-first and supports light and dark mode (follows the phone's setting).

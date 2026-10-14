@@ -25,4 +25,19 @@ export default defineConfig({
       },
     },
   },
+  // The same contract as Zod schemas, mainly for the limits (title max 200 …) the forms use, so
+  // they come from swagger.json instead of being typed twice. Runs after `rud`, whose `clean`
+  // empties the whole generated/ folder first.
+  rudZod: {
+    input: { target: '../api/swagger.json' },
+    output: {
+      mode: 'tags-split',
+      target: 'src/lib/api/generated/zod/endpoints.ts',
+      client: 'zod',
+      formatter: 'prettier',
+      // Zod Mini with pure annotations: the build drops every schema the app doesn't use, so
+      // importing the limits costs almost nothing (regular Zod kept all of them: +9 kB).
+      override: { zod: { variant: 'mini', version: 4 } },
+    },
+  },
 })

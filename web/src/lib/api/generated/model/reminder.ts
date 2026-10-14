@@ -14,7 +14,10 @@ export interface Reminder {
    * @maxLength 200
    */
   title: string
-  /** @nullable */
+  /**
+   * @maxLength 200
+   * @nullable
+   */
   note?: string | null
   /** UTC instant */
   dueAt: string

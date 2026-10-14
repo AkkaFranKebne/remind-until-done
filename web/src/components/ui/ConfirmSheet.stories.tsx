@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { LogOut } from 'lucide-react'
+import { LogOut, Trash2 } from 'lucide-react'
 import { type ComponentProps, useState } from 'react'
 import { fn } from 'storybook/test'
 import { Button } from './Button'
@@ -30,6 +30,19 @@ export const SignOut: Story = {}
 export const Confirming: Story = { args: { confirming: true } }
 
 export const WithoutNote: Story = { args: { note: undefined } }
+
+/** Throwing something away: red confirm button (Inventory → UX Copy "Discard draft"). */
+export const Danger: Story = {
+  args: {
+    icon: Trash2,
+    title: 'Forget this one?',
+    children: "You'll lose what you typed. Ironic, for a reminder app.",
+    note: undefined,
+    confirmLabel: 'Discard',
+    cancelLabel: 'Keep editing',
+    danger: true,
+  },
+}
 
 function InteractiveDemo(args: ComponentProps<typeof ConfirmSheet>) {
   const [open, setOpen] = useState(false)

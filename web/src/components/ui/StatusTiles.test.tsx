@@ -1,0 +1,50 @@
+import { fireEvent, render, screen } from '@testing-library/react'
+import { StatusTiles } from './StatusTiles'
+
+const counts = { waiting: 2, nagging: 3, overdue: 0, done: 1 }
+
+test('four toggle buttons with their counts; the picked one is pressed', () => {
+  render(<StatusTiles counts={counts} value="nagging" onChange={jest.fn()} />)
+
+  expect(screen.getByRole('group', { name: 'Filter reminders' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Nagging 3' })).toHaveAttribute('aria-pressed', 'true')
+  expect(screen.getByRole('button', { name: 'Waiting 2' })).toHaveAttribute('aria-pressed', 'false')
+  // Done shows no number.
+  expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
+})
+
+test('tap picks a tile; tapping the picked one clears the filter', () => {
+  const onChange = jest.fn()
+  const { rerender } = render(<StatusTiles counts={counts} value={null} onChange={onChange} />)
+
+  fireEvent.click(screen.getByRole('button', { name: 'Waiting 2' }))
+  expect(onChange).toHaveBeenLastCalledWith('waiting')
+
+  rerender(<StatusTiles counts={counts} value="waiting" onChange={onChange} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Waiting 2' }))
+  expect(onChange).toHaveBeenLastCalledWith(null)
+})
+
+test('a tile with 0 is muted and can not be picked', () => {
+  const onChange = jest.fn()
+  render(<StatusTiles counts={counts} value={null} onChange={onChange} />)
+
+  const overdue = screen.getByRole('button', { name: 'Overdue 0' })
+  fireEvent.click(overdue)
+
+  expect(overdue).toHaveAttribute('data-disabled')
+  expect(onChange).not.toHaveBeenCalled()
+})
+
+test('while one tile is picked the others dim their background only, and stay tappable', () => {
+  const onChange = jest.fn()
+  render(<StatusTiles counts={counts} value="nagging" onChange={onChange} />)
+
+  const waiting = screen.getByRole('button', { name: 'Waiting 2' })
+  expect(waiting).toHaveAttribute('data-dimmed')
+  expect(waiting).not.toHaveClass('opacity-35') // the text keeps full contrast
+  expect(screen.getByRole('button', { name: 'Nagging 3' })).not.toHaveAttribute('data-dimmed')
+
+  fireEvent.click(waiting)
+  expect(onChange).toHaveBeenCalledWith('waiting')
+})

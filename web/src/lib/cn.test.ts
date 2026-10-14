@@ -35,3 +35,24 @@ test('the sheet motions are kept next to look-alike classes', () => {
   )
   expect(cn('sheet-slide', 'translate-y-0')).toBe('sheet-slide translate-y-0')
 })
+
+test('animate-shimmer and animate-nag-pulse are animations', () => {
+  expect(cn('animate-spin', 'animate-shimmer')).toBe('animate-shimmer')
+  expect(cn('animate-nag-pulse', 'motion-reduce:animate-none')).toBe(
+    'animate-nag-pulse motion-reduce:animate-none',
+  )
+})
+
+test('bg-shimmer is a background image, not a colour', () => {
+  // A colour and the shimmer image don't replace each other.
+  expect(cn('bg-bg3', 'bg-shimmer')).toBe('bg-bg3 bg-shimmer')
+})
+
+test('text-input is a font size, not a colour', () => {
+  expect(cn('text-input', 'text-fg')).toBe('text-input text-fg')
+  expect(cn('text-base', 'text-input')).toBe('text-input')
+})
+
+test('shadow-fab is a shadow (replaces shadow-md), not a shadow colour', () => {
+  expect(cn('shadow-md', 'shadow-fab')).toBe('shadow-fab')
+})

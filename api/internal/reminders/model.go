@@ -1,5 +1,5 @@
 // Package reminders stores reminders and enforces their rules (design doc 2.1, 2.2):
-// at most 5 active per user, title 1-200 characters, nag interval 15-1440 minutes,
+// at most 5 active per user, title 1-200 characters, note up to 200, nag interval 15-1440 minutes,
 // due time not in the past and at most a year ahead.
 //
 // Every query is scoped by the signed-in user's id: another user's reminder
@@ -30,6 +30,7 @@ const (
 	MinNagIntervalMin = 15   // same limits as the CHECK in V1__init.sql
 	MaxNagIntervalMin = 1440 // 24 hours
 	MaxTitleLength    = 200  // characters, like char_length in the CHECK
+	MaxNoteLength     = 200  // characters (Design Inventory: the Add sheet shows 41 / 200)
 
 	// A phone's clock can be a little behind the server's: "in 1 minute" picked on
 	// the phone must not count as the past.
@@ -122,6 +123,9 @@ func cleanNote(note *string) (*string, error) {
 		return nil, errNUL
 	}
 	n := strings.TrimSpace(*note)
+	if utf8.RuneCountInString(n) > MaxNoteLength {
+		return nil, ValidationError{fmt.Sprintf("note must be at most %d characters", MaxNoteLength)}
+	}
 	return &n, nil
 }
 

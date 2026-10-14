@@ -118,8 +118,7 @@ export function addReminderSchema(defaultTimeOfDay: string) {
         ctx.addIssue({
           code: 'custom',
           path: ['customAt'],
-          message:
-            "We're not scheduling anything more than a year out. Come back closer to the time.",
+          message: "We can't nag that far. We barely know what we're doing next week.",
         })
       }
     })

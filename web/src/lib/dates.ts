@@ -93,7 +93,7 @@ export function tomorrowAt(timeOfDay: string, now: Date = new Date()): Date {
  */
 export function farFutureHint(due: Date, now: Date = new Date()): string | null {
   const days = (due.getTime() - now.getTime()) / DAY
-  if (days > 365) return null // that's the form's error ("more than a year out"), not a hint
+  if (days > 365) return null // beyond a year the form shows its error instead of a hint
   if (days > 330) return 'See you in another life, maybe.' // the last month before the limit
   if (days > 182) return 'Planning ahead or just postponing anxiety?'
   if (days > 91) return "That's optimistic. We'll remind you anyway."

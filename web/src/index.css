@@ -37,12 +37,25 @@
   --tag-overdue-fg: #fef2f2; /* overdue row (dark red) */
   --tag-overdue-chip: #f3e8ff; /* overdue chip and tile (purple) */
   --tag-overdue-chip-fg: #6b21a8;
-  /* Inventory → StatusTiles: icon circle, the overdue tile's red tint and ring, the active Waiting tile. */
+  /* Inventory → StatusTiles (as the phone mockup): slightly see-through tiles on the light list gradient. */
   --tile-icon-bg: rgba(255, 255, 255, 0.55);
-  --tile-overdue: #f2c9c8; /* the Inventory's red at 22% on a light page, solid so dark mode can't show through */
+  --tile-waiting: rgba(237, 233, 254, 0.82);
+  --tile-nagging: rgba(254, 226, 226, 0.82);
+  --tile-overdue: rgba(220, 38, 38, 0.25);
   --tile-overdue-fg: #991b1b;
   --tile-overdue-ring: rgba(185, 28, 28, 0.35);
-  --tile-waiting-active: #ddd6fe;
+  --tile-done: rgba(209, 250, 229, 0.82);
+  --tile-ring-picked: rgba(0, 0, 0, 0.15);
+  --tile-ring-picked-waiting: rgba(109, 40, 217, 0.3);
+  /* Inventory → ReminderRow: chips on the waiting and done rows (on their own tint). */
+  --chip-on-waiting-row: rgba(109, 40, 217, 0.12);
+  --chip-on-done-row: rgba(5, 150, 105, 0.12);
+  /* Inventory → ReminderRow: shadows deepen down the stack (row 1 … 5). */
+  --shadow-row-1: 0 1px 4px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-row-2: 0 2px 6px rgba(0, 0, 0, 0.09), 0 4px 12px rgba(0, 0, 0, 0.07);
+  --shadow-row-3: 0 3px 8px rgba(0, 0, 0, 0.11), 0 6px 16px rgba(0, 0, 0, 0.08);
+  --shadow-row-4: 0 4px 12px rgba(0, 0, 0, 0.14), 0 8px 20px rgba(0, 0, 0, 0.1);
+  --shadow-row-5: 0 4px 16px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.12);
   /* Inventory → ReminderRow: the chip on a dark red (nag-high) row is a white pill. */
   --chip-on-nag-high: rgba(255, 255, 255, 0.88);
   --tag-shared: #e8f0fe;
@@ -222,19 +235,16 @@
   );
 }
 
-/* Inventory → StatusTiles: rings drawn inside the tile (no layout shift), together with the tile's
-   shadow (both are box-shadow, so one utility sets both). The overdue tile has a thin red ring;
-   the picked tile a 2.5px violet ring. */
+/* Inventory → StatusTiles: rings drawn inside the tile (no layout shift). The overdue tile has a
+   thin red ring; the picked tile a 2px ring (violet on Waiting, dark 15% on the others). */
 @utility tile-ring-overdue {
-  box-shadow:
-    inset 0 0 0 1.5px var(--tile-overdue-ring),
-    var(--shadow-sm);
+  box-shadow: inset 0 0 0 1.5px var(--tile-overdue-ring);
 }
-/* Fixed violet (--on-grad), not --accent: the tiles stay light in dark mode, where --accent is pale. */
-@utility tile-ring-active {
-  box-shadow:
-    inset 0 0 0 2.5px var(--on-grad),
-    var(--shadow-sm);
+@utility tile-ring-picked {
+  box-shadow: inset 0 0 0 2px var(--tile-ring-picked);
+}
+@utility tile-ring-picked-waiting {
+  box-shadow: inset 0 0 0 2px var(--tile-ring-picked-waiting);
 }
 
 /* The skeleton placeholder's background (Inventory → --grad-shimmer), twice as wide as the
@@ -294,10 +304,14 @@
   --color-tag-overdue-chip: var(--tag-overdue-chip);
   --color-tag-overdue-chip-fg: var(--tag-overdue-chip-fg);
   --color-tile-icon-bg: var(--tile-icon-bg);
+  --color-tile-waiting: var(--tile-waiting);
+  --color-tile-nagging: var(--tile-nagging);
   --color-tile-overdue: var(--tile-overdue);
   --color-tile-overdue-fg: var(--tile-overdue-fg);
   --color-tile-overdue-ring: var(--tile-overdue-ring);
-  --color-tile-waiting-active: var(--tile-waiting-active);
+  --color-tile-done: var(--tile-done);
+  --color-chip-on-waiting-row: var(--chip-on-waiting-row);
+  --color-chip-on-done-row: var(--chip-on-done-row);
   --color-chip-on-nag-high: var(--chip-on-nag-high);
   --color-nag-low: var(--nag-low);
   --color-nag-low-fg: var(--nag-low-fg);
@@ -309,6 +323,11 @@
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-fab: var(--shadow-fab);
+  --shadow-row-1: var(--shadow-row-1);
+  --shadow-row-2: var(--shadow-row-2);
+  --shadow-row-3: var(--shadow-row-3);
+  --shadow-row-4: var(--shadow-row-4);
+  --shadow-row-5: var(--shadow-row-5);
   --ease-std: var(--easing-std);
 }
 

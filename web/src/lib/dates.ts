@@ -40,6 +40,17 @@ export function formatDue(due: Date, now: Date = new Date()): string {
   return `${date.format(due).replace(',', '')}, ${hhmm}`
 }
 
+/** Countdown to the first push: "Starts in 2d 04:00", under a day "Starts in 04:12", or "Starting now". */
+export function formatStartsIn(due: Date, now: Date = new Date()): string {
+  const left = due.getTime() - now.getTime()
+  if (left < MINUTE) return 'Starting now'
+  const days = Math.floor(left / DAY)
+  const hours = Math.floor((left % DAY) / HOUR)
+  const minutes = Math.floor((left % HOUR) / MINUTE)
+  const hhmm = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+  return days > 0 ? `Starts in ${days}d ${hhmm}` : `Starts in ${hhmm}`
+}
+
 /** "Done just now", "Done 3h ago", "Done yesterday", "Done 5d ago", "Done 2w ago". */
 export function formatDoneAgo(doneAt: Date, now: Date = new Date()): string {
   const ago = now.getTime() - doneAt.getTime()

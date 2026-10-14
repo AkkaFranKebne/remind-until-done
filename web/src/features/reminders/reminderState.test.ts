@@ -19,8 +19,8 @@ function reminder(over: Partial<Reminder> = {}): Reminder {
 }
 
 test.each([
-  [{}, 'waiting', 'waiting', 'Tomorrow 09:00'],
-  [{ status: 'sending' as const }, 'waiting', 'waiting', 'Tomorrow 09:00'],
+  [{}, 'waiting', 'waiting', 'Starts in 23:00'],
+  [{ status: 'sending' as const }, 'waiting', 'waiting', 'Starts in 23:00'],
   [{ status: 'sent' as const, nagCount: 2 }, 'nag-low', 'nagging', 'Gently nagging (2/12)'],
   [{ status: 'sent' as const, nagCount: 5 }, 'nag-mid', 'nagging', 'Still here (5/12)'],
   [{ status: 'sent' as const, nagCount: 10 }, 'nag-high', 'nagging', 'Getting desperate (10/12)'],

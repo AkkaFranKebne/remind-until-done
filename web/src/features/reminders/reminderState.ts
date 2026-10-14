@@ -1,6 +1,6 @@
 import type { ReminderStatusKind } from '../../components/ui/status'
 import type { Reminder } from '../../lib/api/generated/model'
-import { formatDoneAgo, formatDue } from '../../lib/dates'
+import { formatDoneAgo, formatStartsIn } from '../../lib/dates'
 
 /** Pushes per cycle before a reminder counts as overdue (the API's MaxPushes). */
 export const MAX_PUSHES = 12
@@ -33,7 +33,7 @@ export function rowSubLine(r: Reminder, now: Date = new Date()): string {
   const count = `(${r.nagCount}/${MAX_PUSHES})`
   switch (level) {
     case 'waiting':
-      return formatDue(new Date(r.dueAt), now)
+      return formatStartsIn(new Date(r.dueAt), now)
     case 'nag-low':
       return `Gently nagging ${count}`
     case 'nag-mid':

@@ -40,7 +40,9 @@ test('tiles count by status and filter the list; tapping the picked tile shows a
   })
   openList()
 
-  expect(await screen.findByText('2 things need your attention.')).toBeInTheDocument()
+  // No context line when there are reminders (Inventory): the tiles start under the bar.
+  expect(await screen.findByText('The full chaos')).toBeInTheDocument()
+  expect(screen.queryByText(/need your attention/)).not.toBeInTheDocument()
   const tiles = screen.getByRole('group', { name: 'Filter reminders' })
   expect(within(tiles).getByRole('button', { name: 'Waiting 1' })).toBeInTheDocument()
   expect(within(tiles).getByRole('button', { name: 'Nagging 1' })).toBeInTheDocument()

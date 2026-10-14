@@ -1,5 +1,6 @@
 import {
   farFutureHint,
+  formatStartsIn,
   formatDoneAgo,
   formatDue,
   fromLocalInputValue,
@@ -48,4 +49,13 @@ test('far-future hints by distance (Inventory tiers), none within a month', () =
   expect(farFutureHint(inDays(250), now)).toBe('Planning ahead or just postponing anxiety?')
   expect(farFutureHint(inDays(350), now)).toBe('See you in another life, maybe.')
   expect(farFutureHint(inDays(400), now)).toBeNull() // the form shows the error instead
+})
+
+test('formatStartsIn: days and hh:mm, under a day only hh:mm, then "Starting now"', () => {
+  const later = (ms: number) => new Date(now.getTime() + ms)
+  const h = 3_600_000
+  expect(formatStartsIn(later(2 * 24 * h + 4 * h), now)).toBe('Starts in 2d 04:00')
+  expect(formatStartsIn(later(4 * h + 12 * 60_000), now)).toBe('Starts in 04:12')
+  expect(formatStartsIn(later(30_000), now)).toBe('Starting now')
+  expect(formatStartsIn(later(-h), now)).toBe('Starting now')
 })

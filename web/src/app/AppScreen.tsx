@@ -11,6 +11,7 @@ export function AppScreen({
   tone = 'plain',
   background,
   contextLine,
+  tight = false,
   children,
 }: {
   /** The TopBar icon colour that fits the background. */
@@ -19,12 +20,19 @@ export function AppScreen({
   background?: string
   /** The state line under the TopBar, e.g. "3 things need your attention." */
   contextLine?: string
+  /** Content starts right under the TopBar (the list's tiles, as the Inventory mockup). */
+  tight?: boolean
   children: ReactNode
 }) {
   return (
     <div className={cn('flex min-h-dvh flex-col bg-bg', background)}>
       <TopBar tone={tone} contextLine={contextLine} />
-      <main className="flex flex-1 flex-col px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <main
+        className={cn(
+          'flex flex-1 flex-col px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]',
+          tight ? 'pt-1' : 'pt-4',
+        )}
+      >
         {children}
       </main>
     </div>

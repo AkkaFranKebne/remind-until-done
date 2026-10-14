@@ -25,13 +25,13 @@ function renderRow(over: Partial<Reminder>) {
   )
 }
 
-test('the whole row is a link to the reminder page; a waiting row shows the due time, no chip', async () => {
+test('the whole row is a link to the reminder page; a waiting row counts down, with a Waiting chip', async () => {
   renderRow({})
 
   const link = await screen.findByRole('link', { name: /Call dentist/ })
   expect(link).toHaveAttribute('href', '/r/abc')
-  expect(link).toHaveTextContent('Tomorrow 09:00')
-  expect(screen.queryByText('Waiting')).not.toBeInTheDocument()
+  expect(link).toHaveTextContent('Starts in 23:00')
+  expect(screen.getByText('Waiting')).toHaveClass('bg-chip-on-waiting-row')
 })
 
 test('a nagging row shows the push count and a chip; the dot pulses from push 4', async () => {

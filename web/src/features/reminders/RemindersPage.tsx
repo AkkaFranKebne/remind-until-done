@@ -1,19 +1,19 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { Inbox, Plus } from 'lucide-react'
+import { Inbox, List, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { AppScreen } from '../../app/AppScreen'
 import { Button } from '../../components/ui/Button'
 import { Fab } from '../../components/ui/Fab'
 import { SkeletonRow } from '../../components/ui/SkeletonRow'
-import type { ReminderStatusKind } from '../../components/ui/status'
+import { statusIcon, statusLabel, type ReminderStatusKind } from '../../components/ui/status'
 import { StatusTiles } from '../../components/ui/StatusTiles'
-import type { Reminder } from '../../lib/api/generated/model'
 import {
   getListRemindersQueryKey,
   listReminders,
   useListReminders,
 } from '../../lib/api/generated/reminders/reminders'
 import { useNow } from '../../lib/useNow'
+import { cn } from '../../lib/cn'
 import { useMe } from '../auth/useMe'
 import { AddReminderSheet } from './AddReminderSheet'
 import { ReminderRow } from './ReminderRow'
@@ -29,17 +29,6 @@ const shell: Record<ReminderStatusKind | 'all', string> = {
   nagging: 'bg-(image:--grad-shell-nagging)',
   overdue: 'bg-(image:--grad-shell-overdue)',
   done: 'bg-(image:--grad-shell-done)',
-}
-
-/** Inventory → UX Copy → "Context line …": the state of things, in one dry sentence. */
-function contextLine(active: Reminder[], hasDone: boolean): string {
-  if (active.length === 0) return hasDone ? "You're all caught up." : 'Nothing nagging you yet.'
-  const kinds = active.map(statusKind)
-  if (kinds.every((k) => k === 'overdue')) return "Everything's overdue. Classic."
-  const attention = kinds.filter((k) => k === 'nagging' || k === 'overdue').length
-  if (attention === 1) return '1 thing needs your attention.'
-  if (attention > 1) return `${attention} things need your attention.`
-  return 'Nothing nagging you yet.'
 }
 
 /**
@@ -87,15 +76,17 @@ export function RemindersPage() {
     filter === 'done' ? doneItems : filter ? active.filter((r) => statusKind(r) === filter) : active
   // Still loading until we know whether there are done ones too (no flash of "nothing here").
   const loading = upcoming.isPending || (active.length === 0 && anyDone.isPending)
-  const nothingAtAll = !loading && active.length === 0 && !hasDone
+  // Only after a successful load: a failed one is not "no reminders".
+  const nothingAtAll = !loading && upcoming.isSuccess && active.length === 0 && !hasDone
   const atLimit = active.length >= MAX_ACTIVE
 
   return (
     <AppScreen
       tone="brand"
       background={shell[filter ?? 'all']}
-      // Only with data: no "Nothing nagging you yet." above a loading error.
-      contextLine={upcoming.data && !loading ? contextLine(active, hasDone) : undefined}
+      // Only on the empty state (Inventory): with reminders, the tiles start right under the bar.
+      contextLine={nothingAtAll ? 'Nothing nagging you yet.' : undefined}
+      tight={!nothingAtAll}
     >
       <h1 className="sr-only">Your reminders</h1>
       <div className="flex flex-1 flex-col gap-4 pb-24">
@@ -131,6 +122,7 @@ export function RemindersPage() {
         ) : (
           <>
             <StatusTiles counts={counts} value={filter} onChange={setPicked} />
+            <ListLabel filter={filter} />
 
             {filter === 'done' && done.isPending ? (
               // The done list loads when its tile is picked.
@@ -157,7 +149,7 @@ export function RemindersPage() {
                 {shown.map((r, i) => (
                   // Cards overlap like a stack (−8px); later rows paint over earlier ones.
                   <li key={r.id} className={i > 0 ? '-mt-2' : undefined}>
-                    <ReminderRow reminder={r} now={now} />
+                    <ReminderRow reminder={r} now={now} position={i + 1} />
                   </li>
                 ))}
               </ul>
@@ -200,5 +192,29 @@ export function RemindersPage() {
         defaultNagIntervalMin={me?.defaultNagIntervalMin ?? 60}
       />
     </AppScreen>
+  )
+}
+
+const labelTone: Record<ReminderStatusKind | 'all', string> = {
+  all: 'text-on-grad-fg2',
+  waiting: 'text-on-grad',
+  nagging: 'text-on-grad-fg2',
+  overdue: 'text-tile-overdue-fg',
+  done: 'text-tag-done-fg',
+}
+
+/** The small uppercase name of what the list shows (Inventory → "/ — Reminders list"). */
+function ListLabel({ filter }: { filter: ReminderStatusKind | null }) {
+  const Icon = filter ? statusIcon[filter] : List
+  return (
+    <p
+      className={cn(
+        '-mb-2 flex items-center gap-1.5 px-0.5 text-xs font-bold tracking-widest uppercase',
+        labelTone[filter ?? 'all'],
+      )}
+    >
+      <Icon aria-hidden="true" size={12} strokeWidth={2.5} />
+      {filter ? statusLabel[filter] : 'The full chaos'}
+    </p>
   )
 }

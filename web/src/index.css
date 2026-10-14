@@ -70,7 +70,8 @@
   --grad-detail-nag-high: linear-gradient(180deg, #f97316 0%, #fca5a5 38%, var(--bg3) 70%);
   --grad-detail-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
   --grad-detail-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
-  --grad-shimmer: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+  /* Skeleton rows stay light in dark mode too, like the reminder rows that replace them. */
+  --grad-shimmer: linear-gradient(90deg, #f0efe9 25%, #e2e0d8 50%, #f0efe9 75%);
   --grad-install-card: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 60%, #ede9fe 100%);
   --grad-login-icon: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 100%);
 

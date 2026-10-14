@@ -60,6 +60,7 @@
   --tag-shared-fg: #1a56c4;
   --waiting-row-bg: #ede9fe;
   --error: #c0392b;
+  --error-text: #c0392b; /* form error messages and invalid borders; lighter in dark mode */
   --error-bg: #fdecea;
   --nag-low: #fde8c8;
   --nag-low-fg: #7a4a10;
@@ -109,6 +110,7 @@
     --accent2: #c4b5fd;
     --accent-bg: #2e1f5e;
     --border: #2e2d28;
+    --error-text: #f87171; /* #c0392b is only 3.3:1 on the dark sheet */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
     /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
@@ -131,6 +133,7 @@
   --accent2: #c4b5fd;
   --accent-bg: #2e1f5e;
   --border: #2e2d28;
+  --error-text: #f87171;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
@@ -289,6 +292,7 @@
   --color-tag-shared: var(--tag-shared);
   --color-tag-shared-fg: var(--tag-shared-fg);
   --color-error: var(--error);
+  --color-error-text: var(--error-text);
   --color-error-bg: var(--error-bg);
   --color-tag-pending: var(--tag-pending);
   --color-tag-pending-fg: var(--tag-pending-fg);

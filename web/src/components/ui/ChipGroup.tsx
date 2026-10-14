@@ -50,7 +50,7 @@ export function ChipGroup<T extends string>({
     >
       <Fieldset.Legend className="text-sm font-semibold text-fg">{legend}</Fieldset.Legend>
       {error ? (
-        <p role="alert" className="-mt-1 text-sm text-accent">
+        <p role="alert" className="-mt-1 text-sm text-error-text">
           {error}
         </p>
       ) : null}

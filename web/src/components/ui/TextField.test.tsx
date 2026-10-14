@@ -60,3 +60,20 @@ test('the counter turns accent near the limit', () => {
 
   expect(screen.getByText('180 / 200')).toHaveClass('text-accent')
 })
+
+test('errors are red: the message and the border', () => {
+  render(
+    <TextField
+      name="title"
+      label="Title"
+      value=""
+      onChange={jest.fn()}
+      error="Title is required"
+    />,
+  )
+
+  expect(screen.getByText('Title is required')).toHaveClass('text-error-text')
+  expect(screen.getByRole('textbox', { name: 'Title' })).toHaveClass(
+    'data-invalid:border-error-text',
+  )
+})

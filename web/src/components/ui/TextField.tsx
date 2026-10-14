@@ -83,14 +83,18 @@ export function TextField({
       )}
       {error !== undefined || maxLength !== undefined ? (
         <div className="flex items-start justify-between gap-3">
-          <Field.Error match={error !== undefined} className="text-sm text-accent">
+          <Field.Error match={error !== undefined} className="text-sm text-error-text">
             {error}
           </Field.Error>
           {maxLength !== undefined ? (
             <Field.Description
               className={cn(
                 'ml-auto shrink-0 text-xs tabular-nums',
-                nearLimit ? 'text-accent' : 'text-fg2',
+                count > (maxLength ?? Infinity)
+                  ? 'text-error-text'
+                  : nearLimit
+                    ? 'text-accent'
+                    : 'text-fg2',
               )}
             >
               {count} / {maxLength}
@@ -105,5 +109,6 @@ export function TextField({
 const controlClass = cn(
   'w-full rounded-md border-strong border-border bg-bg2 px-3.5 text-input text-fg placeholder:text-fg3',
   'transition-colors duration-(--duration-fast) motion-reduce:transition-none',
-  'focus-visible:border-accent focus-visible:outline-none data-invalid:border-accent',
+  // Invalid wins over focus: the red border stays while you fix the field.
+  'focus-visible:border-accent focus-visible:outline-none data-invalid:border-error-text',
 )

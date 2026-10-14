@@ -278,7 +278,7 @@ export function AddReminderSheet({
         {/* The CTA stays at the bottom in both sheet heights (sheet-tall's padding). */}
         <div className="flex flex-col gap-2 border-t border-border px-5 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {saveError ? (
-            <p role="alert" className="text-sm text-accent">
+            <p role="alert" className="text-sm text-error-text">
               {saveError}
             </p>
           ) : null}

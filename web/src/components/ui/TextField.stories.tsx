@@ -22,7 +22,7 @@ export const Empty: Story = { args: { placeholder: 'File tax return' } }
 export const Filled: Story = { args: { value: 'File tax return' } }
 
 /** Inline error, accent border. Never a toast for form validation. */
-export const WithError: Story = { args: { error: 'Give it a name first.' } }
+export const WithError: Story = { args: { error: 'Title is required' } }
 
 /** Optional textarea with the counter (accent from 90%). */
 export const NoteWithCounter: Story = {

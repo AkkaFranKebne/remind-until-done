@@ -42,11 +42,9 @@
   --tile-waiting: rgba(237, 233, 254, 0.82);
   --tile-nagging: rgba(254, 226, 226, 0.82);
   --tile-overdue: rgba(220, 38, 38, 0.25);
-  --tile-overdue-fg: #991b1b;
+  --tile-overdue-fg: #7f1d1d; /* #991b1b of the mockup was 3.9–4.2:1 on the see-through tile */
   --tile-overdue-ring: rgba(185, 28, 28, 0.35);
   --tile-done: rgba(209, 250, 229, 0.82);
-  --tile-ring-picked: rgba(0, 0, 0, 0.15);
-  --tile-ring-picked-waiting: rgba(109, 40, 217, 0.3);
   /* Inventory → ReminderRow: chips on the waiting and done rows (on their own tint). */
   --chip-on-waiting-row: rgba(109, 40, 217, 0.12);
   --chip-on-done-row: rgba(5, 150, 105, 0.12);
@@ -236,15 +234,14 @@
 }
 
 /* Inventory → StatusTiles: rings drawn inside the tile (no layout shift). The overdue tile has a
-   thin red ring; the picked tile a 2px ring (violet on Waiting, dark 15% on the others). */
+   thin red ring. */
 @utility tile-ring-overdue {
   box-shadow: inset 0 0 0 1.5px var(--tile-overdue-ring);
 }
+/* The picked tile: a 2px ring in the tile's own text colour (3:1 or more against the tile, so the
+   state is visible without the dimming of the others). */
 @utility tile-ring-picked {
-  box-shadow: inset 0 0 0 2px var(--tile-ring-picked);
-}
-@utility tile-ring-picked-waiting {
-  box-shadow: inset 0 0 0 2px var(--tile-ring-picked-waiting);
+  box-shadow: inset 0 0 0 2px currentColor;
 }
 
 /* The skeleton placeholder's background (Inventory → --grad-shimmer), twice as wide as the

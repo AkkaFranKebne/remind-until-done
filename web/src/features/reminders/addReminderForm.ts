@@ -19,6 +19,15 @@ export const intervalOptions: ChipOption<string>[] = [
   { value: '1440', label: '24 h' },
 ]
 
+/** Inventory → UX Copy → "Create form — title placeholder": examples, one at a time. */
+export const titleExamples = [
+  "Water the plant (it's not dead yet)",
+  'Reply to that email from March',
+  'Call mum back. For real this time',
+  'Return the library book. Yes, that one',
+  "Cancel the free trial before it isn't",
+]
+
 /** Inventory → TimeChips: quick picks, plus Custom… (the phone's own date-time picker). */
 export type WhenChoice = 'in1h' | 'tomorrow' | 'in3h' | 'custom'
 

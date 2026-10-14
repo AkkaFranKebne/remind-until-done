@@ -75,7 +75,8 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     for safe areas. Named extras: border-strong (1.5px), animate-spin-fast (0.7s), sheet-slide and
     backdrop-fade (every bottom sheet and its backdrop), sheet-tall (the 85% form sheet with snap
     points), bg-shimmer + animate-shimmer (skeleton rows), animate-nag-pulse (the nag dot),
-    tile-ring-overdue and tile-ring-active (status tiles). Spacing uses
+    tile-ring-overdue and tile-ring-picked (status tiles), shadow-fab (the + button's glow),
+    shadow-row-1 … shadow-row-5 (reminder rows, deeper down the stack). Spacing uses
     Tailwind's 4px scale, whole or half steps (gap-2, size-4.5); letter spacing too (tracking-tight).
     Tailwind's own text sizes and radii (text-2xl, rounded-xl) are removed. New value? Add it to
     the Inventory first, then to src/index.css."

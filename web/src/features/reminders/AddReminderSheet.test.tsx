@@ -5,6 +5,7 @@ import { server } from '../../mocks/server'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { aReminder, mockReminders } from '../../test-utils/reminders'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
+import { titleExamples } from './addReminderForm'
 
 beforeEach(() => mockMe())
 
@@ -184,4 +185,23 @@ test('Custom… shows the date-time picker; the chip then shows the picked time'
   fireEvent.click(within(sheet).getByRole('button', { name: 'Start nagging me' }))
   await waitFor(() => expect(sent).toHaveLength(1))
   expect(new Date(sent[0]?.dueAt ?? '').toISOString()).toBe(new Date(value).toISOString())
+})
+
+test('the title example changes every time the sheet is closed and opened again', async () => {
+  const sheet = await openSheet()
+  const title = () =>
+    within(screen.getByRole('dialog', { name: 'Set the trap' })).getByRole('textbox', {
+      name: 'What are you forgetting?',
+    })
+  const first = title().getAttribute('placeholder')
+  expect(titleExamples).toContain(first)
+
+  fireEvent.keyDown(sheet, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  fireEvent.click(screen.getByRole('button', { name: 'Add reminder' }))
+  await screen.findByRole('dialog', { name: 'Set the trap' })
+
+  const second = title().getAttribute('placeholder')
+  expect(titleExamples).toContain(second)
+  expect(second).not.toBe(first)
 })

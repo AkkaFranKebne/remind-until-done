@@ -8,7 +8,7 @@ const order: ReminderStatusKind[] = ['waiting', 'nagging', 'overdue', 'done']
 
 const tile = cva(
   [
-    'flex min-h-22.5 cursor-pointer flex-col justify-between rounded-md px-3 pt-2.5 pb-3 text-left',
+    'group flex min-h-22.5 cursor-pointer flex-col justify-between rounded-md px-3 pt-2.5 pb-3 text-left',
     'transition-opacity duration-(--duration-fast) active:opacity-85 motion-reduce:transition-none',
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-grad',
     // A tile with nothing in it is muted and can't be picked.
@@ -16,15 +16,17 @@ const tile = cva(
   ],
   {
     variants: {
+      // data-dimmed (another tile is picked): only the background and icon circle fade; the
+      // label and count keep full contrast, because the tile stays tappable (WCAG 1.4.3).
       status: {
-        waiting: 'bg-tile-waiting text-on-grad data-pressed:tile-ring-picked-waiting',
-        nagging: 'bg-tile-nagging text-tag-nagging-fg data-pressed:tile-ring-picked',
+        waiting:
+          'bg-tile-waiting text-on-grad data-pressed:tile-ring-picked data-dimmed:bg-tile-waiting/40',
+        nagging:
+          'bg-tile-nagging text-tag-nagging-fg data-pressed:tile-ring-picked data-dimmed:bg-tile-nagging/40',
         overdue:
-          'bg-tile-overdue text-tile-overdue-fg tile-ring-overdue data-pressed:tile-ring-picked',
-        done: 'bg-tile-done text-tag-done-fg data-pressed:tile-ring-picked',
+          'bg-tile-overdue text-tile-overdue-fg tile-ring-overdue data-pressed:tile-ring-picked data-dimmed:bg-tile-overdue/40',
+        done: 'bg-tile-done text-tag-done-fg data-pressed:tile-ring-picked data-dimmed:bg-tile-done/40',
       } satisfies Record<ReminderStatusKind, string>,
-      /** Another tile is picked: this one steps back (still tappable). */
-      dimmed: { true: 'opacity-35' },
     },
   },
 )
@@ -68,11 +70,12 @@ export function StatusTiles({
             key={status}
             value={status}
             disabled={count === 0}
-            className={tile({ status, dimmed: value !== null && value !== status })}
+            data-dimmed={value !== null && value !== status ? '' : undefined}
+            className={tile({ status })}
           >
             <span
               aria-hidden="true"
-              className="flex size-8 items-center justify-center rounded-full bg-tile-icon-bg"
+              className="flex size-8 items-center justify-center rounded-full bg-tile-icon-bg group-data-dimmed:opacity-40"
             >
               <Icon size={16} strokeWidth={2} />
             </span>

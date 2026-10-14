@@ -21,6 +21,7 @@ import {
   intervalOptions,
   MAX_NOTE,
   resolveDue,
+  titleExamples,
   type AddReminderValues,
   type WhenChoice,
 } from './addReminderForm'
@@ -57,6 +58,8 @@ export function AddReminderSheet({
   const [snapPoint, setSnapPoint] = useState<number | string | null>(PEEK)
   const [noteOpen, setNoteOpen] = useState(false)
   const [askDiscard, setAskDiscard] = useState(false)
+  // A random example first, then the next one each time the sheet closes (never twice in a row).
+  const [example, setExample] = useState(() => Math.floor(Math.random() * titleExamples.length))
   const now = useNow()
 
   const startInterval = intervalOptions.some((o) => o.value === String(defaultNagIntervalMin))
@@ -87,6 +90,7 @@ export function AddReminderSheet({
   })
 
   function closeAndReset() {
+    setExample((i) => (i + 1) % titleExamples.length)
     reset(empty)
     create.reset()
     setNoteOpen(false)
@@ -178,7 +182,7 @@ export function AddReminderSheet({
                 }}
                 name={field.name}
                 label="What are you forgetting?"
-                placeholder="File tax return"
+                placeholder={titleExamples[example]}
                 value={field.value}
                 onChange={field.onChange}
                 onBlur={field.onBlur}

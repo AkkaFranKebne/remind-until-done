@@ -35,3 +35,16 @@ test('a tile with 0 is muted and can not be picked', () => {
   expect(overdue).toHaveAttribute('data-disabled')
   expect(onChange).not.toHaveBeenCalled()
 })
+
+test('while one tile is picked the others dim their background only, and stay tappable', () => {
+  const onChange = jest.fn()
+  render(<StatusTiles counts={counts} value="nagging" onChange={onChange} />)
+
+  const waiting = screen.getByRole('button', { name: 'Waiting 2' })
+  expect(waiting).toHaveAttribute('data-dimmed')
+  expect(waiting).not.toHaveClass('opacity-35') // the text keeps full contrast
+  expect(screen.getByRole('button', { name: 'Nagging 3' })).not.toHaveAttribute('data-dimmed')
+
+  fireEvent.click(waiting)
+  expect(onChange).toHaveBeenCalledWith('waiting')
+})

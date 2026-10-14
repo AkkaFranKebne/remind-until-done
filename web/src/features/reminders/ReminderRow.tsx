@@ -70,7 +70,8 @@ export function ReminderRow({
         >
           {reminder.title}
         </span>
-        {/* 90%: the mockup's 75% is below 4.5:1 for small text. */}
+        {/* 90%: the mockup's 75% is below 4.5:1 for small text. The coral (nag-mid) row is at
+            4.5:1 exactly: any further fade or tint change makes it fail. */}
         <span className="mt-0.5 flex items-center gap-1.5 text-xs opacity-90">
           {rowSubLine(reminder, now)}
           {pulse ? (

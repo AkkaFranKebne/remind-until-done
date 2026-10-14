@@ -44,7 +44,7 @@ const typeTitle = (sheet: HTMLElement, text: string) =>
     target: { value: text },
   })
 
-test('opens with the questions from the Inventory; the interval starts at your default (1 h)', async () => {
+test('opens with the questions from the Inventory; "In 1 h" and your default interval (1 h) are picked', async () => {
   const sheet = await openSheet()
 
   expect(
@@ -55,6 +55,7 @@ test('opens with the questions from the Inventory; the interval starts at your d
   ).toBeInTheDocument()
   expect(within(sheet).getByRole('radio', { name: 'Tomorrow 09:00' })).toBeInTheDocument()
   expect(within(sheet).getByRole('radio', { name: '1 h' })).toBeChecked()
+  expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).toBeChecked()
   expect(within(sheet).getByRole('radio', { name: '15 min' })).toBeInTheDocument()
 })
 
@@ -65,7 +66,6 @@ test('sending empty shows what is missing, inline', async () => {
   fireEvent.click(within(sheet).getByRole('button', { name: 'Start nagging me' }))
 
   expect(await within(sheet).findByText('Title is required')).toBeInTheDocument()
-  expect(within(sheet).getByText('Pick a time.')).toBeInTheDocument()
   expect(sent).toHaveLength(0)
 })
 
@@ -78,9 +78,12 @@ test('an error moves focus to the first field that needs fixing (so it is in vie
     expect(within(sheet).getByRole('textbox', { name: 'What are you forgetting?' })).toHaveFocus(),
   )
 
+  // Custom… without a date: focus goes to the date field.
   typeTitle(sheet, 'Call mum')
+  fireEvent.click(within(sheet).getByRole('radio', { name: 'Custom…' }))
   fireEvent.click(within(sheet).getByRole('button', { name: 'Start nagging me' }))
-  await waitFor(() => expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).toHaveFocus())
+  await waitFor(() => expect(within(sheet).getByLabelText('Pick a date and time')).toHaveFocus())
+  expect(within(sheet).getByText('Pick a date and time.')).toBeInTheDocument()
 })
 
 test('creates the reminder, closes, and the list reloads with it', async () => {

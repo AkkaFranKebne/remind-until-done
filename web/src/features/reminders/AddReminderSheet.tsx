@@ -62,10 +62,11 @@ export function AddReminderSheet({
   const startInterval = intervalOptions.some((o) => o.value === String(defaultNagIntervalMin))
     ? String(defaultNagIntervalMin)
     : '60'
+  // "In 1 h" starts picked (Inventory → TimeChips), so a title alone is enough to save.
   const empty: AddReminderValues = {
     title: '',
     note: '',
-    when: null,
+    when: 'in1h',
     customAt: '',
     interval: startInterval,
   }

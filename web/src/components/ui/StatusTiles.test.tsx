@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { StatusTiles } from './StatusTiles'
 
-const counts = { waiting: 2, nagging: 3, overdue: 0, done: '50+' }
+const counts = { waiting: 2, nagging: 3, overdue: 0, done: 1 }
 
 test('four toggle buttons with their counts; the picked one is pressed', () => {
   render(<StatusTiles counts={counts} value="nagging" onChange={jest.fn()} />)
@@ -9,7 +9,8 @@ test('four toggle buttons with their counts; the picked one is pressed', () => {
   expect(screen.getByRole('group', { name: 'Filter reminders' })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Nagging 3' })).toHaveAttribute('aria-pressed', 'true')
   expect(screen.getByRole('button', { name: 'Waiting 2' })).toHaveAttribute('aria-pressed', 'false')
-  expect(screen.getByRole('button', { name: 'Done 50+' })).toBeInTheDocument()
+  // Done shows no number.
+  expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 })
 
 test('tap picks a tile; tapping the picked one clears the filter', () => {

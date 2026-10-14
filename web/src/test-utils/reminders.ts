@@ -21,7 +21,10 @@ export function aReminder(over: Partial<Reminder> = {}): Reminder {
   }
 }
 
-/** The fake API answers GET /reminders?status=upcoming|done with these lists. */
+/**
+ * The fake API answers GET /reminders?status=upcoming|done (and ?limit=) with these lists.
+ * Returns the query strings it was asked, so a test can check what was loaded when.
+ */
 export function mockReminders({
   upcoming = [],
   done = [],
@@ -31,14 +34,20 @@ export function mockReminders({
   done?: Reminder[]
   doneNextCursor?: string | null
 }) {
+  const asked: string[] = []
   server.use(
     http.get('*/api/v1/reminders', ({ request }) => {
-      const status = new URL(request.url).searchParams.get('status')
-      const body: ReminderList =
-        status === 'done'
-          ? { items: done, nextCursor: doneNextCursor }
-          : { items: upcoming, nextCursor: null }
+      const params = new URL(request.url).searchParams
+      asked.push(params.toString())
+      const limit = Number(params.get('limit') ?? 50)
+      const items = params.get('status') === 'done' ? done : upcoming
+      const body: ReminderList = {
+        items: items.slice(0, limit),
+        nextCursor:
+          items.length > limit ? 'more' : params.get('status') === 'done' ? doneNextCursor : null,
+      }
       return HttpResponse.json(body)
     }),
   )
+  return asked
 }

@@ -45,7 +45,7 @@ test('tiles count by status and filter the list; tapping the picked tile shows a
   expect(within(tiles).getByRole('button', { name: 'Waiting 1' })).toBeInTheDocument()
   expect(within(tiles).getByRole('button', { name: 'Nagging 1' })).toBeInTheDocument()
   expect(within(tiles).getByRole('button', { name: 'Overdue 1' })).toBeInTheDocument()
-  expect(await within(tiles).findByRole('button', { name: 'Done 1' })).toBeInTheDocument()
+  expect(await within(tiles).findByRole('button', { name: 'Done' })).toBeInTheDocument()
 
   // No tile: all active, no done ones.
   const list = screen.getByRole('list', { name: 'Active reminders' })
@@ -58,23 +58,29 @@ test('tiles count by status and filter the list; tapping the picked tile shows a
       .map((l) => l.textContent),
   ).toEqual([expect.stringContaining('Call dentist')])
 
-  fireEvent.click(within(tiles).getByRole('button', { name: 'Done 1' }))
-  expect(screen.getByRole('link', { name: /Buy card/ })).toBeInTheDocument()
+  fireEvent.click(within(tiles).getByRole('button', { name: 'Done' }))
+  expect(await screen.findByRole('link', { name: /Buy card/ })).toBeInTheDocument()
 
-  fireEvent.click(within(tiles).getByRole('button', { name: 'Done 1' }))
+  fireEvent.click(within(tiles).getByRole('button', { name: 'Done' }))
   expect(
     within(screen.getByRole('list', { name: 'Active reminders' })).getAllByRole('link'),
   ).toHaveLength(3)
 })
 
-test('more than one page of done reminders: the tile says 50+', async () => {
-  const done = Array.from({ length: 50 }, () =>
-    aReminder({ status: 'done', doneAt: new Date().toISOString() }),
+test('the Done tile has no number; the done list loads only when it is tapped', async () => {
+  const done = Array.from({ length: 3 }, (_, k) =>
+    aReminder({ title: `Done ${k}`, status: 'done', doneAt: new Date().toISOString() }),
   )
-  mockReminders({ upcoming: [aReminder()], done, doneNextCursor: 'next' })
+  const asked = mockReminders({ upcoming: [aReminder()], done })
   openList()
 
-  expect(await screen.findByRole('button', { name: 'Done 50+' })).toBeInTheDocument()
+  const doneTile = await screen.findByRole('button', { name: 'Done' })
+  // On open: the active list, and 1 done reminder to know there are any.
+  expect(asked.sort()).toEqual(['status=done&limit=1', 'status=upcoming'])
+
+  fireEvent.click(doneTile)
+  expect(await screen.findAllByRole('link', { name: /Done \d/ })).toHaveLength(3)
+  expect(asked).toContain('status=done')
 })
 
 test('at 5 active the + button hides and a note says why', async () => {

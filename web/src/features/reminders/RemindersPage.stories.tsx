@@ -79,6 +79,11 @@ function Seeded({
         items: upcoming,
         nextCursor: null,
       })
+    // "Any done?" (1 is enough), and the done list for when the Done tile is tapped.
+    c.setQueryData<ReminderList>(getListRemindersQueryKey({ status: 'done', limit: 1 }), {
+      items: doneList.slice(0, 1),
+      nextCursor: null,
+    })
     c.setQueryData([...getListRemindersQueryKey({ status: 'done' }), 'pages'], {
       pages: [{ items: doneList, nextCursor: null }],
       pageParams: [''],

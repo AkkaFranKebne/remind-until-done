@@ -29,7 +29,8 @@ const tile = cva(
 )
 
 /**
- * The 2×2 tiles above the reminders list: Waiting, Nagging, Overdue, Done, each with a count.
+ * The 2×2 tiles above the reminders list: Waiting, Nagging, Overdue (with a count) and Done
+ * (no number: Design Inventory).
  * They are the list's filter (there are no tabs): tap one to show only those, tap it again
  * to show all active reminders. Built on Base UI's Toggle Group (not a radio group) because
  * the picked tile can be un-picked. Screen readers hear "Nagging, 3, toggle button, pressed".
@@ -37,12 +38,15 @@ const tile = cva(
  */
 export function StatusTiles({
   counts,
+  hideCount = ['done'],
   value,
   onChange,
   className,
 }: {
-  /** Shown as is: a number, or text like "50+". 0 makes the tile muted. */
-  counts: Record<ReminderStatusKind, number | string>
+  /** How many of each; 0 makes the tile muted and not pickable. */
+  counts: Record<ReminderStatusKind, number>
+  /** Tiles that show no number (only muted when their count is 0). Default: Done. */
+  hideCount?: ReminderStatusKind[]
   /** The picked tile; null = none (all active reminders). */
   value: ReminderStatusKind | null
   onChange: (value: ReminderStatusKind | null) => void
@@ -68,7 +72,9 @@ export function StatusTiles({
             </span>
             <span className="flex items-center justify-between gap-2">
               <span className="text-base font-bold">{statusLabel[status]}</span>
-              <span className="text-xl font-bold tabular-nums">{count}</span>
+              {hideCount.includes(status) ? null : (
+                <span className="text-xl font-bold tabular-nums">{count}</span>
+              )}
             </span>
           </Toggle>
         )

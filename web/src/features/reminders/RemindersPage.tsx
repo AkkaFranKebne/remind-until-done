@@ -32,9 +32,8 @@ const shell: Record<ReminderStatusKind | 'all', string> = {
 }
 
 /** Inventory → UX Copy → "Context line …": the state of things, in one dry sentence. */
-function contextLine(active: Reminder[], doneCount: number): string {
-  if (active.length === 0)
-    return doneCount > 0 ? "You're all caught up." : 'Nothing nagging you yet.'
+function contextLine(active: Reminder[], hasDone: boolean): string {
+  if (active.length === 0) return hasDone ? "You're all caught up." : 'Nothing nagging you yet.'
   const kinds = active.map(statusKind)
   if (kinds.every((k) => k === 'overdue')) return "Everything's overdue. Classic."
   const attention = kinds.filter((k) => k === 'nagging' || k === 'overdue').length
@@ -57,28 +56,28 @@ export function RemindersPage() {
 
   // Active reminders: at most 5, so one page is all of them.
   const upcoming = useListReminders({ status: 'upcoming' })
-  // Done reminders: pages of 50, more as you ask (cursor from the API).
+  // Are there any done ones? One is enough to know (the Done tile has no number).
+  const anyDone = useListReminders({ status: 'done', limit: 1 })
+  const hasDone = (anyDone.data?.items.length ?? 0) > 0
+  // The done list itself: only once the Done tile is picked. Pages of 50, more on "Show more".
   const done = useInfiniteQuery({
     queryKey: [...getListRemindersQueryKey({ status: 'done' }), 'pages'],
     queryFn: ({ pageParam, signal }) =>
       listReminders({ status: 'done', ...(pageParam ? { cursor: pageParam } : {}) }, { signal }),
     initialPageParam: '',
     getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled: picked === 'done',
   })
 
   const active = upcoming.data?.items ?? []
   const doneItems = done.data?.pages.flatMap((p) => p.items) ?? []
-  const firstDonePage = done.data?.pages[0]
-  const doneCount: number | string = firstDonePage?.nextCursor
-    ? `${firstDonePage.items.length}+`
-    : doneItems.length
 
   const countOf = (kind: ReminderStatusKind) => active.filter((r) => statusKind(r) === kind).length
   const counts = {
     waiting: countOf('waiting'),
     nagging: countOf('nagging'),
     overdue: countOf('overdue'),
-    done: doneCount,
+    done: hasDone ? 1 : 0, // only "any or none": the tile shows no number
   }
 
   // A picked tile whose count dropped to 0 (its reminder started nagging, say) can't be tapped
@@ -87,8 +86,8 @@ export function RemindersPage() {
   const shown =
     filter === 'done' ? doneItems : filter ? active.filter((r) => statusKind(r) === filter) : active
   // Still loading until we know whether there are done ones too (no flash of "nothing here").
-  const loading = upcoming.isPending || (active.length === 0 && done.isPending)
-  const nothingAtAll = !loading && active.length === 0 && doneItems.length === 0
+  const loading = upcoming.isPending || (active.length === 0 && anyDone.isPending)
+  const nothingAtAll = !loading && active.length === 0 && !hasDone
   const atLimit = active.length >= MAX_ACTIVE
 
   return (
@@ -96,7 +95,7 @@ export function RemindersPage() {
       tone="brand"
       background={shell[filter ?? 'all']}
       // Only with data: no "Nothing nagging you yet." above a loading error.
-      contextLine={upcoming.data && !loading ? contextLine(active, doneItems.length) : undefined}
+      contextLine={upcoming.data && !loading ? contextLine(active, hasDone) : undefined}
     >
       <h1 className="sr-only">Your reminders</h1>
       <div className="flex flex-1 flex-col gap-4 pb-24">
@@ -133,7 +132,17 @@ export function RemindersPage() {
           <>
             <StatusTiles counts={counts} value={filter} onChange={setPicked} />
 
-            {shown.length === 0 ? (
+            {filter === 'done' && done.isPending ? (
+              // The done list loads when its tile is picked.
+              <output
+                aria-busy="true"
+                aria-label="Loading done reminders"
+                className="flex flex-col gap-2"
+              >
+                <SkeletonRow />
+                <SkeletonRow />
+              </output>
+            ) : shown.length === 0 ? (
               // On a card, like the empty state: straight on the gradient it can't be read in dark mode.
               <p className="rounded-md bg-bg2 px-4 py-3 text-center text-sm text-fg2 shadow-sm">
                 {filter === 'done'

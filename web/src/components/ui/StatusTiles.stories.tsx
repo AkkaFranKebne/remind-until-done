@@ -39,10 +39,3 @@ export const NaggingPicked: Story = {
 export const WaitingPicked: Story = {
   render: (args) => <Controlled initial="waiting" counts={args.counts} />,
 }
-
-/** More than one page of done reminders. */
-export const ManyDone: Story = {
-  render: () => (
-    <Controlled initial={null} counts={{ waiting: 1, nagging: 1, overdue: 1, done: '50+' }} />
-  ),
-}

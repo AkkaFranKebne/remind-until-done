@@ -49,17 +49,11 @@ func TestEveryRouteIsInSwagger(t *testing.T) {
 // milestone that builds them. Building one? Remove it here: the test below fails
 // until you do, so the list stays true.
 var notBuiltYet = map[string]string{
-	"DELETE /me":                "M6 (delete account)",
-	"GET /reminders":            "M2",
-	"POST /reminders":           "M2",
-	"GET /reminders/{id}":       "M2",
-	"PATCH /reminders/{id}":     "M2",
-	"DELETE /reminders/{id}":    "M2",
-	"POST /reminders/{id}/done": "M2",
-	"GET /devices":              "M3",
-	"POST /devices":             "M3",
-	"DELETE /devices/{id}":      "M3",
-	"POST /actions/{token}":     "M5",
+	"DELETE /me":            "M6 (delete account)",
+	"GET /devices":          "M3",
+	"POST /devices":         "M3",
+	"DELETE /devices/{id}":  "M3",
+	"POST /actions/{token}": "M5",
 }
 
 func TestEverySwaggerRouteIsServed(t *testing.T) {
@@ -90,22 +84,33 @@ func TestEverySwaggerRouteIsServed(t *testing.T) {
 	}
 }
 
-func TestUserJSONMatchesSwagger(t *testing.T) {
-	user := loadSwagger(t).Components.Schemas["User"]
-
-	var fields []string
-	typ := reflect.TypeFor[userJSON]()
-	for i := range typ.NumField() {
-		fields = append(fields, typ.Field(i).Tag.Get("json"))
-	}
-	for _, name := range user.Required {
-		if !slices.Contains(fields, name) {
-			t.Errorf("swagger User requires %q, the API doesn't send it", name)
+// The JSON the API sends has exactly the fields of its swagger.json schema: every
+// required field is sent, and nothing is sent that the schema doesn't know.
+func TestJSONMatchesSwagger(t *testing.T) {
+	schemas := loadSwagger(t).Components.Schemas
+	for name, typ := range map[string]reflect.Type{
+		"User":         reflect.TypeFor[userJSON](),
+		"Reminder":     reflect.TypeFor[reminderJSON](),
+		"ReminderList": reflect.TypeFor[reminderListJSON](),
+	} {
+		schema, ok := schemas[name]
+		if !ok {
+			t.Errorf("swagger.json has no schema %s", name)
+			continue
 		}
-	}
-	for _, name := range fields {
-		if _, ok := user.Properties[name]; !ok {
-			t.Errorf("the API sends %q, swagger User doesn't have it", name)
+		var fields []string
+		for i := range typ.NumField() {
+			fields = append(fields, typ.Field(i).Tag.Get("json"))
+		}
+		for _, field := range schema.Required {
+			if !slices.Contains(fields, field) {
+				t.Errorf("swagger %s requires %q, the API doesn't send it", name, field)
+			}
+		}
+		for _, field := range fields {
+			if _, ok := schema.Properties[field]; !ok {
+				t.Errorf("the API sends %q, swagger %s doesn't have it", field, name)
+			}
 		}
 	}
 }

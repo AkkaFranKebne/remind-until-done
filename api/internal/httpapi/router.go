@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
@@ -28,24 +29,36 @@ type UserStore interface {
 	Update(ctx context.Context, id string, s users.Settings) (users.User, error)
 }
 
+// ReminderStore keeps reminders and their rules. *reminders.Service is the real one.
+type ReminderStore interface {
+	List(ctx context.Context, userID string, in reminders.ListInput) (reminders.Page, error)
+	Create(ctx context.Context, userID string, in reminders.CreateInput) (reminders.Reminder, error)
+	Get(ctx context.Context, userID, id string) (reminders.Reminder, error)
+	Update(ctx context.Context, userID, id string, in reminders.UpdateInput) (reminders.Reminder, error)
+	Delete(ctx context.Context, userID, id string) error
+	MarkDone(ctx context.Context, userID, id string) (reminders.Reminder, error)
+}
+
 // Deps is everything the API talks to. main passes the real ones, tests pass fakes.
 type Deps struct {
-	DB      Pinger
-	Tokens  TokenVerifier
-	Users   UserStore
-	Invited auth.Allowlist
+	DB        Pinger
+	Tokens    TokenVerifier
+	Users     UserStore
+	Reminders ReminderStore
+	Invited   auth.Allowlist
 }
 
 type API struct {
-	log     *slog.Logger
-	health  *dbHealth
-	tokens  TokenVerifier
-	users   UserStore
-	invited auth.Allowlist
+	log       *slog.Logger
+	health    *dbHealth
+	tokens    TokenVerifier
+	users     UserStore
+	reminders ReminderStore
+	invited   auth.Allowlist
 }
 
 func New(log *slog.Logger, d Deps) *API {
-	return &API{log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users, invited: d.Invited}
+	return &API{log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users, reminders: d.Reminders, invited: d.Invited}
 }
 
 type route struct {
@@ -59,6 +72,12 @@ func (a *API) routes() []route {
 		{"GET", "/healthz", a.healthz},
 		{"GET", "/me", a.requireUser(a.getMe)},
 		{"PATCH", "/me", a.requireUser(a.patchMe)},
+		{"GET", "/reminders", a.requireUser(a.listReminders)},
+		{"POST", "/reminders", a.requireUser(a.createReminder)},
+		{"GET", "/reminders/{id}", a.requireUser(a.getReminder)},
+		{"PATCH", "/reminders/{id}", a.requireUser(a.updateReminder)},
+		{"DELETE", "/reminders/{id}", a.requireUser(a.deleteReminder)},
+		{"POST", "/reminders/{id}/done", a.requireUser(a.markReminderDone)},
 	}
 }
 

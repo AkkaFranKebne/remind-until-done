@@ -9,7 +9,7 @@ import type { ListRemindersStatus } from './listRemindersStatus'
 
 export type ListRemindersParams = {
   /**
-   * upcoming = not done (waiting, nagging or overdue); done = done
+   * upcoming = not done (waiting, nagging or overdue), soonest dueAt first; done = most recently done first
    */
   status?: ListRemindersStatus
   /**

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { AppScreen } from '../../app/AppScreen'
 import { Button } from '../../components/ui/Button'
 import { Fab } from '../../components/ui/Fab'
-import { SkeletonRow } from '../../components/ui/SkeletonRow'
+import { Skeleton } from '../../components/ui/Skeleton'
 import { statusIcon, statusLabel, type ReminderStatusKind } from '../../components/ui/status'
 import { StatusTiles } from '../../components/ui/StatusTiles'
 import {
@@ -103,10 +103,20 @@ export function RemindersPage() {
           </div>
         ) : loading ? (
           // First load only: later reloads keep showing the rows they have.
-          <output aria-busy="true" aria-label="Loading reminders" className="flex flex-col gap-2">
-            <SkeletonRow />
-            <SkeletonRow />
-            <SkeletonRow />
+          <output aria-busy="true" aria-label="Loading reminders" className="flex flex-col gap-4">
+            {/* The same layout as the loaded list: tiles, the label line, a stack of rows. */}
+            <span className="grid grid-cols-2 gap-2">
+              <Skeleton className="h-22.5" />
+              <Skeleton className="h-22.5" />
+              <Skeleton className="h-22.5" />
+              <Skeleton className="h-22.5" />
+            </span>
+            <Skeleton className="h-3 w-32 rounded-sm" />
+            <span className="flex flex-col">
+              <Skeleton className="shadow-row-1" />
+              <Skeleton className="-mt-2 shadow-row-2" />
+              <Skeleton className="-mt-2 shadow-row-3" />
+            </span>
           </output>
         ) : nothingAtAll ? (
           // Centred on the gradient, which stays light here in both themes (dark mode: index.css).
@@ -129,10 +139,10 @@ export function RemindersPage() {
               <output
                 aria-busy="true"
                 aria-label="Loading done reminders"
-                className="flex flex-col gap-2"
+                className="flex flex-col"
               >
-                <SkeletonRow />
-                <SkeletonRow />
+                <Skeleton className="shadow-row-1" />
+                <Skeleton className="-mt-2 shadow-row-2" />
               </output>
             ) : shown.length === 0 ? (
               // On a card, like the empty state: straight on the gradient it can't be read in dark mode.

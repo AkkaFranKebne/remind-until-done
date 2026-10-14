@@ -24,7 +24,7 @@ export function AppScreen({
   return (
     <div className={cn('flex min-h-dvh flex-col bg-bg', background)}>
       <TopBar tone={tone} contextLine={contextLine} />
-      <main className="flex-1 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <main className="flex flex-1 flex-col px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         {children}
       </main>
     </div>

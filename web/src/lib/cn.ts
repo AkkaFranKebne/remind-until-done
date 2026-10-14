@@ -13,6 +13,7 @@ const twMerge = extendTailwindMerge({
       'border-w': [{ border: ['strong'] }],
       animate: [{ animate: ['spin-fast', 'shimmer', 'nag-pulse'] }],
       'bg-image': ['bg-shimmer'],
+      shadow: [{ shadow: ['fab'] }],
     },
   },
 })

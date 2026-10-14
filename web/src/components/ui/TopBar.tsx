@@ -70,7 +70,8 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
       {/* Below the bar; it scrolls away with the content. */}
       {contextLine ? (
         <p
-          className={cn('px-4 pt-4 pb-3.5 text-sm italic', plain ? 'text-fg2' : 'text-on-grad-fg2')}
+          // Right under the logo, upright. On gradients: the fixed violet (Inventory → TopBar card).
+          className={cn('px-4 pt-1 pb-1 text-sm', plain ? 'text-fg2' : 'text-on-grad')}
         >
           {contextLine}
         </p>

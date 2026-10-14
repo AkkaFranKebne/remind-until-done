@@ -52,3 +52,7 @@ test('text-input is a font size, not a colour', () => {
   expect(cn('text-input', 'text-fg')).toBe('text-input text-fg')
   expect(cn('text-base', 'text-input')).toBe('text-input')
 })
+
+test('shadow-fab is a shadow (replaces shadow-md), not a shadow colour', () => {
+  expect(cn('shadow-md', 'shadow-fab')).toBe('shadow-fab')
+})

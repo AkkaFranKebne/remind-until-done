@@ -99,7 +99,7 @@ export function RemindersPage() {
       contextLine={upcoming.data && !loading ? contextLine(active, doneItems.length) : undefined}
     >
       <h1 className="sr-only">Your reminders</h1>
-      <div className="flex flex-col gap-4 pb-24">
+      <div className="flex flex-1 flex-col gap-4 pb-24">
         {/* Only when there's nothing to show: a failed background reload keeps the list. */}
         {upcoming.isError && !upcoming.data ? (
           <div
@@ -119,13 +119,15 @@ export function RemindersPage() {
             <SkeletonRow />
           </output>
         ) : nothingAtAll ? (
-          // On a card: the gradient fades to dark in dark mode, so text straight on it can't be read.
-          <section className="mt-6 flex flex-col items-center gap-2 rounded-md bg-bg2 px-6 py-8 text-center shadow-sm">
-            <Inbox aria-hidden="true" size={24} strokeWidth={1.75} className="text-accent" />
-            <h2 className="text-lg font-semibold text-balance text-fg">
+          // Centred on the gradient, which stays light here in both themes (dark mode: index.css).
+          <section className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+            <span className="flex size-16 items-center justify-center rounded-full bg-on-grad/10">
+              <Inbox aria-hidden="true" size={30} strokeWidth={1.75} className="text-on-grad" />
+            </span>
+            <h2 className="text-lg font-bold text-balance text-on-row">
               Nothing to nag you about. Suspiciously productive.
             </h2>
-            <p className="text-sm text-fg2">Add something you&apos;ll definitely forget.</p>
+            <p className="text-sm text-on-grad-fg2">Add something you&apos;ll definitely forget.</p>
           </section>
         ) : (
           <>

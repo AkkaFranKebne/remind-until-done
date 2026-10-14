@@ -76,6 +76,7 @@
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-fab: 0 4px 16px rgba(109, 40, 217, 0.4); /* the FAB's violet glow (visible on the violet gradient) */
   --duration-fast: 120ms;
   --duration-base: 220ms;
   --easing-std: cubic-bezier(0.4, 0, 0.2, 1);
@@ -98,6 +99,12 @@
     --border: #2e2d28;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
+       light in both themes, and the centred empty state must not sit in the fade (decided 2026-10-14). */
+    --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 70%, var(--bg3) 95%);
+    --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 70%, var(--bg3) 95%);
+    --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 70%, var(--bg3) 95%);
+    --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 70%, var(--bg3) 95%);
     color-scheme: dark;
   }
 }
@@ -114,6 +121,12 @@
   --border: #2e2d28;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
+     light in both themes, and the centred empty state must not sit in the fade (decided 2026-10-14). */
+  --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 70%, var(--bg3) 95%);
+  --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 70%, var(--bg3) 95%);
+  --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 70%, var(--bg3) 95%);
+  --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 70%, var(--bg3) 95%);
   color-scheme: dark;
 }
 
@@ -294,6 +307,7 @@
 
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
+  --shadow-fab: var(--shadow-fab);
   --ease-std: var(--easing-std);
 }
 

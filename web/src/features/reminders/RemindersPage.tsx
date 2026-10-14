@@ -179,8 +179,12 @@ export function RemindersPage() {
             {/* Always there (empty below the limit), so screen readers announce it when it fills
                 in as the + button disappears (Inventory → Accessibility). */}
             <output
+              // As the Inventory: plain centred text under the rows. In dark mode it sits where
+              // the gradient fades, so there (only) it gets a card (--note-on-gradient-bg).
               className={
-                atLimit ? 'block rounded-md bg-bg2 px-4 py-3 text-sm text-fg2 shadow-sm' : undefined
+                atLimit
+                  ? 'block rounded-md bg-note-on-gradient-bg px-4 py-3 text-center text-sm text-fg2'
+                  : undefined
               }
             >
               {atLimit

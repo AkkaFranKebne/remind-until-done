@@ -23,6 +23,7 @@
   --on-solid: #ffffff; /* text and icons on accent-solid */
   --on-grad: #6d28d9; /* logo and icons on gradient screens */
   --on-grad-fg2: #5a5850; /* secondary text on gradient screens */
+  --note-on-gradient-bg: transparent; /* notes on the list gradient: plain text (Inventory); dark mode: a card */
   --on-row: #1a1915; /* titles on the light row tints (they stay light in dark mode too) */
   --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
 
@@ -111,6 +112,7 @@
     --accent-bg: #2e1f5e;
     --border: #2e2d28;
     --error-text: #f87171; /* #c0392b is only 3.3:1 on the dark sheet */
+    --note-on-gradient-bg: var(--bg2); /* readable where the gradient fades to dark */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
     /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
@@ -134,6 +136,7 @@
   --accent-bg: #2e1f5e;
   --border: #2e2d28;
   --error-text: #f87171;
+  --note-on-gradient-bg: var(--bg2);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
@@ -287,6 +290,7 @@
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
   --color-on-row: var(--on-row);
+  --color-note-on-gradient-bg: var(--note-on-gradient-bg);
   --color-scrim: var(--scrim);
   --color-waiting-row-bg: var(--waiting-row-bg);
   --color-tag-shared: var(--tag-shared);

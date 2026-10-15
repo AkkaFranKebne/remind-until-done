@@ -33,7 +33,12 @@ test('shows the context line when given', async () => {
 test.each([
   ['plain', 'text-fg2'],
   ['brand', 'text-on-grad'],
-  ['nag-mid', 'text-on-detail-nag-mid'],
+  ['waiting', 'text-on-grad'],
+  ['nag-low', 'text-nag-low-fg'],
+  ['nag-mid', 'text-nag-mid-fg'],
+  ['nag-high', 'text-tile-overdue-fg'],
+  ['overdue', 'text-tile-overdue-fg'],
+  ['done', 'text-tag-done-fg'],
 ] as const)('tone %s colours the Settings icon with %s', async (tone, colourClass) => {
   renderTopBar({ tone })
 
@@ -43,7 +48,8 @@ test.each([
 test.each([
   ['plain', 'text-accent'],
   ['brand', 'text-on-grad'],
-  ['nag-mid', 'text-accent-solid'],
+  ['nag-mid', 'text-on-grad'],
+  ['done', 'text-on-grad'],
 ] as const)('tone %s colours the logo with %s', async (tone, colourClass) => {
   renderTopBar({ tone })
 

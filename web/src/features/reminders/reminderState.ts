@@ -1,6 +1,7 @@
 import type { ReminderStatusKind } from '../../components/ui/status'
 import type { Reminder } from '../../lib/api/generated/model'
-import { formatDoneAgo, formatStartsIn } from '../../lib/dates'
+import { formatClock, formatDoneAgo, formatSpan, formatStartsIn } from '../../lib/dates'
+import { intervalOptions } from './addReminderForm'
 
 /** Pushes per cycle before a reminder counts as overdue (the API's MaxPushes). */
 export const MAX_PUSHES = 12
@@ -45,4 +46,64 @@ export function rowSubLine(r: Reminder, now: Date = new Date()): string {
     case 'done':
       return r.doneAt ? formatDoneAgo(new Date(r.doneAt), now) : 'Done'
   }
+}
+
+/**
+ * The reminder page's line under the title (Inventory → UX Copy, owner decision 2026-10-15).
+ * Nagging uses the row's lines until M5, when it shows the latest push message instead.
+ */
+export function pageSubLine(r: Reminder): string {
+  switch (rowLevel(r)) {
+    case 'waiting':
+      return 'Waiting patiently.'
+    case 'overdue':
+      return "We gave it everything we had. 12 reminders. Zero response. You're on your own now."
+    case 'done':
+      return 'Done. We knew you had it in you.'
+    default:
+      return rowSubLine(r)
+  }
+}
+
+/** The big countdown on the reminder page: its label and value (null = label only). */
+export type Countdown = { label: string; value: string | null }
+
+/**
+ * Waiting: time to the first push. Nagging: time to the next push, to the second (the API's
+ * nextNagAt). Overdue: how late, counted from the due time. Done: no countdown (null).
+ */
+export function pageCountdown(r: Reminder, now: Date): Countdown | null {
+  const due = new Date(r.dueAt).getTime()
+  switch (rowLevel(r)) {
+    case 'done':
+      return null
+    case 'waiting':
+      return due - now.getTime() < 60_000
+        ? { label: 'Starting now', value: null }
+        : { label: 'Starts in', value: formatSpan(due - now.getTime()) }
+    case 'overdue':
+      return { label: 'Overdue by', value: formatSpan(now.getTime() - due) }
+    default: {
+      // While a push is going out there's no next time yet: 00:00:00.
+      const next = r.nextNagAt ? new Date(r.nextNagAt).getTime() : now.getTime()
+      return { label: 'Next nag in', value: formatClock(next - now.getTime()) }
+    }
+  }
+}
+
+/** "1 h", "15 min": the chip's label, or minutes for a value without a chip. */
+export function intervalLabel(minutes: number): string {
+  return intervalOptions.find((o) => o.value === String(minutes))?.label ?? `${minutes} min`
+}
+
+/**
+ * When the countdown has just reached 0 (the first or next push is due), the server is about to
+ * change the reminder: ask again every 15 s for 5 minutes, so the page moves on by itself.
+ * Not while waiting for nothing: done and overdue reminders have no countdown to reach.
+ */
+export function pollAfterCountdown(r: Reminder, now = Date.now()): number | false {
+  const level = rowLevel(r)
+  if (level === 'done' || level === 'overdue') return false
+  const at = Date.parse(level === 'waiting' ? r.dueAt : (r.nextNagAt ?? r.updatedAt))
+  return now >= at && now - at < 5 * 60_000 ? 15_000 : false
 }

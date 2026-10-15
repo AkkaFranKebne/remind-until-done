@@ -1,6 +1,9 @@
 import {
   farFutureHint,
+  formatClock,
+  formatSpan,
   formatStartsIn,
+  formatTook,
   formatDoneAgo,
   formatDue,
   fromLocalInputValue,
@@ -58,4 +61,23 @@ test('formatStartsIn: days and hh:mm, under a day only hh:mm, then "Starting now
   expect(formatStartsIn(later(4 * h + 12 * 60_000), now)).toBe('Starts in 04:12')
   expect(formatStartsIn(later(30_000), now)).toBe('Starting now')
   expect(formatStartsIn(later(-h), now)).toBe('Starting now')
+})
+
+test('formatSpan: days and hh:mm, under a day hh:mm, never negative', () => {
+  expect(formatSpan(2 * 86_400_000 + 4 * 3_600_000)).toBe('2d 04:00')
+  expect(formatSpan(4 * 3_600_000 + 12 * 60_000 + 59_000)).toBe('04:12')
+  expect(formatSpan(-5000)).toBe('00:00')
+})
+
+test('formatClock ticks to the second (hours can pass 24), never negative', () => {
+  expect(formatClock(42 * 60_000 + 17_000)).toBe('00:42:17')
+  expect(formatClock(25 * 3_600_000)).toBe('25:00:00')
+  expect(formatClock(-1)).toBe('00:00:00')
+})
+
+test('formatTook: minutes, hours, days', () => {
+  expect(formatTook(45 * 60_000)).toBe('45 min')
+  expect(formatTook(3 * 3_600_000 + 20 * 60_000)).toBe('3 h')
+  expect(formatTook(2 * 86_400_000)).toBe('2 d')
+  expect(formatTook(-60_000)).toBe('0 min')
 })

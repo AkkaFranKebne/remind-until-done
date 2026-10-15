@@ -1,13 +1,23 @@
 import { Link } from '@tanstack/react-router'
 import { screen } from '@testing-library/react'
+import { http, HttpResponse } from 'msw'
+import { server } from '../mocks/server'
 import { FakeAuthClient, tester } from '../test-utils/fakeAuthClient'
+import { aReminder } from '../test-utils/reminders'
 import { mockMe, renderApp } from '../test-utils/renderApp'
 
-beforeEach(() => mockMe())
+beforeEach(() => {
+  mockMe()
+  server.use(
+    http.get('*/api/v1/reminders/123', () =>
+      HttpResponse.json(aReminder({ id: '123', title: 'Call the bank' })),
+    ),
+  )
+})
 
 test.each([
   ['/', 'Your reminders'],
-  ['/r/123', 'Reminder'],
+  ['/r/123', 'Call the bank'],
   ['/settings', 'Settings'],
 ])('%s shows "%s" when signed in', async (path, heading) => {
   renderApp(path, new FakeAuthClient(tester))

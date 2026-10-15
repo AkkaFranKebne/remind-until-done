@@ -74,8 +74,7 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - Any time: Terraform Google provider is pinned `~> 6.0`; the registry has 8.x (two major versions). Upgrade in its own PR, dev first, read both upgrade guides.
 - M2 (reminders): first skills ("new endpoint", "new migration"); semgrep.
 - M3 (push, Settings): revisit the sign-out warning "You'll need to reinstall the app to sign back in on this device" (Inventory copy, kept for now). Signing in again works without reinstalling; the real effect is that the phone stops getting pushes (design doc 5.7).
-- M2 (reminder page PR): `npm run dev:mock` (the app on MSW only, for frontend work without the API; design doc 6.7). Needs a fake sign-in too.
-- M2 (detail screens): TopBar tones for the vivid detail gradients (nag-low, overdue, done, waiting, nag-high). The current logo/icon colours fail contrast there; decide the look with the screens, update the Inventory, then add the tones. (The list's Overdue and Done filters got pastel gradients instead, decided 2026-10-14.)
+- M2 (own PR, after the reminder page): `npm run dev:mock` (the app on MSW only, for frontend work without the API; design doc 6.7). Needs a fake sign-in too.
 - M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.
 - M6 (delete account): the Delete account sheet closes only on Cancel, so the typed DELETE isn't lost by a swipe or a tap outside (Inventory). `ConfirmSheet` has no option for that yet; add one (blocks swipe, tap outside and Escape).
 - M5 (actions): `/actions/{token}` puts the token into the URL path unencoded (orval's generated code). Check that tokens are URL-safe, or encode them, when building it.

@@ -21,7 +21,6 @@
   /* Fixed in both themes (Inventory, decided 2026-10-09, for contrast). */
   --accent-solid: #6d28d9; /* filled primary buttons */
   --on-solid: #ffffff; /* text and icons on accent-solid */
-  --on-detail-nag-mid: #8b2a22; /* TopBar on the nag-mid detail gradient (light in both themes) */
   --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
 
   /* The reminders list. Dark mode keeps each status's hue but flips its lightness: dark tints of
@@ -75,20 +74,24 @@
   --nag-high: #b02820;
   --nag-high-fg: #fff5f5;
 
-  /* Gradients: screen backgrounds by filter/status, and UI elements. The list's (grad-shell-*) and
-     the skeleton's have dark versions; the rest are the same in both themes. */
+  /* Gradients: screen backgrounds by filter/status, and UI elements. The list's (grad-shell-*),
+     the reminder page's (grad-detail-*) and the skeleton's have dark versions; the rest are the
+     same in both themes. */
   --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 28%, var(--bg3) 60%);
   --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
   /* Overdue and Done list filters: pastel tops, so the violet logo and the grey context line
      keep at least 4.5:1 (decided 2026-10-14). The detail screens keep their vivid versions. */
   --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 40%, var(--bg3) 74%);
   --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 38%, var(--bg3) 70%);
-  --grad-detail-waiting: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 38%, var(--bg3) 68%);
-  --grad-detail-nag-low: linear-gradient(180deg, #f59e0b 0%, #fde8c8 38%, var(--bg3) 68%);
+  /* The reminder page: a strong top that fades quickly, so the logo, icons and text keep their
+     contrast at the height they sit (decided 2026-10-15; dark values below). */
+  --grad-detail-waiting: linear-gradient(180deg, #b9a5fc 0%, #ddd6fe 18%, var(--bg3) 68%);
+  --grad-detail-nag-low: linear-gradient(180deg, #fbbf24 0%, #fde8c8 38%, var(--bg3) 68%);
   --grad-detail-nag-mid: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
-  --grad-detail-nag-high: linear-gradient(180deg, #f97316 0%, #fca5a5 38%, var(--bg3) 70%);
-  --grad-detail-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
-  --grad-detail-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
+  --grad-detail-nag-high: linear-gradient(180deg, #fb923c 0%, #fecaca 20%, var(--bg3) 70%);
+  --grad-detail-overdue: linear-gradient(180deg, #fca5a5 0%, #fecaca 26%, var(--bg3) 74%);
+  --grad-detail-done: linear-gradient(180deg, #34d399 0%, #bbf7d0 20%, var(--bg3) 70%);
+  --done-pill-ring: rgba(5, 150, 105, 0.3); /* the "Done" pill on a done reminder's page */
   --grad-shimmer: linear-gradient(90deg, #f0efe9 25%, #e2e0d8 50%, #f0efe9 75%);
   --grad-install-card: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 60%, #ede9fe 100%);
   --grad-login-icon: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 100%);
@@ -155,6 +158,14 @@
     --tag-overdue-chip-fg: #f3e8ff;
     --chip-on-waiting-row: rgba(167, 139, 250, 0.2);
     --chip-on-done-row: rgba(74, 222, 128, 0.16);
+    /* The reminder page, dark: same hue, flipped lightness, one step stronger than the list. */
+    --grad-detail-waiting: linear-gradient(180deg, #30245e 0%, #1e1932 38%, var(--bg) 68%);
+    --grad-detail-nag-low: linear-gradient(180deg, #45300c 0%, #261e10 38%, var(--bg) 68%);
+    --grad-detail-nag-mid: linear-gradient(180deg, #3d1e1b 0%, #241917 38%, var(--bg) 72%);
+    --grad-detail-nag-high: linear-gradient(180deg, #52230f 0%, #2c1915 38%, var(--bg) 70%);
+    --grad-detail-overdue: linear-gradient(180deg, #4a1519 0%, #291518 38%, var(--bg) 74%);
+    --grad-detail-done: linear-gradient(180deg, #12422c 0%, #16241c 38%, var(--bg) 70%);
+    --done-pill-ring: rgba(134, 239, 172, 0.5);
     --chip-on-nag-high: rgba(254, 202, 202, 0.85);
     /* Rows cast their shadow up onto the row above (a downward one doesn't show on dark), plus a
        faint highlight on the top edge; deeper down the stack, as in light mode. */
@@ -216,6 +227,14 @@
   --tag-overdue-chip-fg: #f3e8ff;
   --chip-on-waiting-row: rgba(167, 139, 250, 0.2);
   --chip-on-done-row: rgba(74, 222, 128, 0.16);
+  /* The reminder page, dark: same hue, flipped lightness, one step stronger than the list. */
+  --grad-detail-waiting: linear-gradient(180deg, #30245e 0%, #1e1932 38%, var(--bg) 68%);
+  --grad-detail-nag-low: linear-gradient(180deg, #45300c 0%, #261e10 38%, var(--bg) 68%);
+  --grad-detail-nag-mid: linear-gradient(180deg, #3d1e1b 0%, #241917 38%, var(--bg) 72%);
+  --grad-detail-nag-high: linear-gradient(180deg, #52230f 0%, #2c1915 38%, var(--bg) 70%);
+  --grad-detail-overdue: linear-gradient(180deg, #4a1519 0%, #291518 38%, var(--bg) 74%);
+  --grad-detail-done: linear-gradient(180deg, #12422c 0%, #16241c 38%, var(--bg) 70%);
+  --done-pill-ring: rgba(134, 239, 172, 0.5);
   --chip-on-nag-high: rgba(254, 202, 202, 0.85);
   /* Rows cast their shadow up onto the row above (a downward one doesn't show on dark), plus a
      faint highlight on the top edge; deeper down the stack, as in light mode. */
@@ -243,6 +262,8 @@
   --text-lg--line-height: 1.35;
   --text-xl: 1.375rem; /* 22px: logo, reminder title on the detail page */
   --text-xl--line-height: 1.25;
+  --text-countdown: 2.5rem; /* 40px: the countdown on the reminder page */
+  --text-countdown--line-height: 1;
   --text-display: 4.5rem; /* 72px: the big "404" */
   --text-display--line-height: 1;
 
@@ -369,7 +390,7 @@
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
   --color-on-row: var(--on-row);
-  --color-on-detail-nag-mid: var(--on-detail-nag-mid);
+  --color-done-pill-ring: var(--done-pill-ring);
   --color-fab: var(--fab);
   --color-row-overdue-ring: var(--row-overdue-ring);
   --color-scrim: var(--scrim);

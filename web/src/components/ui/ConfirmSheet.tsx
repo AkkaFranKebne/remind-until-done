@@ -4,8 +4,8 @@ import { Button } from './Button'
 import { Sheet, SheetDescription, SheetTitle } from './Sheet'
 
 /**
- * "Are you sure?" sheet that slides up from the bottom (Sign out, Discard a draft, later
- * Delete). Built on our Sheet (Base UI Drawer): Cancel, a tap outside, Escape or swiping it
+ * "Are you sure?" sheet that slides up from the bottom (Sign out, Discard a draft, Delete a
+ * reminder). Built on our Sheet (Base UI Drawer): Cancel, a tap outside, Escape or swiping it
  * down close it; screen readers hear it as an alert dialog with its title and text.
  * Design Inventory → Components → "ConfirmSheet", Phone Screens → Settings → "Sign-out confirm".
  */

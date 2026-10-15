@@ -119,7 +119,7 @@ export function RemindersPage() {
             </span>
           </output>
         ) : nothingAtAll ? (
-          // Centred on the gradient, which stays light here in both themes (dark mode: index.css).
+          // Centred on the list gradient (light, or a dark violet in dark mode: index.css).
           <section className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
             <span className="flex size-16 items-center justify-center rounded-full bg-on-grad/10">
               <Inbox aria-hidden="true" size={30} strokeWidth={1.75} className="text-on-grad" />
@@ -145,7 +145,7 @@ export function RemindersPage() {
                 <Skeleton className="-mt-2 shadow-row-2" />
               </output>
             ) : shown.length === 0 ? (
-              // On a card, like the empty state: straight on the gradient it can't be read in dark mode.
+              // A small card under the tiles: "nothing here" for the picked filter.
               <p className="rounded-md bg-bg2 px-4 py-3 text-center text-sm text-fg2 shadow-sm">
                 {filter === 'done'
                   ? "Nothing done yet. We're not judging."
@@ -179,13 +179,8 @@ export function RemindersPage() {
             {/* Always there (empty below the limit), so screen readers announce it when it fills
                 in as the + button disappears (Inventory → Accessibility). */}
             <output
-              // As the Inventory: plain centred text under the rows. In dark mode it sits where
-              // the gradient fades, so there (only) it gets a card (--note-on-gradient-bg).
-              className={
-                atLimit
-                  ? 'block rounded-md bg-note-on-gradient-bg px-4 py-3 text-center text-sm text-fg2'
-                  : undefined
-              }
+              // As the Inventory: plain centred text under the rows, in both themes.
+              className={atLimit ? 'block px-4 py-3 text-center text-sm text-fg2' : undefined}
             >
               {atLimit
                 ? "You've hit 5 active reminders. Finish one before adding another. We believe in you."

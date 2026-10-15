@@ -20,7 +20,7 @@ const iconTone = cva('-mr-2', {
     tone: {
       plain: 'text-fg2',
       brand: 'text-on-grad',
-      'nag-mid': 'text-nag-mid-fg',
+      'nag-mid': 'text-on-detail-nag-mid',
     } satisfies Record<TopBarTone, string>,
   },
 })
@@ -33,6 +33,14 @@ type TopBarProps = {
   contextLine?: string
 }
 
+/** The logo and context line: on-grad follows the list gradient (light violet in dark mode); the
+ * detail gradients stay light in both themes, so they keep the fixed violet (accent-solid). */
+const brandText = {
+  plain: 'text-accent',
+  brand: 'text-on-grad',
+  'nag-mid': 'text-accent-solid',
+} satisfies Record<TopBarTone, string>
+
 /**
  * The app header on every screen: logo left, Settings right, no background of its own
  * (it sits on the screen's background or gradient).
@@ -44,7 +52,6 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
     <>
       <header className="pt-[env(safe-area-inset-top)]">
         <div className="flex h-14 items-center justify-between px-4">
-          {/* On gradients: fixed violet, because the gradient's top stays light in dark mode too. */}
           {/* The logo goes to the reminders list. 44px tall, so it's an easy tap. */}
           <Link
             to="/"
@@ -52,7 +59,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
             className={cn(
               '-ml-1 flex min-h-11 items-center rounded-sm px-1 text-xl font-bold tracking-tight',
               'focus-visible:outline-2 focus-visible:outline-current',
-              plain ? 'text-accent' : 'text-on-grad',
+              brandText[tone],
             )}
           >
             rud.
@@ -70,8 +77,8 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
       {/* Below the bar; it scrolls away with the content. */}
       {contextLine ? (
         <p
-          // Right under the logo, upright. On gradients: the fixed violet (Inventory → TopBar card).
-          className={cn('px-4 pt-1 pb-1 text-sm', plain ? 'text-fg2' : 'text-on-grad')}
+          // Right under the logo, upright, in the logo's colour (brandText).
+          className={cn('px-4 pt-1 pb-1 text-sm', plain ? 'text-fg2' : brandText[tone])}
         >
           {contextLine}
         </p>

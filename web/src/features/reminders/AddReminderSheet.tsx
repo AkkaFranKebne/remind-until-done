@@ -26,9 +26,12 @@ import {
   type WhenChoice,
 } from './addReminderForm'
 
-/** Inventory → AddReminderSheet: peeks at 55% of the screen, dragged up it's 85% and shows the note. */
-const PEEK = 0.55
-const TALL = 0.85
+/**
+ * Inventory → AddReminderSheet: opens at 85% of its full height, dragged up it's full height and shows
+ * the note. (55% was tried first: on an iPhone the keyboard then covered the whole sheet.)
+ */
+const PEEK = 0.85
+const TALL = 1
 const SNAP_POINTS = [PEEK, TALL]
 
 /**

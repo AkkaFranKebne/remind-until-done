@@ -228,11 +228,11 @@
   }
 }
 
-/* Inventory → AddReminderSheet: a form sheet that is 85% of the screen tall when dragged up
-   and peeks at 55% by default (Base UI snap points). The bottom padding grows with the snap
+/* Inventory → AddReminderSheet: a form sheet that is full height (below the status bar) when
+   dragged up and opens at 85% (Base UI snap points). The bottom padding grows with the snap
    offset, so the content above the CTA shrinks and the CTA stays visible in both positions. */
 @utility sheet-tall {
-  height: 85dvh;
+  height: calc(100dvh - env(safe-area-inset-top)); /* full height stops below the status bar */
   padding-bottom: max(
     0px,
     calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))

@@ -21,13 +21,18 @@
   /* Fixed in both themes (Inventory, decided 2026-10-09, for contrast). */
   --accent-solid: #6d28d9; /* filled primary buttons */
   --on-solid: #ffffff; /* text and icons on accent-solid */
-  --on-grad: #6d28d9; /* logo and icons on gradient screens */
-  --on-grad-fg2: #5a5850; /* secondary text on gradient screens */
-  --note-on-gradient-bg: transparent; /* notes on the list gradient: plain text (Inventory); dark mode: a card */
-  --on-row: #1a1915; /* titles on the light row tints (they stay light in dark mode too) */
+  --on-detail-nag-mid: #8b2a22; /* TopBar on the nag-mid detail gradient (light in both themes) */
   --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
 
-  /* Status, error and nag tints: the same in both themes (hue carries meaning). */
+  /* The reminders list. Dark mode keeps each status's hue but flips its lightness: dark tints of
+     the same hue with light text in that hue (decided 2026-10-15, owner's iPhone check pending). */
+  --on-grad: #6d28d9; /* logo, icons and violet text on the list gradient */
+  --on-grad-fg2: #5a5850; /* secondary text on the list gradient */
+  --on-row: #1a1915; /* the empty state's heading */
+  --fab: #6d28d9; /* the + button (dark mode: lighter, to stand out from the dark page) */
+  --row-overdue-ring: transparent; /* dark mode: a thin red ring on overdue rows */
+
+  /* Status, error and nag tints: the hue carries meaning in both themes (list: dark tints in dark mode). */
   --tag-pending: #fff3cd;
   --tag-pending-fg: #7d5c00;
   --tag-nagging: #fce8e6;
@@ -38,7 +43,7 @@
   --tag-overdue-fg: #fef2f2; /* overdue row (dark red) */
   --tag-overdue-chip: #f3e8ff; /* overdue chip and tile (purple) */
   --tag-overdue-chip-fg: #6b21a8;
-  /* Inventory → StatusTiles (as the phone mockup): slightly see-through tiles on the light list gradient. */
+  /* Inventory → StatusTiles (as the phone mockup): slightly see-through tiles on the list gradient. */
   --tile-icon-bg: rgba(255, 255, 255, 0.55);
   --tile-waiting: rgba(237, 233, 254, 0.82);
   --tile-nagging: rgba(254, 226, 226, 0.82);
@@ -55,7 +60,7 @@
   --shadow-row-3: 0 3px 8px rgba(0, 0, 0, 0.11), 0 6px 16px rgba(0, 0, 0, 0.08);
   --shadow-row-4: 0 4px 12px rgba(0, 0, 0, 0.14), 0 8px 20px rgba(0, 0, 0, 0.1);
   --shadow-row-5: 0 4px 16px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.12);
-  /* Inventory → ReminderRow: the chip on a dark red (nag-high) row is a white pill. */
+  /* Inventory → ReminderRow: the chip on a dark red (nag-high) row is a white pill (dark mode: soft pink). */
   --chip-on-nag-high: rgba(255, 255, 255, 0.88);
   --tag-shared: #e8f0fe;
   --tag-shared-fg: #1a56c4;
@@ -70,7 +75,8 @@
   --nag-high: #b02820;
   --nag-high-fg: #fff5f5;
 
-  /* Gradients: screen backgrounds by filter/status, and UI elements. Same in both themes. */
+  /* Gradients: screen backgrounds by filter/status, and UI elements. The list's (grad-shell-*) and
+     the skeleton's have dark versions; the rest are the same in both themes. */
   --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 28%, var(--bg3) 60%);
   --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
   /* Overdue and Done list filters: pastel tops, so the violet logo and the grey context line
@@ -83,7 +89,6 @@
   --grad-detail-nag-high: linear-gradient(180deg, #f97316 0%, #fca5a5 38%, var(--bg3) 70%);
   --grad-detail-overdue: linear-gradient(180deg, #ef4444 0%, #fca5a5 40%, var(--bg3) 74%);
   --grad-detail-done: linear-gradient(180deg, #10b981 0%, #bbf7d0 38%, var(--bg3) 70%);
-  /* Skeleton rows stay light in dark mode too, like the reminder rows that replace them. */
   --grad-shimmer: linear-gradient(90deg, #f0efe9 25%, #e2e0d8 50%, #f0efe9 75%);
   --grad-install-card: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 60%, #ede9fe 100%);
   --grad-login-icon: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 100%);
@@ -112,15 +117,52 @@
     --accent-bg: #2e1f5e;
     --border: #2e2d28;
     --error-text: #f87171; /* #c0392b is only 3.3:1 on the dark sheet */
-    --note-on-gradient-bg: var(--bg2); /* readable where the gradient fades to dark */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
-       light in both themes, and the centred empty state must not sit in the fade (decided 2026-10-14). */
-    --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 70%, var(--bg3) 95%);
-    --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 70%, var(--bg3) 95%);
-    --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 70%, var(--bg3) 95%);
-    --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 70%, var(--bg3) 95%);
+    /* The reminders list, dark: same hue, flipped lightness (see the light theme). */
+    --on-grad: #c4b5fd;
+    --on-grad-fg2: #a8a498;
+    --on-row: #f0ede6;
+    --fab: #7c3aed; /* #6d28d9 is only 2.6:1 against the dark page */
+    --shadow-fab: 0 4px 14px rgba(0, 0, 0, 0.5);
+    --grad-shell-brand: linear-gradient(180deg, #221a38 0%, #1a1726 35%, var(--bg) 70%);
+    --grad-shell-nagging: linear-gradient(180deg, #2f1a1b 0%, #1f1716 35%, var(--bg) 70%);
+    --grad-shell-overdue: linear-gradient(180deg, #321619 0%, #1f1415 35%, var(--bg) 70%);
+    --grad-shell-done: linear-gradient(180deg, #142a20 0%, #161f1a 35%, var(--bg) 70%);
+    --grad-shimmer: linear-gradient(90deg, #1e1d1a 25%, #2a2924 50%, #1e1d1a 75%);
+    --tile-icon-bg: rgba(255, 255, 255, 0.08);
+    --tile-waiting: rgba(139, 92, 246, 0.18);
+    --tile-nagging: rgba(248, 113, 113, 0.15);
+    --tile-overdue: rgba(220, 38, 38, 0.22);
+    --tile-overdue-fg: #fecaca;
+    --tile-overdue-ring: rgba(248, 113, 113, 0.85);
+    --tile-done: rgba(52, 211, 153, 0.14);
+    --waiting-row-bg: #2a2145;
+    --nag-low: #33260f;
+    --nag-low-fg: #f8d49b;
+    --nag-mid: #45201b;
+    --nag-mid-fg: #fbb4ac;
+    --nag-high: #7a1f18;
+    --nag-high-fg: #fff5f5;
+    --tag-overdue: #4a0e1a;
+    --tag-overdue-fg: #fef2f2;
+    --row-overdue-ring: rgba(248, 113, 113, 0.6);
+    --tag-done: #16291e;
+    --tag-done-fg: #86efac;
+    --tag-nagging: rgba(248, 113, 113, 0.16);
+    --tag-nagging-fg: #fca5a5;
+    --tag-overdue-chip: rgba(216, 180, 254, 0.18);
+    --tag-overdue-chip-fg: #f3e8ff;
+    --chip-on-waiting-row: rgba(167, 139, 250, 0.2);
+    --chip-on-done-row: rgba(74, 222, 128, 0.16);
+    --chip-on-nag-high: rgba(254, 202, 202, 0.85);
+    /* Rows cast their shadow up onto the row above (a downward one doesn't show on dark), plus a
+       faint highlight on the top edge; deeper down the stack, as in light mode. */
+    --shadow-row-1: 0 -2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --shadow-row-2: 0 -2px 10px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --shadow-row-3: 0 -3px 10px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --shadow-row-4: 0 -3px 12px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --shadow-row-5: 0 -4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
     color-scheme: dark;
   }
 }
@@ -136,15 +178,52 @@
   --accent-bg: #2e1f5e;
   --border: #2e2d28;
   --error-text: #f87171;
-  --note-on-gradient-bg: var(--bg2);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  /* List gradients stay light longer (light to 70%, dark only at 95%): the tiles and rows are
-     light in both themes, and the centred empty state must not sit in the fade (decided 2026-10-14). */
-  --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 70%, var(--bg3) 95%);
-  --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 70%, var(--bg3) 95%);
-  --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 70%, var(--bg3) 95%);
-  --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 70%, var(--bg3) 95%);
+  /* The reminders list, dark: same hue, flipped lightness (see the light theme). */
+  --on-grad: #c4b5fd;
+  --on-grad-fg2: #a8a498;
+  --on-row: #f0ede6;
+  --fab: #7c3aed; /* #6d28d9 is only 2.6:1 against the dark page */
+  --shadow-fab: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --grad-shell-brand: linear-gradient(180deg, #221a38 0%, #1a1726 35%, var(--bg) 70%);
+  --grad-shell-nagging: linear-gradient(180deg, #2f1a1b 0%, #1f1716 35%, var(--bg) 70%);
+  --grad-shell-overdue: linear-gradient(180deg, #321619 0%, #1f1415 35%, var(--bg) 70%);
+  --grad-shell-done: linear-gradient(180deg, #142a20 0%, #161f1a 35%, var(--bg) 70%);
+  --grad-shimmer: linear-gradient(90deg, #1e1d1a 25%, #2a2924 50%, #1e1d1a 75%);
+  --tile-icon-bg: rgba(255, 255, 255, 0.08);
+  --tile-waiting: rgba(139, 92, 246, 0.18);
+  --tile-nagging: rgba(248, 113, 113, 0.15);
+  --tile-overdue: rgba(220, 38, 38, 0.22);
+  --tile-overdue-fg: #fecaca;
+  --tile-overdue-ring: rgba(248, 113, 113, 0.85);
+  --tile-done: rgba(52, 211, 153, 0.14);
+  --waiting-row-bg: #2a2145;
+  --nag-low: #33260f;
+  --nag-low-fg: #f8d49b;
+  --nag-mid: #45201b;
+  --nag-mid-fg: #fbb4ac;
+  --nag-high: #7a1f18;
+  --nag-high-fg: #fff5f5;
+  --tag-overdue: #4a0e1a;
+  --tag-overdue-fg: #fef2f2;
+  --row-overdue-ring: rgba(248, 113, 113, 0.6);
+  --tag-done: #16291e;
+  --tag-done-fg: #86efac;
+  --tag-nagging: rgba(248, 113, 113, 0.16);
+  --tag-nagging-fg: #fca5a5;
+  --tag-overdue-chip: rgba(216, 180, 254, 0.18);
+  --tag-overdue-chip-fg: #f3e8ff;
+  --chip-on-waiting-row: rgba(167, 139, 250, 0.2);
+  --chip-on-done-row: rgba(74, 222, 128, 0.16);
+  --chip-on-nag-high: rgba(254, 202, 202, 0.85);
+  /* Rows cast their shadow up onto the row above (a downward one doesn't show on dark), plus a
+     faint highlight on the top edge; deeper down the stack, as in light mode. */
+  --shadow-row-1: 0 -2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-row-2: 0 -2px 10px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-row-3: 0 -3px 10px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-row-4: 0 -3px 12px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-row-5: 0 -4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   color-scheme: dark;
 }
 
@@ -290,7 +369,9 @@
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
   --color-on-row: var(--on-row);
-  --color-note-on-gradient-bg: var(--note-on-gradient-bg);
+  --color-on-detail-nag-mid: var(--on-detail-nag-mid);
+  --color-fab: var(--fab);
+  --color-row-overdue-ring: var(--row-overdue-ring);
   --color-scrim: var(--scrim);
   --color-waiting-row-bg: var(--waiting-row-bg);
   --color-tag-shared: var(--tag-shared);

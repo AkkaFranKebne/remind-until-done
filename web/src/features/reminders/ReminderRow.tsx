@@ -18,13 +18,14 @@ const row = cva(
   ],
   {
     variants: {
-      // Row tints and their text colours stay the same in dark mode (status hue never inverts).
+      // The tint and text carry the urgency. Dark mode: dark tints of the same hue, light text
+      // (index.css). Overdue also gets a thin red ring there (transparent in light mode).
       level: {
         waiting: 'bg-waiting-row-bg text-on-grad',
         'nag-low': 'bg-nag-low text-nag-low-fg',
         'nag-mid': 'bg-nag-mid text-nag-mid-fg',
         'nag-high': 'bg-nag-high text-nag-high-fg',
-        overdue: 'bg-tag-overdue text-tag-overdue-fg',
+        overdue: 'bg-tag-overdue text-tag-overdue-fg inset-ring inset-ring-row-overdue-ring',
         done: 'bg-tag-done text-tag-done-fg',
       } satisfies Record<RowLevel, string>,
     },

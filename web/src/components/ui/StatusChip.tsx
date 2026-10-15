@@ -13,7 +13,7 @@ const chip = cva(
         done: 'bg-tag-done text-tag-done-fg',
       } satisfies Record<ReminderStatusKind, string>,
       size: { sm: 'px-2 py-0.5 text-xs', md: 'px-2.5 py-1 text-sm' },
-      /** On the dark red nag-high row: a white pill with the row colour as text (contrast). */
+      /** On the dark red nag-high row: a white pill (soft pink in dark mode) with the row colour as text (contrast). */
       onNagHigh: { true: 'bg-chip-on-nag-high text-nag-high' },
       /** On a list row: Waiting and Done sit on their own tint, so they get a see-through pill. */
       onRow: { true: '' },

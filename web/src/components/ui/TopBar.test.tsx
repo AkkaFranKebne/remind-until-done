@@ -33,11 +33,21 @@ test('shows the context line when given', async () => {
 test.each([
   ['plain', 'text-fg2'],
   ['brand', 'text-on-grad'],
-  ['nag-mid', 'text-nag-mid-fg'],
+  ['nag-mid', 'text-on-detail-nag-mid'],
 ] as const)('tone %s colours the Settings icon with %s', async (tone, colourClass) => {
   renderTopBar({ tone })
 
   expect(await screen.findByRole('link', { name: 'Settings' })).toHaveClass(colourClass)
+})
+
+test.each([
+  ['plain', 'text-accent'],
+  ['brand', 'text-on-grad'],
+  ['nag-mid', 'text-accent-solid'],
+] as const)('tone %s colours the logo with %s', async (tone, colourClass) => {
+  renderTopBar({ tone })
+
+  expect(await screen.findByRole('link', { name: /rud\./ })).toHaveClass(colourClass)
 })
 
 test('the logo links to the reminders list', async () => {

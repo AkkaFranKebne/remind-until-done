@@ -150,12 +150,13 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   status: advisory
   applies_to: 'src/**/*.{tsx,css}'
   check:
-    "Everything works in light and dark (check the Storybook theme toggle). Status, nag and error
-    tokens stay the same in both themes on purpose (Inventory rule: hue carries meaning).
+    "Everything works in light and dark (check the Storybook theme toggle). Status and nag colours
+    keep their hue in both themes (hue carries meaning). On the reminders list, dark mode flips the
+    lightness: dark tints of the same hue with light text in that hue (index.css, dark blocks).
     Filled primary buttons use accent-solid + on-solid (same in both themes: white on the dark-mode
-    accent is unreadable). Text on gradient screens uses on-grad / on-grad-fg2 (same in both themes: the
-    gradient top stays light in dark mode). TopBar has no background of its own; pass the screen's
-    tone (plain, brand, nag-mid) to colour its icon, never a raw colour."
+    accent is unreadable); the + button uses fab. Text on the list gradient uses on-grad /
+    on-grad-fg2 (they have dark values, like the gradient). TopBar has no background of its own; pass
+    the screen's tone (plain, brand, nag-mid) to colour its icon, never a raw colour."
 
 - id: ui-reduced-motion
   status: advisory
@@ -200,7 +201,7 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   - The dev server is https (Vite basic-ssl plugin): Firebase always returns from Google sign-in to `https://<host>`. Storybook runs its own server and stays on plain http.
 - Forms: **React Hook Form + Zod** with the API's limits (design doc 5.5). One schema per form (e.g. `features/reminders/addReminderForm.ts`), `zodResolver`, a `Controller` per field around our components, `useWatch` (not `watch`: the React compiler can't memoize it). Read form states you need (`isDirty`) while rendering, or React Hook Form doesn't track them. Errors inline, never a toast.
 - Time: `src/lib/dates.ts` turns UTC instants into words in the phone's zone ("Tomorrow 09:00", "Done 3h ago"). Components that show time-dependent text take "now" from `useNow()` (updates every minute), never `new Date()` during render. Character limits count like the API: `countCharacters()` (`src/lib/text.ts`).
-- Row tints and status tiles keep the same colours in dark mode (status hue never inverts), so text on them uses fixed tokens (`text-on-row`, `text-on-grad`, `text-on-grad-fg2`, the `*-fg` status tokens), never `text-fg`/`text-fg2`.
+- Row tints and status tiles have their own text tokens (`text-on-grad`, the `*-fg` status tokens), never `text-fg`/`text-fg2`: each pair is set for both themes in `index.css` (dark mode: dark tint, light text of the same hue).
 - Tests talk to a fake API: **MSW** (`src/mocks/server.ts`, started in `jest.setup.ts`) with orval's generated handlers. A request with no handler fails the test. Change one answer with `server.use(getGetMeMockHandler(...))` or `http.get('*/api/v1/...', ...)`. Page tests: `renderApp(path, client)` + `mockMe()` (`src/test-utils/renderApp.tsx`), `aReminder()` + `mockReminders()` (`src/test-utils/reminders.ts`); components with hooks: wrap in `TestQueryProvider`. The fake API answers the reminders list with an empty list by default. Jest runs in UTC (`jest.config.js`).
 - Navigating from code (`useNavigate`) happens in an event handler or an effect, never during render: TanStack's `<Navigate>` in a page that is being left can fire again and loop.
 - Hosting caching (`firebase.json`): every app file is `Cache-Control: no-cache`. The phone may keep files, but asks Firebase "still the same?" (a quick `304 Not Modified`) every time it opens the app, so a deploy shows up on the next open. The rule is a `regex` that skips `/api/...`: API answers are per user, and the API sets `no-store` on them itself. `deploy.yml` checks both headers after every deploy.

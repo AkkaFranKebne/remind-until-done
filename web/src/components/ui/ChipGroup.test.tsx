@@ -25,6 +25,23 @@ test('tapping a chip picks it', () => {
   expect(onChange).toHaveBeenCalledWith('30')
 })
 
+test('onOptionClick hears every tap, even on the chip already picked', () => {
+  const onOptionClick = jest.fn()
+  render(
+    <ChipGroup
+      legend="Then nag me every"
+      options={options}
+      value="60"
+      onChange={jest.fn()}
+      onOptionClick={onOptionClick}
+    />,
+  )
+
+  fireEvent.click(screen.getByRole('radio', { name: '1 h' }))
+
+  expect(onOptionClick).toHaveBeenCalledWith('60')
+})
+
 test('an error shows right under the question, as an alert', () => {
   render(
     <ChipGroup

@@ -1,4 +1,5 @@
 import { Button as BaseButton } from '@base-ui/react/button'
+import { Input } from '@base-ui/react/input'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2 } from 'lucide-react'
@@ -58,6 +59,7 @@ export function AddReminderSheet({
   const queryClient = useQueryClient()
   const titleRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const noteRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
+  const pickerRef = useRef<HTMLInputElement>(null)
   const [snapPoint, setSnapPoint] = useState<number | string | null>(PEEK)
   const [noteOpen, setNoteOpen] = useState(false)
   const [askDiscard, setAskDiscard] = useState(false)
@@ -78,9 +80,9 @@ export function AddReminderSheet({
   }
   const schema = useMemo(() => addReminderSchema(defaultTimeOfDay), [defaultTimeOfDay])
   const form = useForm<AddReminderValues>({ resolver: zodResolver(schema), defaultValues: empty })
-  const { control, handleSubmit, reset, formState } = form
+  const { control, handleSubmit, reset, setValue, setFocus, formState } = form
   // Read while rendering: React Hook Form only tracks the form states a component reads.
-  const { isDirty } = formState
+  const { isDirty, isSubmitted, errors } = formState
 
   const create = useCreateReminder({
     mutation: {
@@ -111,7 +113,8 @@ export function AddReminderSheet({
   }
 
   // Something's missing: grow the sheet so the field with the error is in view (React Hook Form
-  // then moves focus to it, using the ref each field hands over).
+  // then moves focus to it, using the ref each field hands over). The custom time has no visible
+  // field, so its errors move focus to the picked "When" chip.
   const submit = handleSubmit(
     (v) => {
       const due = resolveDue(v.when, v.customAt, defaultTimeOfDay)
@@ -125,7 +128,10 @@ export function AddReminderSheet({
         },
       })
     },
-    () => setSnapPoint(TALL),
+    (invalid) => {
+      setSnapPoint(TALL)
+      if (invalid.customAt && !invalid.title) setFocus('when')
+    },
   )
 
   const when = useWatch({ control, name: 'when' })
@@ -152,6 +158,25 @@ export function AddReminderSheet({
       : create.error
         ? "Couldn't save. Try again."
         : null
+
+  /** "Custom…" opens the phone's own date-time picker at once (Inventory → TimeChips). */
+  function openPicker() {
+    const picker = pickerRef.current
+    if (!picker) return
+    try {
+      picker.showPicker()
+    } catch {
+      // Older browsers: focusing the field opens the picker there.
+      picker.focus()
+    }
+  }
+
+  /** A picked date selects "Custom…". Cancel or the picker's Reset (empty) keeps the previous pick. */
+  function pickCustom(value: string) {
+    if (value === '') return
+    setValue('customAt', value, { shouldDirty: true, shouldValidate: isSubmitted })
+    setValue('when', 'custom', { shouldDirty: true, shouldValidate: isSubmitted })
+  }
 
   function openNote() {
     setNoteOpen(true)
@@ -237,30 +262,33 @@ export function AddReminderSheet({
                   legend="When should we start?"
                   options={timeOptions}
                   value={field.value}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
+                  // "Custom…" becomes picked only once a date is chosen (pickCustom).
+                  onChange={(v) => {
+                    if (v !== 'custom') field.onChange(v)
+                  }}
+                  onOptionClick={(v) => {
+                    if (v === 'custom') openPicker()
+                  }}
+                  error={fieldState.error?.message ?? errors.customAt?.message}
                 />
               )}
             />
-            {when === 'custom' ? (
-              <Controller
-                name="customAt"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <TextField
-                    ref={field.ref}
-                    name={field.name}
-                    label="Pick a date and time"
-                    type="datetime-local"
-                    min={toLocalInputValue(now)}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    error={fieldState.error?.message}
-                  />
-                )}
-              />
-            ) : null}
+            {/* The native picker behind "Custom…": hidden, the chip shows its value. text-input (16px)
+                stops iOS zooming in when the picker focuses it; closing it puts focus back on the chips. */}
+            <Input
+              ref={pickerRef}
+              type="datetime-local"
+              aria-hidden="true"
+              tabIndex={-1}
+              min={toLocalInputValue(now)}
+              value={customAt}
+              onChange={(e) => pickCustom(e.currentTarget.value)}
+              onBlur={(e) => {
+                // Only when focus goes nowhere: a tap on another field keeps it there.
+                if (!e.relatedTarget) setFocus('when')
+              }}
+              className="sr-only text-input"
+            />
             {hint ? <p className="text-sm text-fg2">{hint}</p> : null}
           </div>
 

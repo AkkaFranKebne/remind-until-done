@@ -18,6 +18,7 @@ export function ChipGroup<T extends string>({
   options,
   value,
   onChange,
+  onOptionClick,
   focusRef,
   error,
   className,
@@ -28,6 +29,8 @@ export function ChipGroup<T extends string>({
   /** The picked option; null = none yet. */
   value: T | null
   onChange: (value: T) => void
+  /** Every tap (or Space) on a chip, even the one already picked: e.g. "Custom…" opens the date picker. */
+  onOptionClick?: (value: T) => void
   /** Gets the picked chip (or the first): a form can move focus here to show an error. */
   focusRef?: Ref<HTMLButtonElement>
   /** Shown right under the question (not under the chips, which may be cut off at the bottom). */
@@ -60,6 +63,7 @@ export function ChipGroup<T extends string>({
             key={option.value}
             value={option.value}
             ref={option.value === focusValue ? focusRef : undefined}
+            onClick={onOptionClick ? () => onOptionClick(option.value) : undefined}
             className={cn(
               'inline-flex min-h-11 cursor-pointer items-center rounded-full border-strong border-border bg-bg2 px-3.5 text-sm font-medium text-fg2',
               'transition-colors duration-(--duration-fast) motion-reduce:transition-none',

@@ -21,9 +21,6 @@ export function TextField({
   error,
   maxLength,
   multiline = false,
-  type = 'text',
-  min,
-  max,
   placeholder,
   className,
 }: {
@@ -40,11 +37,6 @@ export function TextField({
   /** Shows "41 / 200" (accent from 90% on). The limit itself is the form's rule. */
   maxLength?: number
   multiline?: boolean
-  /** datetime-local opens the phone's own date and time picker (Inventory → TimeChips "Custom…"). */
-  type?: 'text' | 'datetime-local'
-  /** For datetime-local: the earliest and latest allowed value, e.g. "2026-10-14T10:00". */
-  min?: string
-  max?: string
   placeholder?: string
   className?: string
 }) {
@@ -57,9 +49,6 @@ export function TextField({
     onValueChange: (next: string) => onChange(next),
     onBlur,
     placeholder,
-    type,
-    min,
-    max,
   }
 
   return (

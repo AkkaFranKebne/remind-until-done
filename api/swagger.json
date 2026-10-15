@@ -707,6 +707,12 @@
             "format": "date-time",
             "nullable": true
           },
+          "nextNagAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "When the next push of the current cycle is due (UTC); null when none is scheduled: not sent yet (see dueAt), done, or nags exhausted"
+          },
           "doneAt": {
             "type": "string",
             "format": "date-time",

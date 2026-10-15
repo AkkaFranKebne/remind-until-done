@@ -24,6 +24,11 @@ export interface Reminder {
   status: ReminderStatus
   /** @nullable */
   sentAt?: string | null
+  /**
+   * When the next push of the current cycle is due (UTC); null when none is scheduled: not sent yet (see dueAt), done, or nags exhausted
+   * @nullable
+   */
+  nextNagAt?: string | null
   /** @nullable */
   doneAt?: string | null
   createdAt: string

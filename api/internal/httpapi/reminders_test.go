@@ -98,7 +98,7 @@ func TestReminderLifecycleOverHTTP(t *testing.T) {
 		t.Fatalf("create: %d %s", res.status, res.raw)
 	}
 	id := res.body["id"].(string)
-	want := map[string]any{"title": "Pay rent", "note": "to Anna", "status": "pending", "nagIntervalMin": 30.0, "nagCount": 0.0, "nagsExhausted": false, "doneAt": nil, "sentAt": nil}
+	want := map[string]any{"title": "Pay rent", "note": "to Anna", "status": "pending", "nagIntervalMin": 30.0, "nagCount": 0.0, "nagsExhausted": false, "doneAt": nil, "sentAt": nil, "nextNagAt": nil}
 	for k, v := range want {
 		if res.body[k] != v {
 			t.Errorf("created %s = %v, want %v", k, res.body[k], v)
@@ -140,6 +140,22 @@ func TestReminderLifecycleOverHTTP(t *testing.T) {
 	}
 	if res = send(t, h, "GET", "/api/v1/reminders/"+id, alice, ""); res.status != 404 || errorCode(res.body) != "not_found" {
 		t.Errorf("get after delete: %d %s", res.status, res.raw)
+	}
+}
+
+// The next push time goes out as nextNagAt, in UTC like every other time.
+func TestReminderJSONHasNextNagAtInUTC(t *testing.T) {
+	stockholm := time.FixedZone("CEST", 2*60*60)
+	next := time.Date(2026, 10, 15, 16, 30, 0, 0, stockholm)
+	got := toReminderJSON(reminders.Reminder{NextNagAt: &next})
+	if got.NextNagAt == nil || got.NextNagAt.Location() != time.UTC || !got.NextNagAt.Equal(next) {
+		t.Fatalf("nextNagAt = %v, want %v in UTC", got.NextNagAt, next.UTC())
+	}
+	if raw, _ := json.Marshal(got); !strings.Contains(string(raw), `"nextNagAt":"2026-10-15T14:30:00Z"`) {
+		t.Errorf("JSON %s, want nextNagAt 2026-10-15T14:30:00Z", raw)
+	}
+	if none := toReminderJSON(reminders.Reminder{}); none.NextNagAt != nil {
+		t.Errorf("no next nag: nextNagAt = %v, want null", none.NextNagAt)
 	}
 }
 

@@ -59,6 +59,13 @@ export const ListRemindersResponse = /*#__PURE__*/ zod.object({
         .check(/*#__PURE__*/ zod.describe('UTC instant')),
       status: /*#__PURE__*/ zod.enum(['pending', 'sending', 'sent', 'done']),
       sentAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
+      nextNagAt: /*#__PURE__*/ zod
+        .nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true }))
+        .check(
+          /*#__PURE__*/ zod.describe(
+            'When the next push of the current cycle is due (UTC); null when none is scheduled: not sent yet (see dueAt), done, or nags exhausted',
+          ),
+        ),
       doneAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
       createdAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
       updatedAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
@@ -141,6 +148,13 @@ export const CreateReminderResponse = /*#__PURE__*/ zod.object({
     .check(/*#__PURE__*/ zod.describe('UTC instant')),
   status: /*#__PURE__*/ zod.enum(['pending', 'sending', 'sent', 'done']),
   sentAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
+  nextNagAt: /*#__PURE__*/ zod
+    .nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true }))
+    .check(
+      /*#__PURE__*/ zod.describe(
+        'When the next push of the current cycle is due (UTC); null when none is scheduled: not sent yet (see dueAt), done, or nags exhausted',
+      ),
+    ),
   doneAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
   createdAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
   updatedAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
@@ -189,6 +203,13 @@ export const GetReminderResponse = /*#__PURE__*/ zod.object({
     .check(/*#__PURE__*/ zod.describe('UTC instant')),
   status: /*#__PURE__*/ zod.enum(['pending', 'sending', 'sent', 'done']),
   sentAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
+  nextNagAt: /*#__PURE__*/ zod
+    .nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true }))
+    .check(
+      /*#__PURE__*/ zod.describe(
+        'When the next push of the current cycle is due (UTC); null when none is scheduled: not sent yet (see dueAt), done, or nags exhausted',
+      ),
+    ),
   doneAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
   createdAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
   updatedAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
@@ -269,6 +290,13 @@ export const UpdateReminderResponse = /*#__PURE__*/ zod.object({
     .check(/*#__PURE__*/ zod.describe('UTC instant')),
   status: /*#__PURE__*/ zod.enum(['pending', 'sending', 'sent', 'done']),
   sentAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
+  nextNagAt: /*#__PURE__*/ zod
+    .nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true }))
+    .check(
+      /*#__PURE__*/ zod.describe(
+        'When the next push of the current cycle is due (UTC); null when none is scheduled: not sent yet (see dueAt), done, or nags exhausted',
+      ),
+    ),
   doneAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
   createdAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
   updatedAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
@@ -326,6 +354,13 @@ export const MarkReminderDoneResponse = /*#__PURE__*/ zod.object({
     .check(/*#__PURE__*/ zod.describe('UTC instant')),
   status: /*#__PURE__*/ zod.enum(['pending', 'sending', 'sent', 'done']),
   sentAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
+  nextNagAt: /*#__PURE__*/ zod
+    .nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true }))
+    .check(
+      /*#__PURE__*/ zod.describe(
+        'When the next push of the current cycle is due (UTC); null when none is scheduled: not sent yet (see dueAt), done, or nags exhausted',
+      ),
+    ),
   doneAt: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.iso.datetime({ offset: true })),
   createdAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
   updatedAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),

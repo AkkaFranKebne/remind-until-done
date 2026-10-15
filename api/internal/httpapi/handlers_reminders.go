@@ -20,6 +20,7 @@ type reminderJSON struct {
 	DueAt          time.Time  `json:"dueAt"`
 	Status         string     `json:"status"`
 	SentAt         *time.Time `json:"sentAt"`
+	NextNagAt      *time.Time `json:"nextNagAt"`
 	DoneAt         *time.Time `json:"doneAt"`
 	CreatedAt      time.Time  `json:"createdAt"`
 	UpdatedAt      time.Time  `json:"updatedAt"`
@@ -45,7 +46,7 @@ func utc(t *time.Time) *time.Time {
 func toReminderJSON(r reminders.Reminder) reminderJSON {
 	return reminderJSON{
 		ID: r.ID, Title: r.Title, Note: r.Note, DueAt: r.DueAt.UTC(), Status: string(r.Status),
-		SentAt: utc(r.SentAt), DoneAt: utc(r.DoneAt), CreatedAt: r.CreatedAt.UTC(), UpdatedAt: r.UpdatedAt.UTC(),
+		SentAt: utc(r.SentAt), NextNagAt: utc(r.NextNagAt), DoneAt: utc(r.DoneAt), CreatedAt: r.CreatedAt.UTC(), UpdatedAt: r.UpdatedAt.UTC(),
 		NagIntervalMin: r.NagIntervalMin, NagCount: r.NagCount, NagsExhausted: r.NagsExhausted(),
 	}
 }

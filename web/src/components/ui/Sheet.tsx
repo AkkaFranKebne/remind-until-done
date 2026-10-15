@@ -10,7 +10,7 @@ import { cn } from '../../lib/cn'
  * and its backdrop fades (Inventory → Motion 1). The handle bar invites the swipe.
  * - card: a floating card above the bottom edge (confirmations).
  * - full: attached to the bottom edge, full width, rounded top (forms). With snapPoints it
- *   is 85% tall and peeks at the first snap point (sheet-tall).
+ *   is full height (below the status bar) and rests at the first snap point (sheet-tall).
  * Design Inventory → Components → "ConfirmSheet", Phone Screens → "AddReminderSheet".
  */
 const viewport = cva('fixed flex justify-center', {
@@ -53,7 +53,7 @@ export function Sheet({
   role?: 'dialog' | 'alertdialog'
   /** Where focus goes when it opens (default: the first focusable element). */
   initialFocus?: RefObject<HTMLElement | null>
-  /** Heights it can rest at, as parts of the screen (0.55) or pixels; full layout only. */
+  /** Heights it can rest at, as parts of the sheet's full height (0.85, 1 = full) or pixels; full layout only. */
   snapPoints?: Drawer.Root.SnapPoint[]
   snapPoint?: Drawer.Root.SnapPoint | null
   onSnapPointChange?: (snapPoint: Drawer.Root.SnapPoint | null) => void

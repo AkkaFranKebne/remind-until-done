@@ -35,7 +35,7 @@ test('can be an alert dialog', () => {
 })
 
 test('with snap points it is the tall form sheet', () => {
-  renderSheet({ layout: 'full', snapPoints: [0.55, 0.85] })
+  renderSheet({ layout: 'full', snapPoints: [0.85, 1] })
 
   expect(screen.getByRole('dialog')).toHaveClass('sheet-tall', 'rounded-t-lg')
 })

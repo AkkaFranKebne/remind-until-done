@@ -8,6 +8,21 @@ import { mockMe, renderApp } from '../../test-utils/renderApp'
 import { titleExamples } from './addReminderForm'
 
 beforeEach(() => mockMe())
+afterEach(() => Reflect.deleteProperty(HTMLInputElement.prototype, 'showPicker'))
+
+/** The hidden native picker behind "Custom…" (aria-hidden, so it has no role to find it by). */
+function picker(sheet: HTMLElement) {
+  const input = sheet.querySelector('input[type="datetime-local"]')
+  if (!(input instanceof HTMLInputElement)) throw new Error('no date-time picker')
+  return input
+}
+
+/** "YYYY-MM-DDTHH:MM" in the phone's zone, `days` from now. */
+function localValue(days: number, time: string) {
+  const d = new Date(Date.now() + days * 86_400_000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${time}`
+}
 
 function isCreateReminder(v: unknown): v is CreateReminder {
   return (
@@ -79,12 +94,13 @@ test('an error moves focus to the first field that needs fixing (so it is in vie
     expect(within(sheet).getByRole('textbox', { name: 'What are you forgetting?' })).toHaveFocus(),
   )
 
-  // Custom… without a date: focus goes to the date field.
+  // A custom time in the past: the picker is hidden, so focus goes to the picked chip.
   typeTitle(sheet, 'Call mum')
-  fireEvent.click(within(sheet).getByRole('radio', { name: 'Custom…' }))
+  fireEvent.change(picker(sheet), { target: { value: localValue(-1, '08:00') } })
   fireEvent.click(within(sheet).getByRole('button', { name: 'Start nagging me' }))
-  await waitFor(() => expect(within(sheet).getByLabelText('Pick a date and time')).toHaveFocus())
-  expect(within(sheet).getByText('Pick a date and time.')).toBeInTheDocument()
+  const when = within(sheet).getByRole('radiogroup', { name: 'When should we start?' })
+  await waitFor(() => expect(within(when).getByRole('radio', { checked: true })).toHaveFocus())
+  expect(within(sheet).getByText('That time has already passed.')).toBeInTheDocument()
 })
 
 test('creates the reminder, closes, and the list reloads with it', async () => {
@@ -168,16 +184,32 @@ test('at the limit the API says 409: the sheet says so and stays open', async ()
   )
 })
 
-test('Custom… shows the date-time picker; the chip then shows the picked time', async () => {
+test('Custom… opens the native picker at once; the chip is picked only once a time is chosen', async () => {
+  // jsdom has no showPicker: give the test one.
+  const showPicker = jest.fn()
+  Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+    value: showPicker,
+    configurable: true,
+  })
   const sent = mockCreate()
   const sheet = await openSheet()
 
   fireEvent.click(within(sheet).getByRole('radio', { name: 'Custom…' }))
-  const picker = await within(sheet).findByLabelText('Pick a date and time')
-  const tomorrow = new Date(Date.now() + 86_400_000)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const value = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T14:30`
-  fireEvent.change(picker, { target: { value } })
+  expect(showPicker).toHaveBeenCalledTimes(1)
+  // Nothing chosen yet (or the picker was cancelled): "In 1 h" stays picked.
+  expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).toBeChecked()
+
+  // The picker's Reset (empty value) counts as a cancel too.
+  fireEvent.change(picker(sheet), { target: { value: '' } })
+  expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).toBeChecked()
+
+  const value = localValue(1, '14:30')
+  fireEvent.change(picker(sheet), { target: { value } })
+  // Closing the picker puts focus back on the picked chip (the picker itself is hidden).
+  fireEvent.blur(picker(sheet))
+  await waitFor(() =>
+    expect(within(sheet).getByRole('radio', { name: 'Tomorrow 14:30' })).toHaveFocus(),
+  )
 
   expect(await within(sheet).findByRole('radio', { name: 'Tomorrow 14:30' })).toBeChecked()
 

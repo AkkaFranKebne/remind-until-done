@@ -25,11 +25,11 @@ export const Card: Story = {
   },
 }
 
-/** Attached to the bottom, peeking at 55%; drag it up to 85% (AddReminderSheet uses this). */
+/** Attached to the bottom, opening at 85%; drag it up to full height (AddReminderSheet uses this). */
 export const FullWithSnapPoints: Story = {
   args: {
     layout: 'full',
-    snapPoints: [0.55, 0.85],
+    snapPoints: [0.85, 1],
     children: (
       <div className="flex flex-col gap-3 px-5 pt-3">
         <SheetTitle className="text-lg font-bold">A form sheet</SheetTitle>

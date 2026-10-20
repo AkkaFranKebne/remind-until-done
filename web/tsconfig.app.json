@@ -28,5 +28,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src", ".storybook"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/sw.ts"]
 }

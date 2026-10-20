@@ -12,6 +12,12 @@ async function start() {
       ? await (await import('./mocks/startMockMode')).startMockMode()
       : createFirebaseAuthClient()
 
+  // The service worker (app shell + pushes, src/sw.ts) exists only in builds. A failure here
+  // (an old browser, a private window) just means no offline shell and no pushes.
+  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  }
+
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App authClient={authClient} />

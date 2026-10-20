@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 import { createReadStream } from 'node:fs'
 import { createRequire } from 'node:module'
 import { defineConfig, type Plugin } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 /**
  * npm run dev:mock: serves MSW's service worker at /mockServiceWorker.js straight from
@@ -36,6 +37,22 @@ export default defineConfig(({ mode }) => ({
     // on a site with a certificate warning, while http://localhost is allowed.
     mode !== 'mock' && basicSsl(),
     mswWorker(),
+    // The one service worker (src/sw.ts → /sw.js, design doc 5.8): only in builds, never on the
+    // dev server (where dev:mock runs MSW's worker on the same scope). We keep our own
+    // public/manifest.webmanifest and register the worker ourselves (main.tsx).
+    VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      manifest: false,
+      injectRegister: false,
+      injectManifest: {
+        // A classic script, not a module: older iPhone Safari can't run module service workers.
+        rollupFormat: 'iife',
+        // The app shell: every built file the app needs to open (fonts and icons too).
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+      },
+    }),
   ],
   server: {
     // Locally, send /api calls to the Go API (make run in api/), like the

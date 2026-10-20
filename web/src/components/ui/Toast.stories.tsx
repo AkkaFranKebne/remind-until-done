@@ -35,4 +35,6 @@ type Story = StoryObj<typeof meta>
 export const Success: Story = { args: { tone: 'success', text: 'Finally. Done.' } }
 
 /** A swipe the API refused: the row comes back. */
-export const Error: Story = { args: { tone: 'error', text: "Couldn't save. Try again." } }
+export const Error: Story = {
+  args: { tone: 'error', text: 'Something went wrong. Try again in a moment.' },
+}

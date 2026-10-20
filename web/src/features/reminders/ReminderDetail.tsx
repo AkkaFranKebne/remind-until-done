@@ -5,6 +5,7 @@ import { AppScreen } from '../../app/AppScreen'
 import { Button } from '../../components/ui/Button'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
 import { IconButton, IconLink } from '../../components/ui/IconButton'
+import { useToast } from '../../components/ui/useToast'
 import type { Reminder } from '../../lib/api/generated/model'
 import { useDeleteReminder, useMarkReminderDone } from '../../lib/api/generated/reminders/reminders'
 import { cn } from '../../lib/cn'
@@ -19,6 +20,7 @@ import {
   rowLevel,
   type RowLevel,
 } from './reminderState'
+import { toastText } from './toastText'
 import { useReminderChanged } from './useReminderChanged'
 
 /** Each state's gradient (index.css: strong top in light, dark tint in dark). */
@@ -59,6 +61,7 @@ export function ReminderDetail({
 }) {
   const navigate = useNavigate()
   const changed = useReminderChanged()
+  const toast = useToast()
   const level = rowLevel(reminder)
   const done = level === 'done'
   // Nagging counts down to the second; the other states change by the minute.
@@ -72,6 +75,8 @@ export function ReminderDetail({
   const remove = useDeleteReminder({
     mutation: {
       onSuccess: async () => {
+        // Same as a swipe-delete on the list: back there, with the toast.
+        toast.success(toastText.deleted)
         await navigate({ to: '/' })
         await changed(reminder.id)
       },

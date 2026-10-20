@@ -8,7 +8,9 @@ function Trigger() {
   return (
     <>
       <Button onClick={() => toast.success('Finally. Done.')}>Done</Button>
-      <Button onClick={() => toast.error("Couldn't save. Try again.")}>Fail</Button>
+      <Button onClick={() => toast.error('Something went wrong. Try again in a moment.')}>
+        Fail
+      </Button>
     </>
   )
 }
@@ -44,7 +46,9 @@ test('error: red; a new toast replaces the one before', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Fail' }))
 
   expect(
-    screen.getByText("Couldn't save. Try again.").closest('[class*="text-tag-nagging-fg"]'),
+    screen
+      .getByText('Something went wrong. Try again in a moment.')
+      .closest('[class*="text-tag-nagging-fg"]'),
   ).not.toBeNull()
   // One at a time: the older one is hidden (Base UI marks it data-limited).
   expect(screen.getByText('Finally. Done.').closest('[data-limited]')).not.toBeNull()

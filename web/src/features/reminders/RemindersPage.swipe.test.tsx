@@ -124,7 +124,9 @@ test('swipe left reveals Delete; tapping it deletes (no sheet)', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Delete Call dentist' }))
 
   await waitFor(() => expect(deleted).toEqual([dentist.id]))
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  // No confirm sheet (the toast is a dialog too, in Base UI).
+  expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+  expect(await screen.findByText("Gone. We'll pretend it never happened.")).toBeInTheDocument()
   await waitFor(() =>
     expect(screen.queryByRole('link', { name: /Call dentist/ })).not.toBeInTheDocument(),
   )
@@ -156,7 +158,9 @@ test('if the API refuses, the row comes back with an error toast', async () => {
 
   swipe(await screen.findByRole('link', { name: /Call dentist/ }), 200)
 
-  expect(await screen.findByText("Couldn't save. Try again.")).toBeInTheDocument()
+  expect(
+    await screen.findByText('Something went wrong. Try again in a moment.'),
+  ).toBeInTheDocument()
   expect(screen.getByRole('link', { name: /Call dentist/ })).toBeInTheDocument()
 })
 

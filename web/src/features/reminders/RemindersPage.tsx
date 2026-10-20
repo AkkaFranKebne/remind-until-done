@@ -21,6 +21,7 @@ import { useMe } from '../auth/useMe'
 import { AddReminderSheet } from './AddReminderSheet'
 import { ReminderRow } from './ReminderRow'
 import { SwipeableRow } from './SwipeableRow'
+import { toastText } from './toastText'
 import { statusKind } from './reminderState'
 import { useReminderChanged } from './useReminderChanged'
 
@@ -60,13 +61,13 @@ export function RemindersPage() {
   const toast = useToast()
   const failed = (id: string) => {
     setGoneFor(id, false)
-    toast.error("Couldn't save. Try again.")
+    toast.error(toastText.failed)
   }
   // After a success the lists reload first, so the row doesn't flash back in between.
   const markDone = useMarkReminderDone({
     mutation: {
       onSuccess: async (updated, { id }) => {
-        toast.success('Finally. Done.')
+        toast.success(toastText.done)
         await changed(id, updated)
         setGoneFor(id, false)
       },
@@ -76,6 +77,7 @@ export function RemindersPage() {
   const remove = useDeleteReminder({
     mutation: {
       onSuccess: async (_data, { id }) => {
+        toast.success(toastText.deleted)
         await changed(id)
         setGoneFor(id, false)
       },

@@ -1,6 +1,17 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import {
+  IPHONE_15_7,
+  IPHONE_17,
+  offerInstall,
+  pretendInstalled,
+  pretendUserAgent,
+  resetDevice,
+} from '../../test-utils/device'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
+
+// Every test starts as a desktop tab with no install offer (see src/test-utils/device.ts).
+afterEach(resetDevice)
 
 describe('signed-in pages (route guard)', () => {
   it('shows the splash while Firebase is still checking', async () => {
@@ -35,6 +46,7 @@ describe('signed-in pages (route guard)', () => {
 
 describe('LoginPage', () => {
   it('has one "rud." (no TopBar) and the Google button', async () => {
+    pretendInstalled()
     renderApp('/login', new FakeAuthClient(null))
 
     expect(await screen.findByRole('heading', { level: 1, name: 'rud.' })).toBeInTheDocument()
@@ -108,5 +120,82 @@ describe('LoginPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('tester@example.com')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Google|Try again/ })).not.toBeInTheDocument()
+  })
+})
+
+describe('LoginPage: the install gate (design doc §0)', () => {
+  const openLogin = () => renderApp('/login', new FakeAuthClient(null))
+
+  it('installed: sign-in only, no install', async () => {
+    pretendInstalled()
+    openLogin()
+
+    expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Install app' })).not.toBeInTheDocument()
+  })
+
+  it('iPhone in Safari: the Add to Home Screen steps, and no sign-in at all', async () => {
+    pretendUserAgent(IPHONE_17)
+    openLogin()
+
+    const steps = await screen.findByRole('region', { name: 'Install on your iPhone first' })
+    expect(
+      within(steps)
+        .getAllByRole('listitem')
+        .map((step) => step.textContent),
+    ).toEqual([
+      '1Tap the Share button in Safari',
+      '2Tap Add to Home Screen',
+      '3Open rud. from your Home Screen',
+    ])
+    expect(screen.getByText(/Sign-in available after installing/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument()
+  })
+
+  it('the installed app on an iPhone: sign-in', async () => {
+    pretendUserAgent(IPHONE_17)
+    pretendInstalled()
+    openLogin()
+
+    expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+  })
+
+  it('iOS before 16.4: a hard stop with the version, nothing else', async () => {
+    pretendUserAgent(IPHONE_15_7)
+    openLogin()
+
+    expect(
+      await screen.findByRole('heading', { name: "You'll need iOS 16.4 or later." }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Your version: iOS 15.7')).toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('Chrome offers to install: Install app first, sign-in below; installing says what next', async () => {
+    openLogin()
+    const event = offerInstall('accepted')
+
+    const install = await screen.findByRole('button', { name: 'Install app' })
+    expect(screen.getByText('or, if already installed')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+
+    fireEvent.click(install)
+
+    expect(
+      await screen.findByText('Installed. Open rud. from your home screen.'),
+    ).toBeInTheDocument()
+    expect(event.prompted).toBe(1)
+    expect(screen.queryByRole('button', { name: 'Install app' })).not.toBeInTheDocument()
+  })
+
+  it('no install offer (another browser, or a dismissed one): sign-in, and how to install', async () => {
+    openLogin()
+
+    expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Push notifications need the installed app. Install rud. from your browser menu.',
+      ),
+    ).toBeInTheDocument()
   })
 })

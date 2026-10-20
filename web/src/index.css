@@ -95,6 +95,9 @@
   --grad-shimmer: linear-gradient(90deg, #f0efe9 25%, #e2e0d8 50%, #f0efe9 75%);
   --grad-install-card: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 60%, #ede9fe 100%);
   --grad-login-icon: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 100%);
+  /* Text and icons on those two (title, iOS gate icon; steps). Dark: same hue, flipped. */
+  --install-fg: #3b0764;
+  --install-fg2: #4c1d95;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -133,6 +136,11 @@
     --grad-shell-overdue: linear-gradient(180deg, #321619 0%, #1f1415 35%, var(--bg) 70%);
     --grad-shell-done: linear-gradient(180deg, #142a20 0%, #161f1a 35%, var(--bg) 70%);
     --grad-shimmer: linear-gradient(90deg, #1e1d1a 25%, #2a2924 50%, #1e1d1a 75%);
+    /* The install card and the iOS gate's icon tile, dark: dark violet, light violet text. */
+    --grad-install-card: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 60%, #251a45 100%);
+    --grad-login-icon: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 100%);
+    --install-fg: #ede9fe;
+    --install-fg2: #c4b5fd;
     --tile-icon-bg: rgba(255, 255, 255, 0.08);
     --tile-waiting: rgba(139, 92, 246, 0.18);
     --tile-nagging: rgba(248, 113, 113, 0.15);
@@ -202,6 +210,11 @@
   --grad-shell-overdue: linear-gradient(180deg, #321619 0%, #1f1415 35%, var(--bg) 70%);
   --grad-shell-done: linear-gradient(180deg, #142a20 0%, #161f1a 35%, var(--bg) 70%);
   --grad-shimmer: linear-gradient(90deg, #1e1d1a 25%, #2a2924 50%, #1e1d1a 75%);
+  /* The install card and the iOS gate's icon tile, dark: dark violet, light violet text. */
+  --grad-install-card: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 60%, #251a45 100%);
+  --grad-login-icon: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 100%);
+  --install-fg: #ede9fe;
+  --install-fg2: #c4b5fd;
   --tile-icon-bg: rgba(255, 255, 255, 0.08);
   --tile-waiting: rgba(139, 92, 246, 0.18);
   --tile-nagging: rgba(248, 113, 113, 0.15);
@@ -390,6 +403,8 @@
   --color-on-grad: var(--on-grad);
   --color-on-grad-fg2: var(--on-grad-fg2);
   --color-on-row: var(--on-row);
+  --color-install-fg: var(--install-fg);
+  --color-install-fg2: var(--install-fg2);
   --color-done-pill-ring: var(--done-pill-ring);
   --color-fab: var(--fab);
   --color-row-overdue-ring: var(--row-overdue-ring);

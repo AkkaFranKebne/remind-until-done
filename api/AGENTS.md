@@ -30,6 +30,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 - Database tests use testcontainers (`dbtest.Start(t)`: a throwaway Postgres per test, same image as `docker-compose.yml`). Unit tests use fakes.
 - Every reminder query filters by the signed-in `user_id`. Another user's row returns 404, not 403.
 - Reminders (`internal/reminders`): creating one, or moving a done one to a new time, locks the user's row first (`lockUser`, `SELECT ... FOR UPDATE`), then counts active reminders. Always lock in the same order (user, then reminder), or two requests can wait for each other forever. `TestCreateWaitsForTheUsersLock` proves the lock is there.
+- Devices (`internal/devices`, decision 40): one push device per user. The same token again keeps its id; a new token replaces the device with a new id; a token still saved for another user moves to the caller. Registering locks the user's row first (same order as reminders). Push tokens are never returned or logged.
 - Scheduling (M4) plugs into `reminders.Service` where the `M4` comments are. Until then `enqueued_version` stays NULL, which the M4 sweep picks up.
 - A public route that touches the database must not let anonymous callers wake or flood it: check once at startup (like `CheckDatabase` for `/healthz`) or require sign-in.
 

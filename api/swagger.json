@@ -844,7 +844,9 @@
           },
           "userAgent": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "maxLength": 512,
+            "description": "The registering browser's User-Agent header, cut to 512 characters"
           },
           "createdAt": {
             "type": "string",
@@ -864,13 +866,16 @@
         ],
         "properties": {
           "fcmToken": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "This browser's FCM push token. Never sent back or logged"
           },
           "platform": {
             "$ref": "#/components/schemas/Platform"
           }
         },
-        "description": "Registering a new device replaces the previous one."
+        "description": "Registering a new device replaces the previous one (one device per user). The same token again keeps its id and refreshes lastSeenAt; a token still saved for another user moves to this one. userAgent is taken from the request's User-Agent header."
       }
     },
     "responses": {

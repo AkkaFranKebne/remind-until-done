@@ -12,6 +12,7 @@ import (
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
@@ -22,7 +23,8 @@ const (
 	bob   = "Bearer token-bob"
 )
 
-// newRemindersAPI is the real API on a throwaway database. Only the sign-in is fake.
+// newRemindersAPI is the real API (reminders and devices) on a throwaway database. Only the
+// sign-in is fake.
 func newRemindersAPI(t *testing.T) http.Handler {
 	t.Helper()
 	pool := dbtest.Start(t)
@@ -34,6 +36,7 @@ func newRemindersAPI(t *testing.T) http.Handler {
 		},
 		Users:     users.NewRepo(pool),
 		Reminders: reminders.NewService(pool),
+		Devices:   devices.NewService(pool),
 		Invited:   auth.NewAllowlist("alice@example.com,bob@example.com"),
 	}).Router()
 }

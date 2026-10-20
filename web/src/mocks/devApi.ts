@@ -9,6 +9,7 @@ import {
 } from '../lib/api/generated/zod/reminders/reminders'
 import { UpdateMeBody } from '../lib/api/generated/zod/user/user'
 import { countCharacters } from '../lib/text'
+import { devDevicesHandlers, resetDevDevices } from './devDevicesApi'
 
 /**
  * The fake API for `npm run dev:mock`: the app's real calls, answered in the browser by MSW from
@@ -89,6 +90,7 @@ let reminders = seed()
 /** Back to the starting data (tests). */
 export function resetDevData() {
   reminders = seed()
+  resetDevDevices()
 }
 
 /** As the API answers: nagsExhausted is worked out each time, like the Go model does. */
@@ -249,4 +251,7 @@ export const devHandlers = [
     }
     return HttpResponse.json(view(r))
   }),
+
+  // Push devices (M3): devDevicesApi.ts.
+  ...devDevicesHandlers,
 ]

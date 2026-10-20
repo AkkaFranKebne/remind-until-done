@@ -10,12 +10,24 @@ import * as zod from 'zod/mini'
 /**
  * @summary Get the registered push device (0 or 1 items; one device per user)
  */
+export const listDevicesResponseItemsItemUserAgentMax = 512
+
 export const ListDevicesResponse = /*#__PURE__*/ zod.object({
   items: /*#__PURE__*/ zod.array(
     /*#__PURE__*/ zod.object({
       id: /*#__PURE__*/ zod.uuid(),
       platform: /*#__PURE__*/ zod.enum(['ios', 'android', 'web']),
-      userAgent: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.string()),
+      userAgent: /*#__PURE__*/ zod
+        .nullish(
+          /*#__PURE__*/ zod
+            .string()
+            .check(/*#__PURE__*/ zod.maxLength(listDevicesResponseItemsItemUserAgentMax)),
+        )
+        .check(
+          /*#__PURE__*/ zod.describe(
+            "The registering browser's User-Agent header, cut to 512 characters",
+          ),
+        ),
       createdAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
       lastSeenAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
     }),
@@ -25,17 +37,41 @@ export const ListDevicesResponse = /*#__PURE__*/ zod.object({
 /**
  * @summary Register this device. Replaces any previously registered device of the user (one device per user)
  */
+export const registerDeviceBodyFcmTokenMax = 2048
+
 export const RegisterDeviceBody = /*#__PURE__*/ zod
   .object({
-    fcmToken: /*#__PURE__*/ zod.string(),
+    fcmToken: /*#__PURE__*/ zod
+      .string()
+      .check(/*#__PURE__*/ zod.minLength(1))
+      .check(/*#__PURE__*/ zod.maxLength(registerDeviceBodyFcmTokenMax))
+      .check(
+        /*#__PURE__*/ zod.describe("This browser's FCM push token. Never sent back or logged"),
+      ),
     platform: /*#__PURE__*/ zod.enum(['ios', 'android', 'web']),
   })
-  .check(/*#__PURE__*/ zod.describe('Registering a new device replaces the previous one.'))
+  .check(
+    /*#__PURE__*/ zod.describe(
+      "Registering a new device replaces the previous one (one device per user). The same token again keeps its id and refreshes lastSeenAt; a token still saved for another user moves to this one. userAgent is taken from the request's User-Agent header.",
+    ),
+  )
+
+export const registerDeviceResponseUserAgentMax = 512
 
 export const RegisterDeviceResponse = /*#__PURE__*/ zod.object({
   id: /*#__PURE__*/ zod.uuid(),
   platform: /*#__PURE__*/ zod.enum(['ios', 'android', 'web']),
-  userAgent: /*#__PURE__*/ zod.nullish(/*#__PURE__*/ zod.string()),
+  userAgent: /*#__PURE__*/ zod
+    .nullish(
+      /*#__PURE__*/ zod
+        .string()
+        .check(/*#__PURE__*/ zod.maxLength(registerDeviceResponseUserAgentMax)),
+    )
+    .check(
+      /*#__PURE__*/ zod.describe(
+        "The registering browser's User-Agent header, cut to 512 characters",
+      ),
+    ),
   createdAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
   lastSeenAt: /*#__PURE__*/ zod.iso.datetime({ offset: true }),
 })

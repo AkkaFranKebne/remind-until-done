@@ -14,6 +14,7 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/config"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/db"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/httpapi"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
@@ -46,7 +47,10 @@ func main() {
 		log.Warn("ALLOWED_EMAILS is empty: nobody can sign in")
 	}
 
-	api := httpapi.New(log, httpapi.Deps{DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool), Invited: invited})
+	api := httpapi.New(log, httpapi.Deps{
+		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool),
+		Devices: devices.NewService(pool), Invited: invited,
+	})
 
 	// Check the database once, before taking requests (/healthz reports this result).
 	// The API starts either way: routes that don't need the database keep working.

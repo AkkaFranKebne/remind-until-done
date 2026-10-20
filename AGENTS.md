@@ -74,7 +74,6 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - Any time: Terraform Google provider is pinned `~> 6.0`; the registry has 8.x (two major versions). Upgrade in its own PR, dev first, read both upgrade guides.
 - M2 (reminders): first skills ("new endpoint", "new migration"); semgrep.
 - M3 (push, Settings): revisit the sign-out warning "You'll need to reinstall the app to sign back in on this device" (Inventory copy, kept for now). Signing in again works without reinstalling; the real effect is that the phone stops getting pushes (design doc 5.7).
-- M2 (own PR, after the reminder page): `npm run dev:mock` (the app on MSW only, for frontend work without the API; design doc 6.7). Needs a fake sign-in too.
 - M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.
 - M6 (delete account): the Delete account sheet closes only on Cancel, so the typed DELETE isn't lost by a swipe or a tap outside (Inventory). `ConfirmSheet` has no option for that yet; add one (blocks swipe, tap outside and Escape).
 - M5 (messages): the reminder page's line under the title rotates like the design doc says (3.8, decision 38): nagging shows the latest push line, done shows the level-5 done line picked when it was marked done. Today `pageSubLine()` (`web/src/features/reminders/reminderState.ts`) returns fixed UX Copy lines. The API needs to send those lines first.
@@ -85,7 +84,7 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - M7 (hardening): a separate Neon role for the app that can only read and write rows; Flyway keeps the owner role for schema changes.
 - M7 (e2e tests): Firebase Auth emulator, only if Playwright needs it (Google blocks automated logins; design doc decision 32).
 - Any time: `npm audit` in `web/` reports 31 findings, all inside `firebase-tools` (the deploy CLI, a dev tool; none in app code). Check for a `firebase-tools` release that fixes them.
-- Any time: a lint rule (or a check of the built bundle) so app code can't import test-only code (`msw`, `@faker-js/faker`, `*.msw.ts`). Today only reviews catch it.
+- Any time: a lint rule so app code can't import test-only code (`msw`, `@faker-js/faker`, `*.msw.ts`). The built bundle is already checked (`npm run check:bundle` in CI); a lint rule would catch it earlier, in the editor.
 - Any time: MSW 3 (ES modules only). Under Jest it needs an experimental Node flag plus patches; MSW's docs suggest Vitest. Upgrade together with a Jest → Vitest decision (ask the owner).
 - Any time: pin GitHub Actions by commit SHA; remove Editor from the default compute service account.
 

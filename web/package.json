@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "vite --mode mock",
     "build": "tsc -b && vite build",
+    "check:bundle": "node scripts/check-bundle.mjs",
     "typecheck": "tsc -b --noEmit",
     "lint": "oxlint --type-aware --deny-warnings && node scripts/check-ui-rules.mjs",
     "format": "prettier --write .",

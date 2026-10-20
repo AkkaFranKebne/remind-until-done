@@ -1,6 +1,7 @@
-import { createMemoryHistory, RouterProvider } from '@tanstack/react-router'
+import { createMemoryHistory } from '@tanstack/react-router'
 import { render } from '@testing-library/react'
 import { http, HttpResponse, type JsonBodyType } from 'msw'
+import { AppRouter } from '../app/AppRouter'
 import { createAppRouter } from '../app/router'
 import { ToastProvider } from '../components/ui/Toast'
 import { AuthProvider } from '../features/auth/AuthProvider'
@@ -41,7 +42,7 @@ export function renderApp(path: string, client: FakeAuthClient) {
     <TestQueryProvider>
       <AuthProvider client={client}>
         <ToastProvider>
-          <RouterProvider router={router} />
+          <AppRouter router={router} />
         </ToastProvider>
       </AuthProvider>
     </TestQueryProvider>,

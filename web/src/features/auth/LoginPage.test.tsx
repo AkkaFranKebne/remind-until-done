@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
 
-describe('signed-in pages (RequireAuth)', () => {
+describe('signed-in pages (route guard)', () => {
   it('shows the splash while Firebase is still checking', async () => {
     const client = new FakeAuthClient()
     client.emitOnSubscribe = false
@@ -18,6 +18,18 @@ describe('signed-in pages (RequireAuth)', () => {
     expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
     expect(router.state.location.search).toEqual({ next: '/r/abc?tab=done' })
+  })
+
+  it('if the session ends by itself (not Sign out), /login still remembers the page', async () => {
+    mockMe()
+    const client = new FakeAuthClient(tester)
+    const router = renderApp('/settings', client)
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+
+    act(() => client.emit(null)) // Firebase: nobody signed in any more
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+    expect(router.state.location.search).toEqual({ next: '/settings' })
   })
 })
 
@@ -39,7 +51,8 @@ describe('LoginPage', () => {
     client.signIn = () => new Promise(() => {}) // the page would now leave for Google
     fireEvent.click(button)
 
-    expect(button).toHaveAttribute('aria-busy', 'true')
+    // A TanStack mutation updates a moment after the click.
+    await waitFor(() => expect(button).toHaveAttribute('aria-busy', 'true'))
   })
 
   it('coming Back from Google (page restored from the browser cache): the button works again', async () => {
@@ -48,7 +61,7 @@ describe('LoginPage', () => {
     const button = await screen.findByRole('button', { name: 'Continue with Google' })
     client.signIn = () => new Promise(() => {}) // the page "leaves" for Google
     fireEvent.click(button)
-    expect(button).toHaveAttribute('aria-busy', 'true')
+    await waitFor(() => expect(button).toHaveAttribute('aria-busy', 'true'))
 
     // The browser un-freezes the page: pageshow with persisted = true.
     const restored = new Event('pageshow')
@@ -57,7 +70,7 @@ describe('LoginPage', () => {
       window.dispatchEvent(restored)
     })
 
-    expect(button).not.toHaveAttribute('aria-busy')
+    await waitFor(() => expect(button).not.toHaveAttribute('aria-busy'))
     expect(button).not.toHaveAttribute('aria-disabled')
   })
 
@@ -83,7 +96,7 @@ describe('LoginPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/^Sign-in failed/)
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-    expect(client.signInCalls).toBe(1)
+    await waitFor(() => expect(client.signInCalls).toBe(1))
   })
 
   it('not invited: shows the email that tried, and no sign-in button', async () => {

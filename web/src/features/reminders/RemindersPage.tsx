@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutationState } from '@tanstack/react-query'
 import { Inbox, List, Plus } from 'lucide-react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { AppScreen } from '../../app/AppScreen'
 import { Button } from '../../components/ui/Button'
@@ -59,7 +60,13 @@ const shell: Record<ReminderStatusKind | 'all', string> = {
 export function RemindersPage() {
   const me = useMe()
   const now = useNow()
-  const [picked, setPicked] = useState<ReminderStatusKind | null>(null)
+  // The picked tile is in the address (/?show=done), so Back from a reminder and a reload keep it.
+  // Replace, not push: switching tiles doesn't fill the Back history.
+  // (strict: false: also works in Storybook's small router, where there's no /app/ route.)
+  const picked = useSearch({ strict: false }).show ?? null
+  const navigate = useNavigate({ from: '/' })
+  const setPicked = (kind: ReminderStatusKind | null) =>
+    void navigate({ search: kind ? { show: kind } : {}, replace: true, resetScroll: false })
   const [adding, setAdding] = useState(false)
   const changed = useReminderChanged()
   const toast = useToast()

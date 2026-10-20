@@ -1,3 +1,4 @@
+import { onlineManager } from '@tanstack/react-query'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { mockMe, renderApp, testMe } from '../../test-utils/renderApp'
@@ -43,7 +44,29 @@ describe('SettingsPage', () => {
     fireEvent.click(confirm!)
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+    // The plain login page: signing back in starts on the list, not back in Settings.
+    expect(router.state.location.search).toEqual({})
     expect(client.signOutCalls).toBe(1)
+  })
+
+  it('signs out even while offline (Firebase needs no connection for it)', async () => {
+    const client = new FakeAuthClient(tester)
+    const router = renderApp('/settings', client)
+    const signOut = await screen.findByRole('button', { name: 'Sign out' })
+    onlineManager.setOnline(false) // the signal drops while the page is open
+    try {
+      fireEvent.click(signOut)
+      const sheet = await screen.findByRole('alertdialog', { name: 'Sign out?' })
+      const confirm = screen
+        .getAllByRole('button', { name: 'Sign out' })
+        .find((b) => sheet.contains(b))
+      fireEvent.click(confirm!)
+
+      await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+      expect(client.signOutCalls).toBe(1)
+    } finally {
+      onlineManager.setOnline(true)
+    }
   })
 
   it('Cancel keeps you signed in', async () => {

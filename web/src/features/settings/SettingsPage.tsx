@@ -1,5 +1,5 @@
 import { Button as BaseButton } from '@base-ui/react/button'
-import { useNavigate } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
 import { ChevronRight, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { AppScreen } from '../../app/AppScreen'
@@ -16,20 +16,17 @@ import { useMe } from '../auth/useMe'
 export function SettingsPage() {
   const { user, signOut } = useAuth()
   const me = useMe() // email and settings: our API (GET /me)
-  const navigate = useNavigate()
   const [confirming, setConfirming] = useState(false)
-  const [signingOut, setSigningOut] = useState(false)
+  // Signing out: the button stays busy (isPending) until it's done. Then the route's guard
+  // (app/router.tsx) sends you to the plain /login (no `next`: you signed out on purpose).
+  // networkMode 'always': not an API call. Firebase signs out offline too; TanStack's default
+  // would pause the mutation while offline and leave the button busy.
+  const leave = useMutation({ mutationFn: signOut, networkMode: 'always' })
 
   // RequireAuth only shows this page when signed in.
   if (!user) return null
   const email = me?.email ?? user.email ?? ''
   const name = user.name ?? email // the name comes from Google only; the API doesn't store it
-
-  const confirmSignOut = async () => {
-    setSigningOut(true)
-    await signOut()
-    await navigate({ to: '/login', replace: true })
-  }
 
   return (
     <AppScreen>
@@ -77,8 +74,8 @@ export function SettingsPage() {
           title="Sign out?"
           note="You'll need to reinstall the app to sign back in on this device."
           confirmLabel="Sign out"
-          confirming={signingOut}
-          onConfirm={() => void confirmSignOut()}
+          confirming={leave.isPending}
+          onConfirm={() => leave.mutate()}
         >
           Signing out stops all notifications on this phone. Any reminder that fires while
           you&apos;re signed out will go straight to Overdue.

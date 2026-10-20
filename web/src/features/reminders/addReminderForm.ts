@@ -73,11 +73,21 @@ export function resolveDue(
   }
 }
 
+/** Editing, and the time is still the saved one: nothing to check or send. */
+export function keepsSavedTime(
+  v: Pick<AddReminderValues, 'when' | 'customAt'>,
+  keepCustomAt: string | undefined,
+): boolean {
+  return keepCustomAt !== undefined && v.when === 'custom' && v.customAt === keepCustomAt
+}
+
 /**
  * The form's rules, with the user's copy (Inventory → UX Copy). The time is checked when
  * the form is sent, against the clock at that moment.
+ * `keepCustomAt` (editing): the saved time as a datetime-local value. Left as it is, it isn't
+ * checked (a nagging reminder's time is already in the past) and isn't sent again.
  */
-export function addReminderSchema(defaultTimeOfDay: string) {
+export function addReminderSchema(defaultTimeOfDay: string, keepCustomAt?: string) {
   return z
     .object({
       title: z
@@ -105,6 +115,7 @@ export function addReminderSchema(defaultTimeOfDay: string) {
         ctx.addIssue({ code: 'custom', path: ['when'], message: 'Pick a time.' })
         return
       }
+      if (keepsSavedTime(v, keepCustomAt)) return
       const due = resolveDue(v.when, v.customAt, defaultTimeOfDay, now)
       if (due === null) {
         ctx.addIssue({ code: 'custom', path: ['customAt'], message: 'Pick a date and time.' })

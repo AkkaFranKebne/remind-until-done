@@ -9,18 +9,23 @@ import { IconLink } from './IconButton'
  * matching colour from the Design Inventory's phone screens.
  * - plain: the normal page background (settings, login, 404)
  * - brand: the violet list gradient
- * - nag-mid: the nagging reminder detail gradient
- * More tones (nag-low, overdue, done) come with the M2 detail screens: on those vivid
- * gradients today's colours fail contrast, so their look is decided there.
+ * - waiting … done: the reminder page's gradient for that state; the icon takes the state's
+ *   text colour (the same token as the page's title and countdown, light and dark).
  */
-export type TopBarTone = 'plain' | 'brand' | 'nag-mid'
+export type TopBarTone =
+  'plain' | 'brand' | 'waiting' | 'nag-low' | 'nag-mid' | 'nag-high' | 'overdue' | 'done'
 
 const iconTone = cva('-mr-2', {
   variants: {
     tone: {
       plain: 'text-fg2',
       brand: 'text-on-grad',
-      'nag-mid': 'text-on-detail-nag-mid',
+      waiting: 'text-on-grad',
+      'nag-low': 'text-nag-low-fg',
+      'nag-mid': 'text-nag-mid-fg',
+      'nag-high': 'text-tile-overdue-fg',
+      overdue: 'text-tile-overdue-fg',
+      done: 'text-tag-done-fg',
     } satisfies Record<TopBarTone, string>,
   },
 })
@@ -33,13 +38,27 @@ type TopBarProps = {
   contextLine?: string
 }
 
-/** The logo and context line: on-grad follows the list gradient (light violet in dark mode); the
- * detail gradients stay light in both themes, so they keep the fixed violet (accent-solid). */
-const brandText = {
-  plain: 'text-accent',
-  brand: 'text-on-grad',
-  'nag-mid': 'text-accent-solid',
-} satisfies Record<TopBarTone, string>
+/** The logo and context line: violet on every gradient (on-grad: light violet in dark mode, where
+ * the gradients are dark too). On the plain page the logo uses the accent, the line fg2. */
+const brandText = cva('', {
+  variants: {
+    tone: {
+      plain: '',
+      brand: 'text-on-grad',
+      waiting: 'text-on-grad',
+      'nag-low': 'text-on-grad',
+      'nag-mid': 'text-on-grad',
+      'nag-high': 'text-on-grad',
+      overdue: 'text-on-grad',
+      done: 'text-on-grad',
+    } satisfies Record<TopBarTone, string>,
+    part: { logo: '', contextLine: '' },
+  },
+  compoundVariants: [
+    { tone: 'plain', part: 'logo', class: 'text-accent' },
+    { tone: 'plain', part: 'contextLine', class: 'text-fg2' },
+  ],
+})
 
 /**
  * The app header on every screen: logo left, Settings right, no background of its own
@@ -47,7 +66,6 @@ const brandText = {
  * Design Inventory → Components → "TopBar + context line" and the Phone Screens.
  */
 export function TopBar({ tone = 'plain', showSettings = true, contextLine }: TopBarProps) {
-  const plain = tone === 'plain'
   return (
     <>
       <header className="pt-[env(safe-area-inset-top)]">
@@ -59,7 +77,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
             className={cn(
               '-ml-1 flex min-h-11 items-center rounded-sm px-1 text-xl font-bold tracking-tight',
               'focus-visible:outline-2 focus-visible:outline-current',
-              brandText[tone],
+              brandText({ tone, part: 'logo' }),
             )}
           >
             rud.
@@ -78,7 +96,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
       {contextLine ? (
         <p
           // Right under the logo, upright, in the logo's colour (brandText).
-          className={cn('px-4 pt-1 pb-1 text-sm', plain ? 'text-fg2' : brandText[tone])}
+          className={cn('px-4 pt-1 pb-1 text-sm', brandText({ tone, part: 'contextLine' }))}
         >
           {contextLine}
         </p>

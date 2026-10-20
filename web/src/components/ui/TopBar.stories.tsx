@@ -40,7 +40,33 @@ export const Brand: Story = {
   decorators: [(Story) => <Screen gradient="bg-(image:--grad-shell-brand)">{Story()}</Screen>],
 }
 
+/** The reminder page: each state's gradient with its tone. */
+export const Waiting: Story = {
+  args: { tone: 'waiting' },
+  decorators: [(Story) => <Screen gradient="bg-(image:--grad-detail-waiting)">{Story()}</Screen>],
+}
+
+export const NagLow: Story = {
+  args: { tone: 'nag-low' },
+  decorators: [(Story) => <Screen gradient="bg-(image:--grad-detail-nag-low)">{Story()}</Screen>],
+}
+
 export const NagMid: Story = {
   args: { tone: 'nag-mid' },
   decorators: [(Story) => <Screen gradient="bg-(image:--grad-detail-nag-mid)">{Story()}</Screen>],
+}
+
+export const NagHigh: Story = {
+  args: { tone: 'nag-high' },
+  decorators: [(Story) => <Screen gradient="bg-(image:--grad-detail-nag-high)">{Story()}</Screen>],
+}
+
+export const Overdue: Story = {
+  args: { tone: 'overdue' },
+  decorators: [(Story) => <Screen gradient="bg-(image:--grad-detail-overdue)">{Story()}</Screen>],
+}
+
+export const Done: Story = {
+  args: { tone: 'done' },
+  decorators: [(Story) => <Screen gradient="bg-(image:--grad-detail-done)">{Story()}</Screen>],
 }

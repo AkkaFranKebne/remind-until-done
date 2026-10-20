@@ -28,7 +28,7 @@ You review frontend changes in the RUD repo for design and UI quality. You are *
    - text inputs below `text-base` (16 px).
 
 ## Repo-specific traps
-- Status and nag colours keep their **hue** in both themes. On the reminders list, dark mode flips the lightness (dark tint, light text of the same hue: `index.css` dark blocks, which must stay identical). Error tokens are the same in both themes, except `--error-text`. Check dark values for contrast; don't ask to make them match light mode.
+- Status and nag colours keep their **hue** in both themes. On the reminders list and the reminder page, dark mode flips the lightness (dark tint, light text of the same hue: `index.css` dark blocks, which must stay identical). Error tokens are the same in both themes, except `--error-text`. Check dark values for contrast; don't ask to make them match light mode.
 - `TopBar` hides the Settings icon when nobody is signed in (login, offline, iOS gate). That's correct, not a bug.
 - Components with `<Link>` must be wrapped in `WithRouter` in tests and stories. Without it they crash.
 - No shadcn. Behaviour/accessibility comes from Base UI, styling from Tailwind tokens.

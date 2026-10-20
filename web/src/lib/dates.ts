@@ -40,15 +40,35 @@ export function formatDue(due: Date, now: Date = new Date()): string {
   return `${date.format(due).replace(',', '')}, ${hhmm}`
 }
 
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/** A span of time to the minute: "2d 04:00", under a day "04:12". Negative counts as 0. */
+export function formatSpan(ms: number): string {
+  const left = Math.max(0, ms)
+  const days = Math.floor(left / DAY)
+  const hhmm = `${pad2(Math.floor((left % DAY) / HOUR))}:${pad2(Math.floor((left % HOUR) / MINUTE))}`
+  return days > 0 ? `${days}d ${hhmm}` : hhmm
+}
+
+/** A ticking clock to the second: "00:42:17" (hours can pass 24). Negative counts as 0. */
+export function formatClock(ms: number): string {
+  const left = Math.max(0, Math.floor(ms / 1000))
+  return `${pad2(Math.floor(left / 3600))}:${pad2(Math.floor((left % 3600) / 60))}:${pad2(left % 60)}`
+}
+
+/** How long something took, roughly: "45 min", "3 h", "2 d". Negative counts as 0. */
+export function formatTook(ms: number): string {
+  const took = Math.max(0, ms)
+  if (took < HOUR) return `${Math.floor(took / MINUTE)} min`
+  if (took < DAY) return `${Math.floor(took / HOUR)} h`
+  return `${Math.floor(took / DAY)} d`
+}
+
 /** Countdown to the first push: "Starts in 2d 04:00", under a day "Starts in 04:12", or "Starting now". */
 export function formatStartsIn(due: Date, now: Date = new Date()): string {
   const left = due.getTime() - now.getTime()
   if (left < MINUTE) return 'Starting now'
-  const days = Math.floor(left / DAY)
-  const hours = Math.floor((left % DAY) / HOUR)
-  const minutes = Math.floor((left % HOUR) / MINUTE)
-  const hhmm = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-  return days > 0 ? `Starts in ${days}d ${hhmm}` : `Starts in ${hhmm}`
+  return `Starts in ${formatSpan(left)}`
 }
 
 /** "Done just now", "Done 3h ago", "Done yesterday", "Done 5d ago", "Done 2w ago". */

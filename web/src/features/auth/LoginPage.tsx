@@ -1,13 +1,20 @@
 import { Navigate, useSearch } from '@tanstack/react-router'
 import { CircleAlert, Lock } from 'lucide-react'
+import { cva } from 'class-variance-authority'
 import { useEffect, useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { CenteredScreen } from '../../components/ui/CenteredScreen'
 import { Wordmark } from '../../components/ui/Wordmark'
-import { cn } from '../../lib/cn'
 import { useAuth } from './useAuth'
 import { GoogleIcon } from './GoogleIcon'
 import { SplashScreen } from './SplashScreen'
+
+/** The wordmark and tagline; the space under them depends on what follows (Inventory mockup). */
+const brandBlock = cva('flex flex-col items-center gap-2.5', {
+  variants: {
+    look: { signIn: 'pb-12', error: 'pb-5.5', notInvited: 'pb-7' },
+  },
+})
 
 /**
  * /login: sign in with Google (design doc 5.1).
@@ -45,10 +52,9 @@ export function LoginPage() {
   return (
     <CenteredScreen className="gap-0">
       <div
-        className={cn(
-          'flex flex-col items-center gap-2.5',
-          notInvited ? 'pb-7' : state.error ? 'pb-5.5' : 'pb-12',
-        )}
+        className={brandBlock({
+          look: notInvited ? 'notInvited' : state.error ? 'error' : 'signIn',
+        })}
       >
         <Wordmark as="h1" />
         <p className="text-sm text-balance text-fg2">

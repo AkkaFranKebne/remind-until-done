@@ -56,3 +56,8 @@ test('text-input is a font size, not a colour', () => {
 test('shadow-fab is a shadow (replaces shadow-md), not a shadow colour', () => {
   expect(cn('shadow-md', 'shadow-fab')).toBe('shadow-fab')
 })
+
+test('text-countdown is a font size, not a colour', () => {
+  expect(cn('text-countdown', 'text-nag-mid-fg')).toBe('text-countdown text-nag-mid-fg')
+  expect(cn('text-xl', 'text-countdown')).toBe('text-countdown')
+})

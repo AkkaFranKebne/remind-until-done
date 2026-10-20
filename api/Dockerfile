@@ -10,5 +10,7 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/api ./cmd/api
 # Run stage: a minimal image with no shell, running as a non-root user.
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /out/api /api
+# Already the image's default (:nonroot); said here so scanners and readers see it.
+USER nonroot:nonroot
 # Cloud Run injects PORT; the app listens on it (default 8080).
 ENTRYPOINT ["/api"]

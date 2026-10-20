@@ -37,7 +37,7 @@ jobs:
     env:
       HUSKY: 0
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # don't leave the GitHub token on disk
 
@@ -46,7 +46,7 @@ jobs:
           docker build -t rud-api:${{ github.sha }} api
           docker save rud-api:${{ github.sha }} | gzip > api-image.tar.gz
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -56,7 +56,7 @@ jobs:
         working-directory: web
         run: npm ci && npm run build
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: build
           path: |
@@ -75,13 +75,13 @@ jobs:
       HUSKY: 0
       IMAGE: ${{ vars.IMAGE }}:${{ github.sha }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # don't leave the GitHub token on disk
 
       # Unpack into a separate folder, so the build can't overwrite checked-out files
       # (like package-lock.json). Only the two expected outputs are used.
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: build
           path: ${{ runner.temp }}/build
@@ -91,7 +91,7 @@ jobs:
 
       # No npm cache in this job: other jobs write that cache. Packages come fresh
       # from the registry, checked against the lockfile.
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
 
@@ -106,12 +106,12 @@ jobs:
         run: docker compose --profile tools pull flyway
 
       - name: Log in to Google Cloud (no stored keys)
-        uses: google-github-actions/auth@v3
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.DEPLOYER_SA }}
 
-      - uses: google-github-actions/setup-gcloud@v3
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
       - name: Push the API image
         run: |
@@ -127,9 +127,14 @@ jobs:
       - name: Migrate the database (Flyway)
         run: |
           DB_URL="$(gcloud secrets versions access latest --secret=database-url --project ${{ vars.PROJECT_ID }})"
+          # Reviewed (semgrep, 2026-10-20): stopping log masking needs a changed workflow, and only
+          # deploy.yml on main may log in to Google (infra/wif.tf), so a copy on a branch never
+          # gets this secret. Nothing in this step prints before the masks (output goes into variables).
+          # nosemgrep: yaml.github-actions.security.audit.unsafe-add-mask-workflow-command.unsafe-add-mask-workflow-command
           echo "::add-mask::$DB_URL"
           SETTINGS="$(printf '%s' "$DB_URL" | python3 scripts/to_jdbc.py)"
           while IFS='=' read -r key value; do export "$key=$value"; done <<< "$SETTINGS"
+          # nosemgrep: yaml.github-actions.security.audit.unsafe-add-mask-workflow-command.unsafe-add-mask-workflow-command
           echo "::add-mask::$FLYWAY_PASSWORD"
           docker compose run --rm --no-deps -e FLYWAY_URL -e FLYWAY_USER -e FLYWAY_PASSWORD flyway migrate
 

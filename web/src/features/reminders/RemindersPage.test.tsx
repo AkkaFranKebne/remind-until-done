@@ -53,20 +53,60 @@ test('tiles count by status and filter the list; tapping the picked tile shows a
   const list = screen.getByRole('list', { name: 'Active reminders' })
   expect(within(list).getAllByRole('link')).toHaveLength(3)
 
+  // The picked tile goes into the address (/?show=nagging); the list follows a moment later.
   fireEvent.click(within(tiles).getByRole('button', { name: 'Nagging 1' }))
-  expect(
-    within(screen.getByRole('list'))
-      .getAllByRole('link')
-      .map((l) => l.textContent),
-  ).toEqual([expect.stringContaining('Call dentist')])
+  await waitFor(() =>
+    expect(
+      within(screen.getByRole('list'))
+        .getAllByRole('link')
+        .map((l) => l.textContent),
+    ).toEqual([expect.stringContaining('Call dentist')]),
+  )
 
   fireEvent.click(within(tiles).getByRole('button', { name: 'Done' }))
   expect(await screen.findByRole('link', { name: /Buy card/ })).toBeInTheDocument()
 
   fireEvent.click(within(tiles).getByRole('button', { name: 'Done' }))
   expect(
-    within(screen.getByRole('list', { name: 'Active reminders' })).getAllByRole('link'),
+    within(await screen.findByRole('list', { name: 'Active reminders' })).getAllByRole('link'),
   ).toHaveLength(3)
+})
+
+test('the picked tile is in the address: Back from a reminder keeps it', async () => {
+  mockReminders({
+    upcoming: [
+      aReminder({ title: 'Book a plumber' }),
+      aReminder({ title: 'Call dentist', status: 'sent', nagCount: 2 }),
+    ],
+  })
+  const router = openList()
+
+  const tiles = await screen.findByRole('group', { name: 'Filter reminders' })
+  fireEvent.click(within(tiles).getByRole('button', { name: 'Nagging 1' }))
+  await waitFor(() => expect(router.state.location.search).toEqual({ show: 'nagging' }))
+
+  fireEvent.click(screen.getByRole('link', { name: /Call dentist/ }))
+  await waitFor(() => expect(router.state.location.pathname).not.toBe('/'))
+  router.history.back()
+
+  await waitFor(() => expect(router.state.location.search).toEqual({ show: 'nagging' }))
+  expect(await screen.findByRole('list', { name: 'nagging reminders' })).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: /Book a plumber/ })).not.toBeInTheDocument()
+})
+
+test('a made-up filter in the address is ignored', async () => {
+  mockReminders({ upcoming: [aReminder({ title: 'Book a plumber' })] })
+  renderApp('/?show=everything', new FakeAuthClient(tester))
+
+  expect(await screen.findByRole('list', { name: 'Active reminders' })).toBeInTheDocument()
+})
+
+test('names every JavaScript object has are not filters either (?show=constructor)', async () => {
+  mockReminders({ upcoming: [aReminder({ title: 'Book a plumber' })] })
+  const router = renderApp('/?show=constructor', new FakeAuthClient(tester))
+
+  expect(await screen.findByRole('list', { name: 'Active reminders' })).toBeInTheDocument()
+  expect(router.state.location.search).toEqual({})
 })
 
 test('the Done tile has no number; the done list loads only when it is tapped', async () => {

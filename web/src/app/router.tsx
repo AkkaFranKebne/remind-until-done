@@ -1,15 +1,18 @@
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   createRoute,
   createRouter,
   Outlet,
+  redirect,
   type AnyRoute,
   type RouteComponent,
   type RouterHistory,
 } from '@tanstack/react-router'
+import { statusLabel, type ReminderStatusKind } from '../components/ui/status'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RequireAuth } from '../features/auth/RequireAuth'
 import { safeNext } from '../features/auth/safeNext'
+import type { AuthState } from '../features/auth/useAuth'
 import { ReminderPage } from '../features/reminders/ReminderPage'
 import { RemindersPage } from '../features/reminders/RemindersPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
@@ -17,15 +20,29 @@ import { NotFoundPage } from './NotFoundPage'
 
 // Routes from design doc 5.1, defined in code (no generated route files).
 
-const rootRoute = createRootRoute({
+/** What every route can read: who is signed in (AppRouter passes it in, from AuthProvider). */
+export type RouterContext = { auth: AuthState }
+
+const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: Outlet,
   notFoundComponent: NotFoundPage,
 })
 
-/** Signed-in pages: behind RequireAuth. Each page draws its own frame (AppScreen). */
+/**
+ * Signed-in pages (design doc 5.1). The guard runs before the page: nobody signed in →
+ * /login?next=<this page>, so after sign-in you land here again (a tapped notification while
+ * signed out still opens the right reminder). While Firebase is still checking there's no
+ * decision yet: RequireAuth shows the splash, and AppRouter re-runs this when it settles.
+ * TanStack Router docs → "Authenticated Routes".
+ */
 const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
+  beforeLoad: ({ context, location }) => {
+    const { status } = context.auth
+    if (status === 'checking' || status === 'signedIn') return
+    throw redirect({ to: '/login', search: { next: location.href }, replace: true })
+  },
   component: () => (
     <RequireAuth>
       <Outlet />
@@ -40,6 +57,25 @@ const loginRoute = createRoute({
   component: LoginPage,
   validateSearch: (search: Record<string, unknown>): { next?: string } => ({
     next: safeNext(search.next),
+  }),
+  // Signed in (now, or as soon as the sign-in finishes): on to `next`, or home.
+  beforeLoad: ({ context, search }) => {
+    if (context.auth.status === 'signedIn')
+      throw redirect({ href: search.next ?? '/', replace: true })
+  },
+})
+
+const isStatusKind = (value: unknown): value is ReminderStatusKind =>
+  // hasOwn, not `in`: `in` also accepts names every object has (?show=constructor).
+  typeof value === 'string' && Object.hasOwn(statusLabel, value)
+
+/** / and /?show=done: the picked tile lives in the address, so Back and reload keep it. */
+const remindersRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/',
+  component: RemindersPage,
+  validateSearch: (search: Record<string, unknown>): { show?: ReminderStatusKind } => ({
+    show: isStatusKind(search.show) ? search.show : undefined,
   }),
 })
 
@@ -58,7 +94,7 @@ function page<TParent extends AnyRoute, const TPath extends string>(
 export const routeTree = rootRoute.addChildren([
   loginRoute,
   appRoute.addChildren([
-    page(appRoute, '/', RemindersPage),
+    remindersRoute,
     page(appRoute, '/r/$id', ReminderPage),
     page(appRoute, '/settings', SettingsPage),
   ]),
@@ -66,7 +102,8 @@ export const routeTree = rootRoute.addChildren([
 
 /** The app uses the browser's history; tests pass a memory history. */
 export function createAppRouter(history?: RouterHistory) {
-  return createRouter({ routeTree, history })
+  // `auth` starts as "checking"; AppRouter passes the real state on every render.
+  return createRouter({ routeTree, history, context: { auth: { status: 'checking' } } })
 }
 
 // Makes <Link to="..."> and params type-checked against the routes above.

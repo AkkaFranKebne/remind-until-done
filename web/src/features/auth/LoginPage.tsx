@@ -1,7 +1,7 @@
-import { Navigate, useSearch } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
 import { CircleAlert, Lock } from 'lucide-react'
 import { cva } from 'class-variance-authority'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Button } from '../../components/ui/Button'
 import { CenteredScreen } from '../../components/ui/CenteredScreen'
 import { Wordmark } from '../../components/ui/Wordmark'
@@ -24,27 +24,24 @@ const brandBlock = cva('flex flex-col items-center gap-2.5', {
  */
 export function LoginPage() {
   const { state, signIn } = useAuth()
-  const { next } = useSearch({ from: '/login' })
-  const [leaving, setLeaving] = useState(false)
+  // The page goes to Google next: TanStack keeps the button busy (isPending) until then.
+  // networkMode 'always': offline, the sign-in should fail with its message, not pause forever.
+  const google = useMutation({ mutationFn: signIn, networkMode: 'always' })
+  const { reset } = google
 
   // Going to Google, the browser may freeze this page in its back/forward cache.
   // Pressing Back then shows the frozen page again, with the button still busy.
   // "pageshow" with persisted = true means exactly that: un-busy the button.
   useEffect(() => {
     const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) setLeaving(false)
+      if (e.persisted) reset()
     }
     window.addEventListener('pageshow', onPageShow)
     return () => window.removeEventListener('pageshow', onPageShow)
-  }, [])
+  }, [reset])
 
-  if (state.status === 'checking') return <SplashScreen />
-  if (state.status === 'signedIn') return <Navigate to={next ?? '/'} replace />
-
-  const continueWithGoogle = () => {
-    setLeaving(true) // the page goes to Google next; keep the button busy until then
-    void signIn().finally(() => setLeaving(false))
-  }
+  // Signed in: the route's beforeLoad sends you on to `next` (app/router.tsx); until then, the splash.
+  if (state.status === 'checking' || state.status === 'signedIn') return <SplashScreen />
 
   // Centred top-to-bottom in every state, like the splash (Inventory → Phone Screens → Login).
   const notInvited = state.status === 'notInvited'
@@ -102,8 +99,8 @@ export function LoginPage() {
             variant="surface"
             size="lg"
             icon={GoogleIcon}
-            loading={leaving}
-            onClick={continueWithGoogle}
+            loading={google.isPending}
+            onClick={() => google.mutate()}
           >
             {state.error ? 'Try again' : 'Continue with Google'}
           </Button>

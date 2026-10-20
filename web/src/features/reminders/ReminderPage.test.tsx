@@ -138,6 +138,8 @@ test('delete asks first: Keep it stays, Delete removes it and goes back to the l
 
   expect(await screen.findByRole('heading', { name: 'Your reminders' })).toBeInTheDocument()
   expect(sent).toEqual([{ method: 'delete' }])
+  // The same toast as a swipe-delete on the list.
+  expect(screen.getByText("Gone. We'll pretend it never happened.")).toBeInTheDocument()
 })
 
 test('edit: "Adjust the trap" starts with the saved values; keeping the time does not send it', async () => {

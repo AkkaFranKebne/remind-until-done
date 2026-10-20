@@ -1,5 +1,6 @@
 import type { Preview } from '@storybook/react-vite'
 import '../src/index.css'
+import { ToastProvider } from '../src/components/ui/Toast'
 import { WithRouter } from '../src/test-utils/withRouter'
 
 const preview: Preview = {
@@ -22,11 +23,13 @@ const preview: Preview = {
   decorators: [
     (Story, context) => {
       document.documentElement.dataset.theme = context.globals.theme === 'dark' ? 'dark' : 'light'
-      // Components with links (TopBar) need a router.
+      // Components with links (TopBar) need a router; pages that show toasts need the provider.
       return (
-        <WithRouter>
-          <Story />
-        </WithRouter>
+        <ToastProvider>
+          <WithRouter>
+            <Story />
+          </WithRouter>
+        </ToastProvider>
       )
     },
   ],

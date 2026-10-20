@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutationState } from '@tanstack/react-query'
 import { Inbox, List, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { AppScreen } from '../../app/AppScreen'
@@ -7,17 +7,36 @@ import { Fab } from '../../components/ui/Fab'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { statusIcon, statusLabel, type ReminderStatusKind } from '../../components/ui/status'
 import { StatusTiles } from '../../components/ui/StatusTiles'
+import { useToast } from '../../components/ui/useToast'
 import {
+  getDeleteReminderMutationKey,
   getListRemindersQueryKey,
+  getMarkReminderDoneMutationKey,
   listReminders,
+  useDeleteReminder,
   useListReminders,
+  useMarkReminderDone,
 } from '../../lib/api/generated/reminders/reminders'
 import { useNow } from '../../lib/useNow'
 import { cn } from '../../lib/cn'
 import { useMe } from '../auth/useMe'
 import { AddReminderSheet } from './AddReminderSheet'
 import { ReminderRow } from './ReminderRow'
+import { SwipeableRow } from './SwipeableRow'
+import { toastText } from './toastText'
 import { statusKind } from './reminderState'
+import { useReminderChanged } from './useReminderChanged'
+
+/** The reminder ids of the still-running mutations with this key (their `{ id }` input). */
+function usePendingIds(mutationKey: readonly unknown[]): string[] {
+  return useMutationState({
+    filters: { mutationKey, status: 'pending' },
+    select: (m) => {
+      const input = m.state.variables
+      return typeof input === 'object' && input !== null && 'id' in input ? String(input.id) : ''
+    },
+  })
+}
 
 /** The API allows 5 active (not done) reminders; at 5 the add button hides. */
 export const MAX_ACTIVE = 5
@@ -42,6 +61,34 @@ export function RemindersPage() {
   const now = useNow()
   const [picked, setPicked] = useState<ReminderStatusKind | null>(null)
   const [adding, setAdding] = useState(false)
+  const changed = useReminderChanged()
+  const toast = useToast()
+  // Returning the reload from onSuccess keeps the mutation pending until the lists have it, so
+  // a swiped row doesn't flash back in between (TanStack awaits onSuccess before "success").
+  const markDone = useMarkReminderDone({
+    mutation: {
+      onSuccess: (updated, { id }) => {
+        toast.success(toastText.done)
+        return changed(id, updated)
+      },
+      onError: () => toast.error(toastText.failed),
+    },
+  })
+  const remove = useDeleteReminder({
+    mutation: {
+      onSuccess: (_data, { id }) => {
+        toast.success(toastText.deleted)
+        return changed(id)
+      },
+      onError: () => toast.error(toastText.failed),
+    },
+  })
+  // Optimistic, "via the UI" (TanStack Query docs): a row whose Done or Delete is still running
+  // is hidden. A failed one is no longer pending, so its row comes back by itself.
+  const leaving = new Set([
+    ...usePendingIds(getMarkReminderDoneMutationKey()),
+    ...usePendingIds(getDeleteReminderMutationKey()),
+  ])
 
   // Active reminders: at most 5, so one page is all of them.
   const upcoming = useListReminders({ status: 'upcoming' })
@@ -58,8 +105,10 @@ export function RemindersPage() {
     enabled: picked === 'done',
   })
 
-  const active = upcoming.data?.items ?? []
-  const doneItems = done.data?.pages.flatMap((p) => p.items) ?? []
+  const active = (upcoming.data?.items ?? []).filter((r) => !leaving.has(r.id))
+  const doneItems = (done.data?.pages.flatMap((p) => p.items) ?? []).filter(
+    (r) => !leaving.has(r.id),
+  )
 
   const countOf = (kind: ReminderStatusKind) => active.filter((r) => statusKind(r) === kind).length
   const counts = {
@@ -159,7 +208,13 @@ export function RemindersPage() {
                 {shown.map((r, i) => (
                   // Cards overlap like a stack (−8px); later rows paint over earlier ones.
                   <li key={r.id} className={i > 0 ? '-mt-2' : undefined}>
-                    <ReminderRow reminder={r} now={now} position={i + 1} />
+                    {/* Every row swipes left to delete; done ones have nothing to swipe right to. */}
+                    <SwipeableRow
+                      onDone={filter === 'done' ? undefined : () => markDone.mutate({ id: r.id })}
+                      onDelete={() => remove.mutate({ id: r.id })}
+                    >
+                      <ReminderRow reminder={r} now={now} position={i + 1} />
+                    </SwipeableRow>
                   </li>
                 ))}
               </ul>

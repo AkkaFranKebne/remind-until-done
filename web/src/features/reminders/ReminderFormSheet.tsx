@@ -38,6 +38,15 @@ export type ReminderFormResult = {
   nagIntervalMin: number
 }
 
+/** Opens a date input's picker; where showPicker() isn't there, focusing the input does it. */
+function showPickerOf(input: HTMLInputElement) {
+  try {
+    input.showPicker()
+  } catch {
+    input.focus()
+  }
+}
+
 /**
  * The reminder form in a bottom sheet (title, note, when, how often): "Set the trap" creates
  * (AddReminderSheet), "Adjust the trap" edits (EditReminderSheet). The wrappers do the saving.
@@ -153,30 +162,21 @@ export function ReminderFormSheet({
   const customAt = useWatch({ control, name: 'customAt' })
   const noteValue = useWatch({ control, name: 'note' })
   const customDate = fromLocalInputValue(customAt)
-  const timeOptions: ChipOption<WhenChoice>[] = [
-    { value: 'in1h', label: 'In 1 h' },
-    { value: 'tomorrow', label: `Tomorrow ${defaultTimeOfDay}` },
-    { value: 'in3h', label: 'In 3 h' },
-    // Once picked, the chip shows the chosen time (Inventory → TimeChips).
-    {
-      value: 'custom',
-      label: when === 'custom' && customDate ? formatDue(customDate, now) : 'Custom…',
-    },
-  ]
   // Once it has text, the note stays even if the sheet is dragged back down.
   const showNote = noteOpen || snapPoint === TALL || noteValue !== ''
   const hint = when === 'custom' && customDate ? farFutureHint(customDate, now) : null
 
-  /** "Custom…" opens the phone's own date-time picker at once (Inventory → TimeChips). */
+  /**
+   * "Custom…" activated on the chip itself (Space from the keyboard, or a VoiceOver double-tap,
+   * which acts on the focused chip, not the input over it) opens the date-time picker
+   * (Inventory → TimeChips). On a touch screen it also focuses the input: iPhone Safari may ignore
+   * showPicker(), but opens its picker when a date input gets focus during a tap.
+   */
   function openPicker() {
-    const picker = pickerRef.current
-    if (!picker) return
-    try {
-      picker.showPicker()
-    } catch {
-      // Older browsers: focusing the field opens the picker there.
-      picker.focus()
-    }
+    const input = pickerRef.current
+    if (!input) return
+    showPickerOf(input)
+    if (window.matchMedia?.('(pointer: coarse)').matches) input.focus()
   }
 
   /** A picked date selects "Custom…". Cancel or the picker's Reset (empty) keeps the previous pick. */
@@ -185,6 +185,38 @@ export function ReminderFormSheet({
     setValue('customAt', value, { shouldDirty: true, shouldValidate: isSubmitted })
     setValue('when', 'custom', { shouldDirty: true, shouldValidate: isSubmitted })
   }
+
+  const timeOptions: ChipOption<WhenChoice>[] = [
+    { value: 'in1h', label: 'In 1 h' },
+    { value: 'tomorrow', label: `Tomorrow ${defaultTimeOfDay}` },
+    { value: 'in3h', label: 'In 3 h' },
+    // Once picked, the chip shows the chosen time (Inventory → TimeChips).
+    {
+      value: 'custom',
+      label: when === 'custom' && customDate ? formatDue(customDate, now) : 'Custom…',
+      // The real date-time input, transparent, over the chip: a tap lands on it, so iPhone Safari
+      // opens its own picker (it ignores showPicker() on a hidden input). On a computer a click
+      // on the input doesn't open the picker, so the click asks for it. Keyboard: Space on the
+      // chip (openPicker). text-input (16px) stops iOS zooming in; closing puts focus on the chips.
+      overlay: (
+        <Input
+          ref={pickerRef}
+          type="datetime-local"
+          aria-hidden="true"
+          tabIndex={-1}
+          min={toLocalInputValue(now)}
+          value={customAt}
+          onChange={(e) => pickCustom(e.currentTarget.value)}
+          onClick={(e) => showPickerOf(e.currentTarget)}
+          onBlur={(e) => {
+            // Only when focus goes nowhere: a tap on another field keeps it there.
+            if (!e.relatedTarget) setFocus('when')
+          }}
+          className="absolute inset-0 size-full cursor-pointer opacity-0 text-input"
+        />
+      ),
+    },
+  ]
 
   function openNote() {
     setNoteOpen(true)
@@ -280,22 +312,6 @@ export function ReminderFormSheet({
                   error={fieldState.error?.message ?? errors.customAt?.message}
                 />
               )}
-            />
-            {/* The native picker behind "Custom…": hidden, the chip shows its value. text-input (16px)
-                stops iOS zooming in when the picker focuses it; closing it puts focus back on the chips. */}
-            <Input
-              ref={pickerRef}
-              type="datetime-local"
-              aria-hidden="true"
-              tabIndex={-1}
-              min={toLocalInputValue(now)}
-              value={customAt}
-              onChange={(e) => pickCustom(e.currentTarget.value)}
-              onBlur={(e) => {
-                // Only when focus goes nowhere: a tap on another field keeps it there.
-                if (!e.relatedTarget) setFocus('when')
-              }}
-              className="sr-only text-input"
             />
             {hint ? <p className="text-sm text-fg2">{hint}</p> : null}
           </div>

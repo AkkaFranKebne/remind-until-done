@@ -1,10 +1,18 @@
 import { Fieldset } from '@base-ui/react/fieldset'
 import { Radio } from '@base-ui/react/radio'
 import { RadioGroup } from '@base-ui/react/radio-group'
-import type { Ref } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { cn } from '../../lib/cn'
 
-export type ChipOption<T extends string> = { value: T; label: string }
+export type ChipOption<T extends string> = {
+  value: T
+  label: string
+  /**
+   * Laid over the chip and takes its taps, e.g. a transparent native date input: iPhone Safari
+   * only opens its picker when the tap lands on the input itself. Keyboard focus stays on the chip.
+   */
+  overlay?: ReactNode
+}
 
 /**
  * Pick exactly one of a few options, shown as pills: the nag interval ("Then nag me every")
@@ -59,20 +67,22 @@ export function ChipGroup<T extends string>({
       ) : null}
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
-          <Radio.Root
-            key={option.value}
-            value={option.value}
-            ref={option.value === focusValue ? focusRef : undefined}
-            onClick={onOptionClick ? () => onOptionClick(option.value) : undefined}
-            className={cn(
-              'inline-flex min-h-11 cursor-pointer items-center rounded-full border-strong border-border bg-bg2 px-3.5 text-sm font-medium text-fg2',
-              'transition-colors duration-(--duration-fast) motion-reduce:transition-none',
-              'data-checked:border-accent data-checked:bg-accent-bg data-checked:text-accent',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
-            )}
-          >
-            {option.label}
-          </Radio.Root>
+          <span key={option.value} className="relative inline-flex">
+            <Radio.Root
+              value={option.value}
+              ref={option.value === focusValue ? focusRef : undefined}
+              onClick={onOptionClick ? () => onOptionClick(option.value) : undefined}
+              className={cn(
+                'inline-flex min-h-11 cursor-pointer items-center rounded-full border-strong border-border bg-bg2 px-3.5 text-sm font-medium text-fg2',
+                'transition-colors duration-(--duration-fast) motion-reduce:transition-none',
+                'data-checked:border-accent data-checked:bg-accent-bg data-checked:text-accent',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+              )}
+            >
+              {option.label}
+            </Radio.Root>
+            {option.overlay}
+          </span>
         ))}
       </div>
     </Fieldset.Root>

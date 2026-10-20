@@ -219,6 +219,48 @@ test('Custom… opens the native picker at once; the chip is picked only once a 
   expect(new Date(sent[0]?.dueAt ?? '').toISOString()).toBe(new Date(value).toISOString())
 })
 
+test('a tap on Custom… lands on the date input laid over it (iPhone opens its picker there)', async () => {
+  const showPicker = jest.fn()
+  Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+    value: showPicker,
+    configurable: true,
+  })
+  const sheet = await openSheet()
+
+  // The input covers the chip: they share one box (iPhone ignores showPicker on a hidden input).
+  const chip = within(sheet).getByRole('radio', { name: 'Custom…' })
+  expect(picker(sheet).parentElement).toBe(chip.parentElement)
+  expect(picker(sheet)).toHaveClass('absolute', 'inset-0', 'opacity-0')
+
+  // A computer: a click on the input asks for the picker too.
+  fireEvent.click(picker(sheet))
+  expect(showPicker).toHaveBeenCalledTimes(1)
+
+  fireEvent.change(picker(sheet), { target: { value: localValue(1, '14:30') } })
+  expect(await within(sheet).findByRole('radio', { name: 'Tomorrow 14:30' })).toBeChecked()
+})
+
+test('on a touch screen, activating the Custom… chip also focuses the date input (VoiceOver path)', async () => {
+  Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+    value: jest.fn(),
+    configurable: true,
+  })
+  // jsdom has no matchMedia: a phone (touch screen) for this test.
+  Object.defineProperty(window, 'matchMedia', {
+    value: (query: string) => ({ matches: query === '(pointer: coarse)' }),
+    configurable: true,
+  })
+  try {
+    const sheet = await openSheet()
+
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Custom…' }))
+
+    expect(picker(sheet)).toHaveFocus()
+  } finally {
+    Reflect.deleteProperty(window, 'matchMedia')
+  }
+})
+
 test('the title example changes every time the sheet is closed and opened again', async () => {
   const sheet = await openSheet()
   const title = () =>

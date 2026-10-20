@@ -1,7 +1,10 @@
 import { useParams } from '@tanstack/react-router'
-import { House } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { AppScreen } from '../../app/AppScreen'
 import { Button, ButtonLink } from '../../components/ui/Button'
+import { CenteredScreen } from '../../components/ui/CenteredScreen'
+import { IconLink } from '../../components/ui/IconButton'
+import { TopBar } from '../../components/ui/TopBar'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { useGetReminder } from '../../lib/api/generated/reminders/reminders'
 import { ApiError } from '../../lib/api/mutator'
@@ -31,16 +34,39 @@ export function ReminderPage() {
   }
 
   if (reminder.error instanceof ApiError && reminder.error.status === 404) {
+    // Inventory → Phone Screens → "/r/:id 404": the Global 404's look, plus ‹ Back under the
+    // logo and no Settings icon.
     return (
-      <AppScreen>
-        <section className="flex flex-1 flex-col items-center justify-center gap-3 px-3 text-center">
-          <h1 className="text-lg font-bold text-balance">This reminder doesn&apos;t exist.</h1>
-          <p className="text-sm text-balance text-fg2">Maybe it got done without you.</p>
-          <ButtonLink to="/" icon={House} className="mt-2 w-full">
-            Go home
-          </ButtonLink>
-        </section>
-      </AppScreen>
+      <CenteredScreen
+        header={
+          <>
+            <TopBar showSettings={false} />
+            <div className="px-4">
+              <IconLink
+                to="/"
+                icon={ChevronLeft}
+                size="sm"
+                label="Back"
+                className="-ml-3.5 text-accent"
+              />
+            </div>
+          </>
+        }
+        className="gap-3.5 px-7"
+      >
+        <p aria-hidden="true" className="text-display font-bold tracking-tighter text-accent-bg">
+          404
+        </p>
+        <h1 className="mt-1 text-lg font-bold text-balance">This reminder doesn&apos;t exist.</h1>
+        <p className="text-sm text-fg2">
+          Maybe it got done without you.
+          <br />
+          Or it never existed. Who knows.
+        </p>
+        <ButtonLink to="/" icon={ChevronLeft} className="mt-4 w-full">
+          Back to list
+        </ButtonLink>
+      </CenteredScreen>
     )
   }
 

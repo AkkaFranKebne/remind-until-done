@@ -193,6 +193,9 @@ test('an unknown reminder (or another user\'s): "doesn\'t exist" and a way home'
   expect(
     await screen.findByRole('heading', { name: "This reminder doesn't exist." }),
   ).toBeInTheDocument()
-  expect(screen.getByText('Maybe it got done without you.')).toBeInTheDocument()
-  expect(screen.getByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
+  expect(screen.getByText(/Maybe it got done without you\./)).toBeInTheDocument()
+  expect(screen.getByText(/Or it never existed\. Who knows\./)).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Back to list' })).toHaveAttribute('href', '/')
+  expect(screen.getByRole('link', { name: 'Back' })).toHaveAttribute('href', '/')
+  expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument()
 })

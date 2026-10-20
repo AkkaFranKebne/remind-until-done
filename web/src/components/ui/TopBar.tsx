@@ -39,10 +39,26 @@ type TopBarProps = {
 }
 
 /** The logo and context line: violet on every gradient (on-grad: light violet in dark mode, where
- * the gradients are dark too); the plain page uses the accent. */
-function brandText(tone: TopBarTone) {
-  return tone === 'plain' ? 'text-accent' : 'text-on-grad'
-}
+ * the gradients are dark too). On the plain page the logo uses the accent, the line fg2. */
+const brandText = cva('', {
+  variants: {
+    tone: {
+      plain: '',
+      brand: 'text-on-grad',
+      waiting: 'text-on-grad',
+      'nag-low': 'text-on-grad',
+      'nag-mid': 'text-on-grad',
+      'nag-high': 'text-on-grad',
+      overdue: 'text-on-grad',
+      done: 'text-on-grad',
+    } satisfies Record<TopBarTone, string>,
+    part: { logo: '', contextLine: '' },
+  },
+  compoundVariants: [
+    { tone: 'plain', part: 'logo', class: 'text-accent' },
+    { tone: 'plain', part: 'contextLine', class: 'text-fg2' },
+  ],
+})
 
 /**
  * The app header on every screen: logo left, Settings right, no background of its own
@@ -50,7 +66,6 @@ function brandText(tone: TopBarTone) {
  * Design Inventory → Components → "TopBar + context line" and the Phone Screens.
  */
 export function TopBar({ tone = 'plain', showSettings = true, contextLine }: TopBarProps) {
-  const plain = tone === 'plain'
   return (
     <>
       <header className="pt-[env(safe-area-inset-top)]">
@@ -62,7 +77,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
             className={cn(
               '-ml-1 flex min-h-11 items-center rounded-sm px-1 text-xl font-bold tracking-tight',
               'focus-visible:outline-2 focus-visible:outline-current',
-              brandText(tone),
+              brandText({ tone, part: 'logo' }),
             )}
           >
             rud.
@@ -81,7 +96,7 @@ export function TopBar({ tone = 'plain', showSettings = true, contextLine }: Top
       {contextLine ? (
         <p
           // Right under the logo, upright, in the logo's colour (brandText).
-          className={cn('px-4 pt-1 pb-1 text-sm', plain ? 'text-fg2' : brandText(tone))}
+          className={cn('px-4 pt-1 pb-1 text-sm', brandText({ tone, part: 'contextLine' }))}
         >
           {contextLine}
         </p>

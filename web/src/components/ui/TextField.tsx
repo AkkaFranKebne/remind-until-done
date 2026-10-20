@@ -1,4 +1,5 @@
 import { Field } from '@base-ui/react/field'
+import { cva } from 'class-variance-authority'
 import type { Ref } from 'react'
 import { cn } from '../../lib/cn'
 import { countCharacters } from '../../lib/text'
@@ -41,7 +42,8 @@ export function TextField({
   className?: string
 }) {
   const count = countCharacters(value)
-  const nearLimit = maxLength !== undefined && count >= maxLength * 0.9
+  const limit =
+    maxLength === undefined || count < maxLength * 0.9 ? 'ok' : count > maxLength ? 'over' : 'near'
 
   const control = {
     ref,
@@ -76,16 +78,7 @@ export function TextField({
             {error}
           </Field.Error>
           {maxLength !== undefined ? (
-            <Field.Description
-              className={cn(
-                'ml-auto shrink-0 text-xs tabular-nums',
-                count > (maxLength ?? Infinity)
-                  ? 'text-error-text'
-                  : nearLimit
-                    ? 'text-accent'
-                    : 'text-fg2',
-              )}
-            >
+            <Field.Description className={counterTone({ limit })}>
               {count} / {maxLength}
             </Field.Description>
           ) : null}
@@ -94,6 +87,13 @@ export function TextField({
     </Field.Root>
   )
 }
+
+/** The "41 / 200" counter: grey, accent from 90% on, red over the limit. */
+const counterTone = cva('ml-auto shrink-0 text-xs tabular-nums', {
+  variants: {
+    limit: { ok: 'text-fg2', near: 'text-accent', over: 'text-error-text' },
+  },
+})
 
 const controlClass = cn(
   'w-full rounded-md border-strong border-border bg-bg2 px-3.5 text-input text-fg placeholder:text-fg3',

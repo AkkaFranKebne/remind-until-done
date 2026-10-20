@@ -1,7 +1,7 @@
 import { Button as BaseButton } from '@base-ui/react/button'
 import { Input } from '@base-ui/react/input'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleAlert, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Button } from '../../components/ui/Button'
@@ -316,17 +316,8 @@ export function ReminderFormSheet({
 
         {/* The CTA stays at the bottom in both sheet heights (sheet-tall's padding). */}
         <div className="flex flex-col gap-2 border-t border-border px-5 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          {tip ? (
-            <p className="flex items-start gap-2 rounded-md bg-bg3 px-3 py-2.5 text-xs text-fg2">
-              <CircleAlert
-                aria-hidden="true"
-                size={16}
-                strokeWidth={1.75}
-                className="mt-px shrink-0"
-              />
-              {tip}
-            </p>
-          ) : null}
+          {/* Plain centred text, like the list's limit message (no box, no icon). */}
+          {tip ? <p className="px-4 py-1 text-center text-sm text-fg2">{tip}</p> : null}
           {saveError ? (
             <p role="alert" className="text-sm text-error-text">
               {saveError}

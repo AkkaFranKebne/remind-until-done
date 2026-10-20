@@ -61,6 +61,24 @@ test('the counter turns accent near the limit', () => {
   expect(screen.getByText('180 / 200')).toHaveClass('text-accent')
 })
 
+test('the counter is grey below 90% and red over the limit', () => {
+  const { rerender } = render(
+    <TextField name="note" label="Note" maxLength={200} value="hi" onChange={jest.fn()} />,
+  )
+  expect(screen.getByText('2 / 200')).toHaveClass('text-fg2')
+
+  rerender(
+    <TextField
+      name="note"
+      label="Note"
+      maxLength={200}
+      value={'x'.repeat(201)}
+      onChange={jest.fn()}
+    />,
+  )
+  expect(screen.getByText('201 / 200')).toHaveClass('text-error-text')
+})
+
 test('errors are red: the message and the border', () => {
   render(
     <TextField

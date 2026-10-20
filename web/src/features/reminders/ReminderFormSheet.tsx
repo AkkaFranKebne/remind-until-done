@@ -38,6 +38,15 @@ export type ReminderFormResult = {
   nagIntervalMin: number
 }
 
+/** Opens a date input's picker; where showPicker() isn't there, focusing the input does it. */
+function showPickerOf(input: HTMLInputElement) {
+  try {
+    input.showPicker()
+  } catch {
+    input.focus()
+  }
+}
+
 /**
  * The reminder form in a bottom sheet (title, note, when, how often): "Set the trap" creates
  * (AddReminderSheet), "Adjust the trap" edits (EditReminderSheet). The wrappers do the saving.
@@ -48,15 +57,6 @@ export type ReminderFormResult = {
  * Design Inventory → Phone Screens → "AddReminderSheet — collapsed / expanded", the reminder
  * page's edit sheet, UX Copy → Create form.
  */
-/** Opens a date input's picker; where showPicker() isn't there, focusing the input does it. */
-function showPickerOf(input: HTMLInputElement) {
-  try {
-    input.showPicker()
-  } catch {
-    input.focus()
-  }
-}
-
 export function ReminderFormSheet({
   open,
   onOpenChange,
@@ -166,9 +166,17 @@ export function ReminderFormSheet({
   const showNote = noteOpen || snapPoint === TALL || noteValue !== ''
   const hint = when === 'custom' && customDate ? farFutureHint(customDate, now) : null
 
-  /** "Custom…" from the keyboard (Space on the chip) opens the date-time picker (Inventory → TimeChips). */
+  /**
+   * "Custom…" activated on the chip itself (Space from the keyboard, or a VoiceOver double-tap,
+   * which acts on the focused chip, not the input over it) opens the date-time picker
+   * (Inventory → TimeChips). On a touch screen it also focuses the input: iPhone Safari may ignore
+   * showPicker(), but opens its picker when a date input gets focus during a tap.
+   */
   function openPicker() {
-    if (pickerRef.current) showPickerOf(pickerRef.current)
+    const input = pickerRef.current
+    if (!input) return
+    showPickerOf(input)
+    if (window.matchMedia?.('(pointer: coarse)').matches) input.focus()
   }
 
   /** A picked date selects "Custom…". Cancel or the picker's Reset (empty) keeps the previous pick. */

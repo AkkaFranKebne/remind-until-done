@@ -55,3 +55,23 @@ test('an error shows right under the question, as an alert', () => {
 
   expect(screen.getByRole('alert')).toHaveTextContent('Pick a time.')
 })
+
+test('an overlay sits in its chip’s box and adds no radio', () => {
+  render(
+    <ChipGroup
+      legend="When should we start?"
+      options={[
+        { value: 'in1h', label: 'In 1 h' },
+        { value: 'custom', label: 'Custom…', overlay: <span data-testid="overlay" /> },
+      ]}
+      value="in1h"
+      onChange={jest.fn()}
+    />,
+  )
+
+  // Same wrapper as the chip: the overlay can cover it (the iPhone date picker fix).
+  expect(screen.getByTestId('overlay').parentElement).toBe(
+    screen.getByRole('radio', { name: 'Custom…' }).parentElement,
+  )
+  expect(screen.getAllByRole('radio')).toHaveLength(2)
+})

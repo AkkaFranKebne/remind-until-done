@@ -240,6 +240,27 @@ test('a tap on Custom… lands on the date input laid over it (iPhone opens its 
   expect(await within(sheet).findByRole('radio', { name: 'Tomorrow 14:30' })).toBeChecked()
 })
 
+test('on a touch screen, activating the Custom… chip also focuses the date input (VoiceOver path)', async () => {
+  Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+    value: jest.fn(),
+    configurable: true,
+  })
+  // jsdom has no matchMedia: a phone (touch screen) for this test.
+  Object.defineProperty(window, 'matchMedia', {
+    value: (query: string) => ({ matches: query === '(pointer: coarse)' }),
+    configurable: true,
+  })
+  try {
+    const sheet = await openSheet()
+
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Custom…' }))
+
+    expect(picker(sheet)).toHaveFocus()
+  } finally {
+    Reflect.deleteProperty(window, 'matchMedia')
+  }
+})
+
 test('the title example changes every time the sheet is closed and opened again', async () => {
   const sheet = await openSheet()
   const title = () =>

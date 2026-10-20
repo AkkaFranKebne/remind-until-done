@@ -8,7 +8,7 @@ import {
   type RouteComponent,
   type RouterHistory,
 } from '@tanstack/react-router'
-import { statusLabel, type ReminderStatusKind } from '../components/ui/status'
+import { isStatusKind, type ReminderStatusKind } from '../components/ui/status'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RequireAuth } from '../features/auth/RequireAuth'
 import { safeNext } from '../features/auth/safeNext'
@@ -67,10 +67,6 @@ const loginRoute = createRoute({
       throw redirect({ href: search.next ?? '/', replace: true })
   },
 })
-
-const isStatusKind = (value: unknown): value is ReminderStatusKind =>
-  // hasOwn, not `in`: `in` also accepts names every object has (?show=constructor).
-  typeof value === 'string' && Object.hasOwn(statusLabel, value)
 
 /** / and /?show=done: the picked tile lives in the address, so Back and reload keep it. */
 const remindersRoute = createRoute({

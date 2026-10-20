@@ -1,10 +1,11 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { cva } from 'class-variance-authority'
 import { ArrowUpRight } from 'lucide-react'
 import { StatusChip } from '../../components/ui/StatusChip'
 import type { Reminder } from '../../lib/api/generated/model'
 import { cn } from '../../lib/cn'
 import { rowLevel, rowSubLine, statusKind, type RowLevel } from './reminderState'
+import { fromList } from './useListSearch'
 
 /** Shadows deepen down the stack (Inventory → ReminderRow): row 1 … 5 and below. */
 const depthShadow = ['shadow-row-1', 'shadow-row-2', 'shadow-row-3', 'shadow-row-4', 'shadow-row-5']
@@ -55,11 +56,14 @@ export function ReminderRow({
   const kind = statusKind(reminder)
   const pulse = level === 'nag-mid' || level === 'nag-high'
   const shadow = depthShadow[Math.min(Math.max(position, 1), 5) - 1]
+  // The picked tile goes along, so the reminder page's Back returns to it (useListSearch).
+  const { show } = useSearch({ strict: false })
 
   return (
     <Link
       to="/r/$id"
       params={{ id: reminder.id }}
+      state={fromList(show)}
       className={cn(row({ level }), shadow, className)}
     >
       <span className="min-w-0 flex-1 py-3">

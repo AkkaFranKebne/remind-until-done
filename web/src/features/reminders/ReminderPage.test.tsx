@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw'
 import type { Reminder, UpdateReminder } from '../../lib/api/generated/model'
 import { server } from '../../mocks/server'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
-import { aReminder } from '../../test-utils/reminders'
+import { aReminder, mockReminders } from '../../test-utils/reminders'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
 
 beforeEach(() => mockMe())
@@ -58,6 +58,8 @@ test('waiting: the countdown to the first push, the interval and 0 / 12, and Don
   expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
   // Remind later lives only on the Android notification (decided 2026-10-15).
   expect(screen.queryByRole('button', { name: /Remind later/ })).not.toBeInTheDocument()
+  // Opened directly (a notification, a typed address): no tile to return to, so all reminders.
+  expect(screen.getByRole('link', { name: 'Back' })).toHaveAttribute('href', '/')
 })
 
 test("nagging: counts down to the next push (the API's nextNagAt), to the second", async () => {
@@ -140,6 +142,34 @@ test('delete asks first: Keep it stays, Delete removes it and goes back to the l
   expect(sent).toEqual([{ method: 'delete' }])
   // The same toast as a swipe-delete on the list.
   expect(screen.getByText("Gone. We'll pretend it never happened.")).toBeInTheDocument()
+})
+
+test('opened from a picked tile: Back returns to that tile, not to All', async () => {
+  mockReminder({ status: 'done', doneAt: new Date().toISOString() })
+  mockReminders({ done: [aReminder({ id: ID, title: 'Call the bank', status: 'done' })] })
+  const router = renderApp('/?show=done', new FakeAuthClient(tester))
+
+  fireEvent.click(await screen.findByRole('link', { name: /Call the bank/ }))
+  await title()
+  const back = screen.getByRole('link', { name: 'Back' })
+  expect(back).toHaveAttribute('href', '/?show=done')
+
+  fireEvent.click(back)
+  await waitFor(() => expect(router.state.location.search).toEqual({ show: 'done' }))
+})
+
+test('delete from a picked tile goes back to that tile', async () => {
+  mockReminder({ status: 'done', doneAt: new Date().toISOString() })
+  mockReminders({ done: [aReminder({ id: ID, title: 'Call the bank', status: 'done' })] })
+  const router = renderApp('/?show=done', new FakeAuthClient(tester))
+
+  fireEvent.click(await screen.findByRole('link', { name: /Call the bank/ }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete' }))
+  const sheet = await screen.findByRole('alertdialog', { name: 'Delete this reminder?' })
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Delete' }))
+
+  await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  expect(router.state.location.search).toEqual({ show: 'done' })
 })
 
 test('edit: "Adjust the trap" starts with the saved values; keeping the time does not send it', async () => {

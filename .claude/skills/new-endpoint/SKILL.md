@@ -52,7 +52,9 @@ The recipe the reminders API (PR #18) and `nextNagAt` (PR #22) followed. Rules i
 
 ## 6. The web client
 - In `web/`: `npm run api:generate`, then commit everything it changed in `src/lib/api/generated/` (CI regenerates and fails on any difference). Never edit those files by hand.
-- If an existing web test or MSW mock relied on the old shape, update it; then run the web checks from the root `AGENTS.md`.
+- If an existing web test or MSW mock relied on the old shape, update it.
+- `npm run dev:mock` has its own fake API, `web/src/mocks/devApi.ts`. Add the endpoint there (and change its rules if they changed), with a case in `devApi.test.ts`, so mock mode behaves like the real API. Otherwise the request falls through to the network in mock mode and fails there only.
+- Then run the web checks from the root `AGENTS.md`.
 
 ## 7. Docs and review
 - Design doc: gaps you filled go into 9.1 (one decision row); keep 2.2 and Appendix A in step with `swagger.json`.

@@ -21,6 +21,7 @@ import {
   type RowLevel,
 } from './reminderState'
 import { toastText } from './toastText'
+import { useListSearch } from './useListSearch'
 import { useReminderChanged } from './useReminderChanged'
 
 /** Each state's gradient (index.css: strong top in light, dark tint in dark). */
@@ -60,6 +61,7 @@ export function ReminderDetail({
   defaultTimeOfDay: string
 }) {
   const navigate = useNavigate()
+  const listSearch = useListSearch()
   const changed = useReminderChanged()
   const toast = useToast()
   const level = rowLevel(reminder)
@@ -75,9 +77,9 @@ export function ReminderDetail({
   const remove = useDeleteReminder({
     mutation: {
       onSuccess: async () => {
-        // Same as a swipe-delete on the list: back there, with the toast.
+        // Same as a swipe-delete on the list: back there (the same tile), with the toast.
         toast.success(toastText.deleted)
-        await navigate({ to: '/' })
+        await navigate({ to: '/', search: listSearch })
         await changed(reminder.id)
       },
       onError: () => setAskDelete(false),
@@ -111,7 +113,14 @@ export function ReminderDetail({
     <AppScreen tone={level} background={background[level]} tight>
       <div className={cn('flex flex-1 flex-col', stateText[level])}>
         <div className="-mx-3.5 flex items-center">
-          <IconLink to="/" icon={ChevronLeft} size="sm" label="Back" className="text-current" />
+          <IconLink
+            to="/"
+            search={listSearch}
+            icon={ChevronLeft}
+            size="sm"
+            label="Back"
+            className="text-current"
+          />
           <span className="flex-1" />
           <IconButton
             icon={Pencil}

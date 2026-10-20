@@ -11,6 +11,7 @@ import { ApiError } from '../../lib/api/mutator'
 import { useMe } from '../auth/useMe'
 import { ReminderDetail } from './ReminderDetail'
 import { pollAfterCountdown } from './reminderState'
+import { useListSearch } from './useListSearch'
 
 /**
  * /r/:id: loads one reminder (GET /reminders/:id) and shows it (ReminderDetail). A tapped
@@ -26,6 +27,7 @@ export function ReminderPage() {
     },
   })
   const me = useMe()
+  const listSearch = useListSearch()
 
   if (reminder.data) {
     return (
@@ -44,6 +46,7 @@ export function ReminderPage() {
             <div className="px-4">
               <IconLink
                 to="/"
+                search={listSearch}
                 icon={ChevronLeft}
                 size="sm"
                 label="Back"
@@ -63,7 +66,7 @@ export function ReminderPage() {
           <br />
           Or it never existed. Who knows.
         </p>
-        <ButtonLink to="/" icon={ChevronLeft} className="mt-4 w-full">
+        <ButtonLink to="/" search={listSearch} icon={ChevronLeft} className="mt-4 w-full">
           Back to list
         </ButtonLink>
       </CenteredScreen>

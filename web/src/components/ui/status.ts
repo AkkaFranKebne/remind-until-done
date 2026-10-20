@@ -10,6 +10,10 @@ export const statusLabel: Record<ReminderStatusKind, string> = {
   done: 'Done',
 }
 
+export const isStatusKind = (value: unknown): value is ReminderStatusKind =>
+  // hasOwn, not `in`: `in` also accepts names every object has (?show=constructor).
+  typeof value === 'string' && Object.hasOwn(statusLabel, value)
+
 /** The same icons as the status tiles. */
 export const statusIcon: Record<ReminderStatusKind, LucideIcon> = {
   waiting: Hourglass,

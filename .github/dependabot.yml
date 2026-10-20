@@ -1,0 +1,19 @@
+# Keeps the GitHub Actions in .github/workflows up to date. They are pinned to commit SHAs
+# (a tag can be moved to other code; a SHA can't), so they no longer update by themselves.
+# Once a week Dependabot opens one PR that bumps them; review and merge it like any PR.
+# Only GitHub Actions: npm and Go updates stay manual for now.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Wait 14 days after a release before proposing it: a bad or hacked release is usually
+    # caught and pulled by then.
+    cooldown:
+      default-days: 14
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: chore

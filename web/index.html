@@ -23,8 +23,8 @@
     <!-- Stop iOS turning numbers (like times) into phone links -->
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Home screen install (decision 24): name, icons, standalone window.
-         The service worker (offline, push) comes in M3. Design: Inventory → Icons → App icon. -->
+    <!-- Home screen install (decision 24): name, icons, standalone window. The service worker
+         (src/sw.ts: app shell, pushes) is registered in main.tsx. Design: Inventory → Icons → App icon. -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>rud.</title>

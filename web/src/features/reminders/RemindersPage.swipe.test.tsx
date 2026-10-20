@@ -167,20 +167,30 @@ test('if the API refuses, the row comes back with an error toast', async () => {
   expect(screen.getByRole('link', { name: /Call dentist/ })).toBeInTheDocument()
 })
 
-test('done reminders are read-only: swiping does nothing', async () => {
-  mockReminders({
-    upcoming: [aReminder({ title: 'Book a plumber' })],
-    done: [aReminder({ title: 'Buy card', status: 'done', doneAt: new Date().toISOString() })],
-  })
+test('done reminders: swipe left deletes them too; swipe right does nothing', async () => {
+  const card = aReminder({ title: 'Buy card', status: 'done', doneAt: new Date().toISOString() })
+  mockReminders({ upcoming: [aReminder({ title: 'Book a plumber' })], done: [card] })
+  const sentDone = jest.fn()
+  const deleted: string[] = []
+  server.use(
+    http.post('*/api/v1/reminders/:id/done', sentDone),
+    http.delete(`*/api/v1/reminders/${card.id}`, () => {
+      deleted.push(card.id)
+      mockReminders({ upcoming: [aReminder({ title: 'Book a plumber' })] })
+      return new HttpResponse(null, { status: 204 })
+    }),
+  )
   openList()
 
   const tiles = await screen.findByRole('group', { name: 'Filter reminders' })
   fireEvent.click(await within(tiles).findByRole('button', { name: 'Done' }))
-  const deleted = jest.fn(() => new HttpResponse(null, { status: 204 }))
-  server.use(http.delete('*/api/v1/reminders/:id', deleted))
-  swipe(await screen.findByRole('link', { name: /Buy card/ }), -200)
+  const row = await screen.findByRole('link', { name: /Buy card/ })
 
+  swipe(row, 200)
   await new Promise((resolve) => setTimeout(resolve, 300))
-  expect(deleted).not.toHaveBeenCalled()
-  expect(screen.getByRole('link', { name: /Buy card/ })).toBeInTheDocument()
+  expect(sentDone).not.toHaveBeenCalled()
+
+  swipe(row, -200)
+  await waitFor(() => expect(deleted).toEqual([card.id]))
+  expect(await screen.findByText("Gone. We'll pretend it never happened.")).toBeInTheDocument()
 })

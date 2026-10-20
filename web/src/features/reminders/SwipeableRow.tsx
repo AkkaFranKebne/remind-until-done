@@ -42,7 +42,8 @@ type Drag = { x: number; y: number; axis: 'x' | 'y' | null }
 
 /**
  * A reminder row you can swipe, the same both ways: past 40% of its width the row slides out
- * and the action happens. Right: Done. Left: Delete (owner decision 2026-10-20: no extra tap).
+ * and the action happens. Right: Done. Left: Delete (owner decisions 2026-10-20: no extra tap;
+ * every row, done ones too, which only swipe left).
  * A shorter swipe snaps back. Hand-built: Base UI has no swipeable list item. Vertical drags
  * stay page scrolls (touch-action: pan-y). Without swiping (keyboard, screen readers), the row
  * is still a link to the reminder page, which has Done and Delete.
@@ -53,7 +54,8 @@ export function SwipeableRow({
   onDelete,
   children,
 }: {
-  onDone: () => void
+  /** Swipe right: Done. Left out (done reminders): the row doesn't move right. */
+  onDone?: () => void
   onDelete: () => void
   children: ReactNode
 }) {
@@ -97,7 +99,7 @@ export function SwipeableRow({
         setMoving(true)
       }
     }
-    if (d.axis === 'x') setOffset(dx)
+    if (d.axis === 'x') setOffset(onDone ? dx : Math.min(dx, 0))
   }
 
   const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
@@ -114,7 +116,8 @@ export function SwipeableRow({
     // Slides out the way it was swiped, then the action happens.
     setOffset(x > 0 ? width : -width)
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    leaveTimer.current = window.setTimeout(x > 0 ? onDone : onDelete, reduced ? 0 : LEAVE_MS)
+    const action = x > 0 ? onDone : onDelete
+    if (action) leaveTimer.current = window.setTimeout(action, reduced ? 0 : LEAVE_MS)
   }
 
   // The phone took the touch away (a call, Control Center): never Done or Delete, just go back.

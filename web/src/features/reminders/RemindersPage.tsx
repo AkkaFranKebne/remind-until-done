@@ -105,7 +105,7 @@ export function RemindersPage() {
   })
 
   const active = (upcoming.data?.items ?? []).filter((r) => !gone.has(r.id))
-  const doneItems = done.data?.pages.flatMap((p) => p.items) ?? []
+  const doneItems = (done.data?.pages.flatMap((p) => p.items) ?? []).filter((r) => !gone.has(r.id))
 
   const countOf = (kind: ReminderStatusKind) => active.filter((r) => statusKind(r) === kind).length
   const counts = {
@@ -205,17 +205,13 @@ export function RemindersPage() {
                 {shown.map((r, i) => (
                   // Cards overlap like a stack (−8px); later rows paint over earlier ones.
                   <li key={r.id} className={i > 0 ? '-mt-2' : undefined}>
-                    {/* Done reminders are read-only: no swipes (Inventory → Done tile). */}
-                    {filter === 'done' ? (
+                    {/* Every row swipes left to delete; done ones have nothing to swipe right to. */}
+                    <SwipeableRow
+                      onDone={filter === 'done' ? undefined : () => swipedAway(r.id, markDone)}
+                      onDelete={() => swipedAway(r.id, remove)}
+                    >
                       <ReminderRow reminder={r} now={now} position={i + 1} />
-                    ) : (
-                      <SwipeableRow
-                        onDone={() => swipedAway(r.id, markDone)}
-                        onDelete={() => swipedAway(r.id, remove)}
-                      >
-                        <ReminderRow reminder={r} now={now} position={i + 1} />
-                      </SwipeableRow>
-                    )}
+                    </SwipeableRow>
                   </li>
                 ))}
               </ul>

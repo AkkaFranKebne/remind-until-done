@@ -7,17 +7,22 @@ import { Fab } from '../../components/ui/Fab'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { statusIcon, statusLabel, type ReminderStatusKind } from '../../components/ui/status'
 import { StatusTiles } from '../../components/ui/StatusTiles'
+import { useToast } from '../../components/ui/useToast'
 import {
   getListRemindersQueryKey,
   listReminders,
+  useDeleteReminder,
   useListReminders,
+  useMarkReminderDone,
 } from '../../lib/api/generated/reminders/reminders'
 import { useNow } from '../../lib/useNow'
 import { cn } from '../../lib/cn'
 import { useMe } from '../auth/useMe'
 import { AddReminderSheet } from './AddReminderSheet'
 import { ReminderRow } from './ReminderRow'
+import { SwipeableRow } from './SwipeableRow'
 import { statusKind } from './reminderState'
+import { useReminderChanged } from './useReminderChanged'
 
 /** The API allows 5 active (not done) reminders; at 5 the add button hides. */
 export const MAX_ACTIVE = 5
@@ -42,6 +47,45 @@ export function RemindersPage() {
   const now = useNow()
   const [picked, setPicked] = useState<ReminderStatusKind | null>(null)
   const [adding, setAdding] = useState(false)
+  // Rows swiped away (Done or Delete) leave at once; they come back if the API says no.
+  const [gone, setGone] = useState<ReadonlySet<string>>(new Set())
+  const setGoneFor = (id: string, isGone: boolean) =>
+    setGone((prev) => {
+      const next = new Set(prev)
+      if (isGone) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  const changed = useReminderChanged()
+  const toast = useToast()
+  const failed = (id: string) => {
+    setGoneFor(id, false)
+    toast.error("Couldn't save. Try again.")
+  }
+  // After a success the lists reload first, so the row doesn't flash back in between.
+  const markDone = useMarkReminderDone({
+    mutation: {
+      onSuccess: async (updated, { id }) => {
+        toast.success('Finally. Done.')
+        await changed(id, updated)
+        setGoneFor(id, false)
+      },
+      onError: (_error, { id }) => failed(id),
+    },
+  })
+  const remove = useDeleteReminder({
+    mutation: {
+      onSuccess: async (_data, { id }) => {
+        await changed(id)
+        setGoneFor(id, false)
+      },
+      onError: (_error, { id }) => failed(id),
+    },
+  })
+  const swipedAway = (id: string, action: typeof markDone | typeof remove) => {
+    setGoneFor(id, true)
+    action.mutate({ id })
+  }
 
   // Active reminders: at most 5, so one page is all of them.
   const upcoming = useListReminders({ status: 'upcoming' })
@@ -58,7 +102,7 @@ export function RemindersPage() {
     enabled: picked === 'done',
   })
 
-  const active = upcoming.data?.items ?? []
+  const active = (upcoming.data?.items ?? []).filter((r) => !gone.has(r.id))
   const doneItems = done.data?.pages.flatMap((p) => p.items) ?? []
 
   const countOf = (kind: ReminderStatusKind) => active.filter((r) => statusKind(r) === kind).length
@@ -159,7 +203,18 @@ export function RemindersPage() {
                 {shown.map((r, i) => (
                   // Cards overlap like a stack (−8px); later rows paint over earlier ones.
                   <li key={r.id} className={i > 0 ? '-mt-2' : undefined}>
-                    <ReminderRow reminder={r} now={now} position={i + 1} />
+                    {/* Done reminders are read-only: no swipes (Inventory → Done tile). */}
+                    {filter === 'done' ? (
+                      <ReminderRow reminder={r} now={now} position={i + 1} />
+                    ) : (
+                      <SwipeableRow
+                        label={r.title}
+                        onDone={() => swipedAway(r.id, markDone)}
+                        onDelete={() => swipedAway(r.id, remove)}
+                      >
+                        <ReminderRow reminder={r} now={now} position={i + 1} />
+                      </SwipeableRow>
+                    )}
                   </li>
                 ))}
               </ul>

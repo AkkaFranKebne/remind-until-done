@@ -64,6 +64,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: The build has no test-only or mock code (MSW, faker, dev:mock data)
+        run: npm run check:bundle
       - name: Storybook builds (every story compiles)
         run: npm run build-storybook
 

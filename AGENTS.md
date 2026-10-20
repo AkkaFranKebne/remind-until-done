@@ -77,6 +77,7 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - M2 (own PR, after the reminder page): `npm run dev:mock` (the app on MSW only, for frontend work without the API; design doc 6.7). Needs a fake sign-in too.
 - M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.
 - M6 (delete account): the Delete account sheet closes only on Cancel, so the typed DELETE isn't lost by a swipe or a tap outside (Inventory). `ConfirmSheet` has no option for that yet; add one (blocks swipe, tap outside and Escape).
+- M5 (messages): the reminder page's line under the title rotates like the design doc says (3.8, decision 38): nagging shows the latest push line, done shows the level-5 done line picked when it was marked done. Today `pageSubLine()` (`web/src/features/reminders/reminderState.ts`) returns fixed UX Copy lines. The API needs to send those lines first.
 - M5 (actions): `/actions/{token}` puts the token into the URL path unencoded (orval's generated code). Check that tokens are URL-safe, or encode them, when building it.
 - Before inviting testers (at the latest M7): the per-user request rate limit (design doc 7.2). Today an invited user could loop create/delete and keep the database awake; invite-only and Cloud Run's 2 instances limit the damage.
 - M7 (hardening): Content-Security-Policy in `web/firebase.json`, report-only first (design doc 7.1).

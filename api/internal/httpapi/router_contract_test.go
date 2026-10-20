@@ -50,9 +50,6 @@ func TestEveryRouteIsInSwagger(t *testing.T) {
 // until you do, so the list stays true.
 var notBuiltYet = map[string]string{
 	"DELETE /me":            "M6 (delete account)",
-	"GET /devices":          "M3",
-	"POST /devices":         "M3",
-	"DELETE /devices/{id}":  "M3",
 	"POST /actions/{token}": "M5",
 }
 

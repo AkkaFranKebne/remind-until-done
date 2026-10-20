@@ -20,7 +20,7 @@ export const getListDevicesResponseMock = (
     id: faker.string.uuid(),
     platform: faker.helpers.arrayElement(Object.values(Platform)),
     userAgent: faker.helpers.arrayElement([
-      faker.string.alpha({ length: { min: 10, max: 20 } }),
+      faker.string.alpha({ length: { min: 10, max: 512 } }),
       null,
     ]),
     createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
@@ -35,7 +35,7 @@ export const getRegisterDeviceResponseMock = (
   id: faker.string.uuid(),
   platform: faker.helpers.arrayElement(Object.values(Platform)),
   userAgent: faker.helpers.arrayElement([
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
+    faker.string.alpha({ length: { min: 10, max: 512 } }),
     null,
   ]),
   createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',

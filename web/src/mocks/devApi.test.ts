@@ -1,3 +1,4 @@
+import * as z from 'zod/mini'
 import { server } from './server'
 import { devHandlers, resetDevData } from './devApi'
 
@@ -56,4 +57,34 @@ test('counts characters like the form: 200 emoji fit; a reminder done after 12 p
     await api(`/reminders/${renewPassport}/done`, { method: 'POST' })
   ).json()
   expect(done).toMatchObject({ status: 'done', nagsExhausted: false })
+})
+
+test('devices: one per user, the same token keeps its id, a new one replaces it (decision 40)', async () => {
+  expect(await (await api('/devices')).json()).toEqual({ items: [] })
+  // The answer is a Device: an id, and never the push token.
+  const Device = z.object({ id: z.string() })
+  const register = async (fcmToken: string) => {
+    const res = await api('/devices', {
+      method: 'POST',
+      body: JSON.stringify({ fcmToken, platform: 'ios' }),
+    })
+    expect(res.status).toBe(200)
+    const device: unknown = await res.json()
+    expect(device).not.toHaveProperty('fcmToken')
+    return Device.parse(device).id
+  }
+
+  const first = await register('phone-a')
+  expect(await register('phone-a')).toBe(first)
+  const second = await register('phone-b')
+  expect(second).not.toBe(first)
+  expect(await (await api('/devices')).json()).toHaveProperty('items.length', 1)
+
+  const bad = await api('/devices', {
+    method: 'POST',
+    body: JSON.stringify({ fcmToken: '', platform: 'ios' }),
+  })
+  expect(bad.status).toBe(400)
+  expect((await api(`/devices/${first}`, { method: 'DELETE' })).status).toBe(404)
+  expect((await api(`/devices/${second}`, { method: 'DELETE' })).status).toBe(204)
 })

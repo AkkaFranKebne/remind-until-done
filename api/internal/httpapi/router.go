@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
@@ -39,12 +40,20 @@ type ReminderStore interface {
 	MarkDone(ctx context.Context, userID, id string) (reminders.Reminder, error)
 }
 
+// DeviceStore keeps the user's push device (one per user). *devices.Service is the real one.
+type DeviceStore interface {
+	Get(ctx context.Context, userID string) (*devices.Device, error)
+	Register(ctx context.Context, userID string, in devices.RegisterInput) (devices.Device, error)
+	Delete(ctx context.Context, userID, id string) error
+}
+
 // Deps is everything the API talks to. main passes the real ones, tests pass fakes.
 type Deps struct {
 	DB        Pinger
 	Tokens    TokenVerifier
 	Users     UserStore
 	Reminders ReminderStore
+	Devices   DeviceStore
 	Invited   auth.Allowlist
 }
 
@@ -54,11 +63,15 @@ type API struct {
 	tokens    TokenVerifier
 	users     UserStore
 	reminders ReminderStore
+	devices   DeviceStore
 	invited   auth.Allowlist
 }
 
 func New(log *slog.Logger, d Deps) *API {
-	return &API{log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users, reminders: d.Reminders, invited: d.Invited}
+	return &API{
+		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users,
+		reminders: d.Reminders, devices: d.Devices, invited: d.Invited,
+	}
 }
 
 type route struct {
@@ -78,6 +91,9 @@ func (a *API) routes() []route {
 		{"PATCH", "/reminders/{id}", a.requireUser(a.updateReminder)},
 		{"DELETE", "/reminders/{id}", a.requireUser(a.deleteReminder)},
 		{"POST", "/reminders/{id}/done", a.requireUser(a.markReminderDone)},
+		{"GET", "/devices", a.requireUser(a.listDevices)},
+		{"POST", "/devices", a.requireUser(a.registerDevice)},
+		{"DELETE", "/devices/{id}", a.requireUser(a.deleteDevice)},
 	}
 }
 

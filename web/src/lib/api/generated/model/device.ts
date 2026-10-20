@@ -10,7 +10,11 @@ import type { Platform } from './platform'
 export interface Device {
   id: string
   platform: Platform
-  /** @nullable */
+  /**
+   * The registering browser's User-Agent header, cut to 512 characters
+   * @maxLength 512
+   * @nullable
+   */
   userAgent?: string | null
   createdAt: string
   lastSeenAt: string

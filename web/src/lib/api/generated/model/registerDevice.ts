@@ -8,9 +8,14 @@
 import type { Platform } from './platform'
 
 /**
- * Registering a new device replaces the previous one.
+ * Registering a new device replaces the previous one (one device per user). The same token again keeps its id and refreshes lastSeenAt; a token still saved for another user moves to this one. userAgent is taken from the request's User-Agent header.
  */
 export interface RegisterDevice {
+  /**
+   * This browser's FCM push token. Never sent back or logged
+   * @minLength 1
+   * @maxLength 2048
+   */
   fcmToken: string
   platform: Platform
 }

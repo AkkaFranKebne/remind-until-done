@@ -210,7 +210,6 @@ export function RemindersPage() {
                       <ReminderRow reminder={r} now={now} position={i + 1} />
                     ) : (
                       <SwipeableRow
-                        label={r.title}
                         onDone={() => swipedAway(r.id, markDone)}
                         onDelete={() => swipedAway(r.id, remove)}
                       >

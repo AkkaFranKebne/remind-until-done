@@ -107,7 +107,7 @@ test('if the phone cancels the touch (a call, Control Center), nothing is marked
   expect(screen.getByRole('link', { name: /Call dentist/ })).toBeInTheDocument()
 })
 
-test('swipe left reveals Delete; tapping it deletes (no sheet)', async () => {
+test('swipe left past 40%: deleted at once, like Done (no button, no sheet), with a toast', async () => {
   const dentist = aReminder({ title: 'Call dentist' })
   mockReminders({ upcoming: [dentist] })
   const deleted: string[] = []
@@ -120,8 +120,7 @@ test('swipe left reveals Delete; tapping it deletes (no sheet)', async () => {
   )
   openList()
 
-  swipe(await screen.findByRole('link', { name: /Call dentist/ }), -80)
-  fireEvent.click(screen.getByRole('button', { name: 'Delete Call dentist' }))
+  swipe(await screen.findByRole('link', { name: /Call dentist/ }), -200)
 
   await waitFor(() => expect(deleted).toEqual([dentist.id]))
   // No confirm sheet (the toast is a dialog too, in Base UI).
@@ -132,18 +131,22 @@ test('swipe left reveals Delete; tapping it deletes (no sheet)', async () => {
   )
 })
 
-test('an open row closes on a tap instead of opening the reminder', async () => {
-  mockReminders({ upcoming: [aReminder({ title: 'Call dentist' })] })
+test('a short swipe left snaps back and deletes nothing; a mouse swipe deletes too', async () => {
+  const dentist = aReminder({ title: 'Call dentist' })
+  mockReminders({ upcoming: [dentist] })
+  const deleted = jest.fn(() => new HttpResponse(null, { status: 204 }))
+  server.use(http.delete('*/api/v1/reminders/:id', deleted))
   const router = openList()
 
   const row = await screen.findByRole('link', { name: /Call dentist/ })
-  swipe(row, -80, 'mouse') // a desktop mouse works too
-  expect(screen.getByRole('button', { name: 'Delete Call dentist' })).toBeInTheDocument()
-
-  fireEvent.click(row)
-
+  swipe(row, -80, 'mouse')
+  fireEvent.click(row) // a mouse sends a click after its drag: it must not open the reminder
   expect(router.state.location.pathname).toBe('/')
-  expect(screen.queryByRole('button', { name: 'Delete Call dentist' })).not.toBeInTheDocument()
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  expect(deleted).not.toHaveBeenCalled()
+
+  swipe(row, -200, 'mouse')
+  await waitFor(() => expect(deleted).toHaveBeenCalledTimes(1))
 })
 
 test('if the API refuses, the row comes back with an error toast', async () => {
@@ -173,7 +176,11 @@ test('done reminders are read-only: swiping does nothing', async () => {
 
   const tiles = await screen.findByRole('group', { name: 'Filter reminders' })
   fireEvent.click(await within(tiles).findByRole('button', { name: 'Done' }))
-  swipe(await screen.findByRole('link', { name: /Buy card/ }), -80)
+  const deleted = jest.fn(() => new HttpResponse(null, { status: 204 }))
+  server.use(http.delete('*/api/v1/reminders/:id', deleted))
+  swipe(await screen.findByRole('link', { name: /Buy card/ }), -200)
 
-  expect(screen.queryByRole('button', { name: /Delete/ })).not.toBeInTheDocument()
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  expect(deleted).not.toHaveBeenCalled()
+  expect(screen.getByRole('link', { name: /Buy card/ })).toBeInTheDocument()
 })

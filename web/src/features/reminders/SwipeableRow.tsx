@@ -1,16 +1,13 @@
-import { Button } from '@base-ui/react/button'
 import { cva } from 'class-variance-authority'
 import { Check, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 
-/** Width of the revealed Delete button (w-22), in px. */
-const REVEAL = 88
 /** A drag shorter than this (px) is still a tap. */
 const SLOP = 8
 /** Sideways only when clearly more sideways than down: a slanted scroll stays a scroll. */
 const SIDEWAYS = 1.5
-/** Swipe right past this share of the row's width to mark it done (Inventory → Motion 2). */
-const DONE_AT = 0.4
+/** Swipe past this share of the row's width, either way, to commit (Inventory → Motion 2). */
+const COMMIT_AT = 0.4
 /** How long the row takes to slide out (--duration-base); snapping back uses --duration-fast. */
 const LEAVE_MS = 220
 
@@ -19,18 +16,18 @@ type Motion = 'dragging' | 'snapping' | 'leaving'
 
 /** What shows under the row while it moves: green Done (right) or red Delete (left). */
 const underneath = cva(
-  'absolute inset-0 flex items-center overflow-hidden rounded-md text-sm font-semibold',
+  'absolute inset-0 flex items-center overflow-hidden rounded-md px-4 text-sm font-semibold',
   {
     variants: {
       side: {
-        done: 'bg-tag-done px-4 text-tag-done-fg',
+        done: 'bg-tag-done text-tag-done-fg',
         delete: 'justify-end bg-error text-on-solid',
       } satisfies Record<Side, string>,
     },
   },
 )
 
-/** The row follows the finger while dragged; it snaps back fast and slides out (Done) slower. */
+/** The row follows the finger while dragged; it snaps back fast and slides out slower. */
 const slide = cva('relative touch-pan-y motion-reduce:transition-none', {
   variants: {
     motion: {
@@ -41,32 +38,27 @@ const slide = cva('relative touch-pan-y motion-reduce:transition-none', {
   },
 })
 
-type Drag = { x: number; y: number; from: number; axis: 'x' | 'y' | null }
+type Drag = { x: number; y: number; axis: 'x' | 'y' | null }
 
 /**
- * A reminder row you can swipe. Right, past 40% of its width: Done (the row slides out).
- * Left: uncovers a red Delete button; tapping it deletes (the two steps are the confirmation,
- * no sheet). The row stays open until you tap Delete, swipe it back, or tap anywhere else.
- * Hand-built: Base UI has no swipeable list item. Vertical drags stay page scrolls
- * (touch-action: pan-y). Without swiping (keyboard, screen readers), the row is still a link
- * to the reminder page, which has Done and Delete.
+ * A reminder row you can swipe, the same both ways: past 40% of its width the row slides out
+ * and the action happens. Right: Done. Left: Delete (owner decision 2026-10-20: no extra tap).
+ * A shorter swipe snaps back. Hand-built: Base UI has no swipeable list item. Vertical drags
+ * stay page scrolls (touch-action: pan-y). Without swiping (keyboard, screen readers), the row
+ * is still a link to the reminder page, which has Done and Delete.
  * Design Inventory → Motion 2 "Swipe row gesture"; Inspiration "Swipe gestures on list rows".
  */
 export function SwipeableRow({
-  label,
   onDone,
   onDelete,
   children,
 }: {
-  /** The reminder's title, for the Delete button's name ("Delete Call dentist"). */
-  label: string
   onDone: () => void
   onDelete: () => void
   children: ReactNode
 }) {
-  const ref = useRef<HTMLDivElement>(null)
   const drag = useRef<Drag | null>(null)
-  // A drag just ended: the click that follows must not open the reminder.
+  // A drag just ended: the click a mouse sends next must not open the reminder.
   const dragged = useRef(false)
   // The live position (read in the handlers) and its copy in state (for drawing).
   const live = useRef(0)
@@ -76,28 +68,14 @@ export function SwipeableRow({
     setOffsetState(x)
   }
   const [moving, setMoving] = useState(false)
-  const open = offset === -REVEAL && !moving
   const leaveTimer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(leaveTimer.current), [])
-
-  // While open, a tap anywhere else closes it (a listener on the page: outside React).
-  useEffect(() => {
-    if (!open) return
-    const close = (e: globalThis.PointerEvent) => {
-      if (e.target instanceof Node && !ref.current?.contains(e.target)) {
-        live.current = 0
-        setOffsetState(0)
-      }
-    }
-    document.addEventListener('pointerdown', close)
-    return () => document.removeEventListener('pointerdown', close)
-  }, [open])
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return
     // A touch drag ends without a click, so the last drag's flag is cleared here.
     dragged.current = false
-    drag.current = { x: e.clientX, y: e.clientY, from: live.current, axis: null }
+    drag.current = { x: e.clientX, y: e.clientY, axis: null }
   }
 
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -119,8 +97,7 @@ export function SwipeableRow({
         setMoving(true)
       }
     }
-    // Left stops a little past the Delete button; right follows the finger.
-    if (d.axis === 'x') setOffset(Math.max(d.from + dx, -REVEAL * 1.25))
+    if (d.axis === 'x') setOffset(dx)
   }
 
   const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
@@ -130,13 +107,14 @@ export function SwipeableRow({
     setMoving(false)
     const x = live.current
     const width = e.currentTarget.getBoundingClientRect().width
-    if (x > width * DONE_AT) {
-      setOffset(width) // slides out, then it's done
-      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-      leaveTimer.current = window.setTimeout(onDone, reduced ? 0 : LEAVE_MS)
-    } else {
-      setOffset(x < -REVEAL / 2 ? -REVEAL : 0)
+    if (Math.abs(x) < width * COMMIT_AT) {
+      setOffset(0)
+      return
     }
+    // Slides out the way it was swiped, then the action happens.
+    setOffset(x > 0 ? width : -width)
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    leaveTimer.current = window.setTimeout(x > 0 ? onDone : onDelete, reduced ? 0 : LEAVE_MS)
   }
 
   // The phone took the touch away (a call, Control Center): never Done or Delete, just go back.
@@ -145,29 +123,23 @@ export function SwipeableRow({
     drag.current = null
     if (d?.axis !== 'x') return
     setMoving(false)
-    setOffset(d.from)
+    setOffset(0)
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative">
       {offset !== 0 ? (
-        <div className={underneath({ side: offset > 0 ? 'done' : 'delete' })}>
+        <div aria-hidden="true" className={underneath({ side: offset > 0 ? 'done' : 'delete' })}>
           {offset > 0 ? (
-            <span aria-hidden="true" className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5">
               <Check size={18} strokeWidth={2.5} />
               Done
             </span>
           ) : (
-            <Button
-              aria-label={`Delete ${label}`}
-              // Only reachable once the row is fully open.
-              disabled={!open}
-              onClick={onDelete}
-              className="flex h-full w-22 cursor-pointer flex-col items-center justify-center gap-1 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-on-solid"
-            >
-              <Trash2 aria-hidden="true" size={18} strokeWidth={2} />
+            <span className="flex items-center gap-1.5">
               Delete
-            </Button>
+              <Trash2 size={18} strokeWidth={2} />
+            </span>
           )}
         </div>
       ) : null}
@@ -176,19 +148,17 @@ export function SwipeableRow({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
-        // After a drag, or on an open row, a tap closes the row instead of opening the reminder.
+        // The click a mouse sends at the end of its drag: swallow it, so it doesn't open the reminder.
         onClickCapture={(e) => {
-          if (dragged.current || open) {
-            e.preventDefault()
-            e.stopPropagation()
-            dragged.current = false
-            if (open) setOffset(0)
-          }
+          if (!dragged.current) return
+          e.preventDefault()
+          e.stopPropagation()
+          dragged.current = false
         }}
         // The browser's own link drag (desktop) would cancel the swipe.
         onDragStart={(e) => e.preventDefault()}
         style={{ transform: `translateX(${offset}px)` }}
-        className={slide({ motion: moving ? 'dragging' : offset > 0 ? 'leaving' : 'snapping' })}
+        className={slide({ motion: moving ? 'dragging' : offset !== 0 ? 'leaving' : 'snapping' })}
       >
         {children}
       </div>

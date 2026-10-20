@@ -5,13 +5,13 @@ import type { AuthUser } from '../../lib/authClient'
  * Who is signed in, for the whole app (design doc 5.1, 5.6).
  *
  *   checking   Firebase is still restoring the session (show the splash screen)
- *   signedOut  nobody, or sign-in failed (`error` says why)
+ *   signedOut  nobody, or sign-in failed (`error` says why); `byUser`: they tapped Sign out
  *   notInvited signed in with Google, but not on the invite list: we signed them out
  *   signedIn   the API knows them; their settings (GET /me) come from useMe()
  */
 export type AuthState =
   | { status: 'checking' }
-  | { status: 'signedOut'; error?: string }
+  | { status: 'signedOut'; error?: string; byUser?: boolean }
   | { status: 'notInvited'; email: string | null }
   | { status: 'signedIn'; user: AuthUser }
 

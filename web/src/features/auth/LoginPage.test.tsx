@@ -19,6 +19,18 @@ describe('signed-in pages (route guard)', () => {
     expect(router.state.location.pathname).toBe('/login')
     expect(router.state.location.search).toEqual({ next: '/r/abc?tab=done' })
   })
+
+  it('if the session ends by itself (not Sign out), /login still remembers the page', async () => {
+    mockMe()
+    const client = new FakeAuthClient(tester)
+    const router = renderApp('/settings', client)
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+
+    act(() => client.emit(null)) // Firebase: nobody signed in any more
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+    expect(router.state.location.search).toEqual({ next: '/settings' })
+  })
 })
 
 describe('LoginPage', () => {

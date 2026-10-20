@@ -41,7 +41,10 @@ const appRoute = createRoute({
   beforeLoad: ({ context, location }) => {
     const { status } = context.auth
     if (status === 'checking' || status === 'signedIn') return
-    throw redirect({ to: '/login', search: { next: location.href }, replace: true })
+    // Tapped Sign out: a fresh start on the plain login page (then the list), not back to this
+    // page. Signed out any other way (session ended): remember the page in `next`.
+    const byUser = context.auth.status === 'signedOut' && context.auth.byUser === true
+    throw redirect({ to: '/login', search: byUser ? {} : { next: location.href }, replace: true })
   },
   component: () => (
     <RequireAuth>

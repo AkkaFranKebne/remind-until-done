@@ -18,7 +18,7 @@ export function SettingsPage() {
   const me = useMe() // email and settings: our API (GET /me)
   const [confirming, setConfirming] = useState(false)
   // Signing out: the button stays busy (isPending) until it's done. Then the route's guard
-  // (app/router.tsx) sends you to /login, because nobody is signed in any more.
+  // (app/router.tsx) sends you to the plain /login (no `next`: you signed out on purpose).
   // networkMode 'always': not an API call. Firebase signs out offline too; TanStack's default
   // would pause the mutation while offline and leave the button busy.
   const leave = useMutation({ mutationFn: signOut, networkMode: 'always' })

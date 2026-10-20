@@ -44,6 +44,8 @@ describe('SettingsPage', () => {
     fireEvent.click(confirm!)
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+    // The plain login page: signing back in starts on the list, not back in Settings.
+    expect(router.state.location.search).toEqual({})
     expect(client.signOutCalls).toBe(1)
   })
 

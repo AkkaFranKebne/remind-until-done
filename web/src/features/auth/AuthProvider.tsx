@@ -1,5 +1,5 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ApiError, setTokenSource } from '../../lib/api/mutator'
 import type { AuthClient, AuthUser } from '../../lib/authClient'
 import { AuthContext, type AuthContextValue, type AuthState } from './useAuth'
@@ -9,6 +9,8 @@ const SIGN_IN_FAILED = 'Sign-in failed. Check your connection and try again.'
 
 export function AuthProvider({ client, children }: { client: AuthClient; children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'checking' })
+  // Set when the person taps Sign out, so the next "nobody" event is marked byUser.
+  const signingOut = useRef(false)
   const queryClient = useQueryClient()
 
   // Sync with Firebase (outside React): its "user changed" events drive the state.
@@ -35,7 +37,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
         setState((prev) =>
           prev.status === 'notInvited' || prev.status === 'signedOut'
             ? prev
-            : { status: 'signedOut' },
+            : { status: 'signedOut', byUser: signingOut.current },
         )
         return
       }
@@ -63,7 +65,12 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
           setState({ status: 'signedOut', error: SIGN_IN_FAILED })
         }
       },
-      signOut: () => client.signOut(),
+      signOut: () => {
+        signingOut.current = true
+        return client.signOut().finally(() => {
+          signingOut.current = false
+        })
+      },
     }),
     [client, state],
   )

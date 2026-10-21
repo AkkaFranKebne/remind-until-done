@@ -11,13 +11,33 @@ export const IPHONE_17 =
 export const IPHONE_15_7 =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 15_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Mobile/15E148 Safari/604.1'
 
-/** Opened from the home screen icon. */
-export function pretendInstalled() {
-  Object.defineProperty(window, 'matchMedia', {
-    configurable: true,
-    value: (query: string) => ({ matches: query === '(display-mode: standalone)', media: query }),
+let displayMode: 'browser' | 'standalone' = 'browser'
+const displayModeListeners = new Set<() => void>()
+
+const fakeMatchMedia = (query: string) => ({
+  media: query,
+  get matches() {
+    return query === '(display-mode: standalone)' && displayMode === 'standalone'
+  },
+  addEventListener: (_type: 'change', listener: () => void) => displayModeListeners.add(listener),
+  removeEventListener: (_type: 'change', listener: () => void) =>
+    displayModeListeners.delete(listener),
+})
+
+/**
+ * A browser tab or the installed app's window. Changing it later works like desktop Chrome
+ * moving the tab that installed rud. into the app's window: the page hears it and redraws.
+ */
+export function pretendDisplayMode(mode: 'browser' | 'standalone') {
+  displayMode = mode
+  Object.defineProperty(window, 'matchMedia', { configurable: true, value: fakeMatchMedia })
+  act(() => {
+    for (const listener of displayModeListeners) listener()
   })
 }
+
+/** Opened from the home screen icon. */
+export const pretendInstalled = () => pretendDisplayMode('standalone')
 
 /** Another browser: e.g. an iPhone (IPHONE_17). maxTouchPoints > 1 = a touch screen. */
 export function pretendUserAgent(userAgent: string, maxTouchPoints = 5) {
@@ -57,6 +77,8 @@ export async function pretendAppFound(answer: unknown[] | Error = [{ platform: '
 
 export function resetDevice() {
   Reflect.deleteProperty(window, 'matchMedia')
+  displayMode = 'browser'
+  displayModeListeners.clear()
   Reflect.deleteProperty(navigator, 'userAgent')
   Reflect.deleteProperty(navigator, 'maxTouchPoints')
   Reflect.deleteProperty(navigator, 'getInstalledRelatedApps')

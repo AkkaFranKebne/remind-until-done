@@ -39,11 +39,23 @@ export function isTooOld(ios: Ios): boolean {
   return major < MIN_IOS[0] || (major === MIN_IOS[0] && minor < MIN_IOS[1])
 }
 
+const STANDALONE = '(display-mode: standalone)'
+
 /** Opened from the home screen icon (the installed app), not in a browser tab. */
 export function isStandalone(): boolean {
   // matchMedia: every browser; navigator.standalone: older iOS Safari only.
   return (
-    window.matchMedia?.('(display-mode: standalone)').matches ||
+    window.matchMedia?.(STANDALONE).matches ||
     ('standalone' in navigator && navigator.standalone === true)
   )
+}
+
+/**
+ * For useSyncExternalStore: tells when isStandalone() may have changed. Desktop Chrome moves the
+ * tab that installed rud. into the app's own window, so the same page becomes the app.
+ */
+export function subscribeStandalone(onChange: () => void) {
+  const query = window.matchMedia?.(STANDALONE)
+  query?.addEventListener?.('change', onChange)
+  return () => query?.removeEventListener?.('change', onChange)
 }

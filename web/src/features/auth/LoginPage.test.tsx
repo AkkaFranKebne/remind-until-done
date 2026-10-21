@@ -3,6 +3,7 @@ import {
   IPHONE_15_7,
   IPHONE_17,
   offerInstall,
+  pretendAppFound,
   pretendInstalled,
   pretendUserAgent,
   resetDevice,
@@ -188,14 +189,25 @@ describe('LoginPage: the install gate (design doc §0)', () => {
     expect(screen.queryByRole('button', { name: 'Install app' })).not.toBeInTheDocument()
   })
 
-  it('no install offer (another browser, or a dismissed one): sign-in, and how to install', async () => {
+  it('no install offer (another browser, or a dismissed one): sign-in, and open the app if it is there', async () => {
     openLogin()
 
     expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Push notifications need the installed app. Install rud. from your browser menu.',
+        'Push notifications need the installed app. Already installed? Open rud. from your apps.',
       ),
     ).toBeInTheDocument()
+  })
+
+  it('a tab on a device that already has the app: sign-in, and open the app', async () => {
+    await pretendAppFound()
+    openLogin()
+
+    expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+    expect(
+      screen.getByText('rud. is installed. Open it from your apps for notifications.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Install app' })).not.toBeInTheDocument()
   })
 })

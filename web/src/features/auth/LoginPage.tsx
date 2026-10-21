@@ -25,7 +25,9 @@ const footnote = {
   installed: 'rud. is invite-only.',
   installable: 'Push notifications need the installed app.',
   'just-installed': 'Push notifications need the installed app.',
-  unavailable: 'Push notifications need the installed app. Install rud. from your browser menu.',
+  'app-found': 'rud. is installed. Open it from your apps for notifications.',
+  unavailable:
+    'Push notifications need the installed app. Already installed? Open rud. from your apps.',
 } satisfies Record<Exclude<InstallState, 'ios-too-old' | 'ios-browser'>, string>
 
 /**

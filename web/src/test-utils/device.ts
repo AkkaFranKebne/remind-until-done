@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { clearInstallPrompt } from '../features/pwa/installPrompt'
+import { checkInstalledApp, clearInstallPrompt } from '../features/pwa/installPrompt'
 
 /**
  * Pretend devices for the install gate (src/features/pwa). jsdom is a desktop browser tab with no
@@ -43,9 +43,22 @@ export function offerInstall(outcome: 'accepted' | 'dismissed' = 'accepted') {
   return event
 }
 
+/**
+ * The browser answers "is rud. installed here?" (getInstalledRelatedApps): by default with one
+ * app; pass [] for none, or an error for a browser that refuses to say.
+ */
+export async function pretendAppFound(answer: unknown[] | Error = [{ platform: 'webapp' }]) {
+  Object.defineProperty(navigator, 'getInstalledRelatedApps', {
+    configurable: true,
+    value: () => (answer instanceof Error ? Promise.reject(answer) : Promise.resolve(answer)),
+  })
+  await act(() => checkInstalledApp())
+}
+
 export function resetDevice() {
   Reflect.deleteProperty(window, 'matchMedia')
   Reflect.deleteProperty(navigator, 'userAgent')
   Reflect.deleteProperty(navigator, 'maxTouchPoints')
+  Reflect.deleteProperty(navigator, 'getInstalledRelatedApps')
   act(() => clearInstallPrompt())
 }

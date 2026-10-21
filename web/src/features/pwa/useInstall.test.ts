@@ -1,4 +1,4 @@
-import { offerInstall, resetDevice } from '../../test-utils/device'
+import { offerInstall, pretendAppFound, resetDevice } from '../../test-utils/device'
 import { getState, promptInstall, type InstallPromptState } from './installPrompt'
 import type { Ios } from './platform'
 import { installStateOf } from './useInstall'
@@ -6,7 +6,7 @@ import { installStateOf } from './useInstall'
 afterEach(resetDevice)
 
 const iphone = (version: number[]): Ios => ({ device: 'iPhone', version })
-const noOffer: InstallPromptState = { prompt: null, installed: false }
+const noOffer: InstallPromptState = { prompt: null, installed: false, appFound: false }
 
 describe('installStateOf (design doc §0 detection table)', () => {
   it('old iOS is a hard stop, even when installed', () => {
@@ -37,6 +37,27 @@ describe('installStateOf (design doc §0 detection table)', () => {
       'unavailable',
     )
   })
+
+  it('a tab where the browser says rud. is already installed: app-found', async () => {
+    await pretendAppFound()
+    expect(getState().appFound).toBe(true)
+    expect(installStateOf({ ios: null, standalone: false, prompt: getState() }).state).toBe(
+      'app-found',
+    )
+    // Opened from the icon, it's simply installed.
+    expect(installStateOf({ ios: null, standalone: true, prompt: getState() }).state).toBe(
+      'installed',
+    )
+  })
+})
+
+describe('checkInstalledApp', () => {
+  it('no app found, or the browser refuses to say: nothing changes', async () => {
+    await pretendAppFound([])
+    expect(getState().appFound).toBe(false)
+    await pretendAppFound(new Error('not allowed'))
+    expect(getState().appFound).toBe(false)
+  })
 })
 
 describe('promptInstall', () => {
@@ -44,25 +65,25 @@ describe('promptInstall', () => {
     const event = offerInstall('accepted')
     await promptInstall()
     expect(event.prompted).toBe(1)
-    expect(getState()).toEqual({ prompt: null, installed: true })
+    expect(getState()).toEqual({ prompt: null, installed: true, appFound: false })
   })
 
   it('dismissed: the offer is used up (Chrome may make a new one later)', async () => {
     offerInstall('dismissed')
     await promptInstall()
-    expect(getState()).toEqual({ prompt: null, installed: false })
+    expect(getState()).toEqual({ prompt: null, installed: false, appFound: false })
   })
 
-  it('Chrome refuses a used-up offer: dropped, so the page offers the browser menu instead', async () => {
+  it('Chrome refuses a used-up offer: dropped, so the page shows no Install button', async () => {
     const event = offerInstall()
     event.prompt = () => Promise.reject(new DOMException('already used', 'InvalidStateError'))
     await expect(promptInstall()).rejects.toThrow('already used')
-    expect(getState()).toEqual({ prompt: null, installed: false })
+    expect(getState()).toEqual({ prompt: null, installed: false, appFound: false })
   })
 
   it('installed from the browser menu instead: "just installed" too', () => {
     offerInstall()
     window.dispatchEvent(new Event('appinstalled'))
-    expect(getState()).toEqual({ prompt: null, installed: true })
+    expect(getState()).toEqual({ prompt: null, installed: true, appFound: false })
   })
 })

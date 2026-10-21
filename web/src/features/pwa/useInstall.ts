@@ -11,11 +11,18 @@ import { isStandalone, isTooOld, readIos, type Ios } from './platform'
  * - `ios-browser`: an iPhone or iPad in a browser tab: the Share → Add to Home Screen steps.
  * - `installable`: Chrome offered to install: our Install button.
  * - `just-installed`: installed from this tab just now; the app opens from the home screen.
- * - `unavailable`: a tab with no install offer (Firefox, desktop Safari, a dismissed offer, or
- *   already installed but opened in a tab): install from the browser's menu.
+ * - `app-found`: a tab, and the browser says rud. is already installed: open the app.
+ * - `unavailable`: a tab with no install offer and no answer (Firefox, desktop Safari, a dismissed
+ *   offer, or installed but the browser can't tell): install it, or open it if it's there.
  */
 export type InstallState =
-  'ios-too-old' | 'installed' | 'ios-browser' | 'installable' | 'just-installed' | 'unavailable'
+  | 'ios-too-old'
+  | 'installed'
+  | 'ios-browser'
+  | 'installable'
+  | 'just-installed'
+  | 'app-found'
+  | 'unavailable'
 
 /** The state, plus the iPhone or iPad it's on (always there for the two iOS states). */
 export type InstallInfo =
@@ -51,5 +58,6 @@ export function installStateOf({
   if (ios) return { state: 'ios-browser', ios }
   if (prompt.prompt) return { state: 'installable', ios }
   if (prompt.installed) return { state: 'just-installed', ios }
+  if (prompt.appFound) return { state: 'app-found', ios }
   return { state: 'unavailable', ios }
 }

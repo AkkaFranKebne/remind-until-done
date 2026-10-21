@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useSyncExternalStore } from 'react'
 import { getState, promptInstall, subscribe, type InstallPromptState } from './installPrompt'
-import { isStandalone, isTooOld, readIos, type Ios } from './platform'
+import { isStandalone, isTooOld, readIos, subscribeStandalone, type Ios } from './platform'
 
 /**
  * Where this device stands with installing rud. (design doc §0 "Detection logic", 5.1
@@ -34,10 +34,11 @@ export function useInstall(): InstallInfo & {
   install: ReturnType<typeof useInstallMutation>
 } {
   const prompt = useSyncExternalStore(subscribe, getState)
+  const standalone = useSyncExternalStore(subscribeStandalone, isStandalone)
   const install = useInstallMutation()
   const ios = readIos(navigator.userAgent, navigator.maxTouchPoints)
 
-  return { ...installStateOf({ ios, standalone: isStandalone(), prompt }), install }
+  return { ...installStateOf({ ios, standalone, prompt }), install }
 }
 
 // networkMode 'always': the dialog is the browser's, not the network's (offline it still works).

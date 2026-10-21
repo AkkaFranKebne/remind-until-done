@@ -3,6 +3,7 @@ import {
   IPHONE_15_7,
   IPHONE_17,
   offerInstall,
+  pretendDisplayMode,
   pretendAppFound,
   pretendInstalled,
   pretendUserAgent,
@@ -186,6 +187,26 @@ describe('LoginPage: the install gate (design doc §0)', () => {
       await screen.findByText('Installed. Open rud. from your home screen.'),
     ).toBeInTheDocument()
     expect(event.prompted).toBe(1)
+    expect(screen.queryByRole('button', { name: 'Install app' })).not.toBeInTheDocument()
+  })
+
+  it('desktop Chrome moves the installing tab into the app window: plain sign-in there', async () => {
+    pretendDisplayMode('browser')
+    openLogin()
+    offerInstall('accepted')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Install app' }))
+    expect(
+      await screen.findByText('Installed. Open rud. from your home screen.'),
+    ).toBeInTheDocument()
+
+    pretendDisplayMode('standalone')
+
+    expect(await screen.findByText('rud. is invite-only.')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Installed. Open rud. from your home screen.'),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Install app' })).not.toBeInTheDocument()
   })
 

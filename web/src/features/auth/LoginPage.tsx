@@ -107,7 +107,7 @@ export function LoginPage() {
         // installed app keeps its own sign-in (design doc §0).
         <>
           <IosInstallSteps device={ios.device} />
-          <p className="mt-2.5 text-xs text-fg2">
+          <p className="mt-5 text-xs text-fg2">
             Sign-in available after installing.
             <br />
             Requires iOS {MIN_IOS.join('.')} or later.

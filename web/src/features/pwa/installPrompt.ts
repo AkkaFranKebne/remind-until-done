@@ -5,7 +5,8 @@
  *
  * Chrome stops offering once rud. is installed, so a tab also asks whether the app is already on
  * this device (getInstalledRelatedApps: Chrome on Android, Chrome and Edge 140+ on desktop; it
- * needs `related_applications` in public/manifest.webmanifest). Other browsers can't tell.
+ * needs `related_applications` in public/manifest.webmanifest, each site by its full address).
+ * Other browsers can't tell.
  */
 
 /** Chrome's event (not in TypeScript's DOM types yet). */

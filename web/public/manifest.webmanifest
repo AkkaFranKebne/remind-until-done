@@ -6,7 +6,18 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "related_applications": [{ "platform": "webapp", "url": "/manifest.webmanifest", "id": "/" }],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://rud-dev-4f7k2.web.app/manifest.webmanifest",
+      "id": "https://rud-dev-4f7k2.web.app/"
+    },
+    {
+      "platform": "webapp",
+      "url": "https://rud-prod-4f7k2.web.app/manifest.webmanifest",
+      "id": "https://rud-prod-4f7k2.web.app/"
+    }
+  ],
   "background_color": "#f8f7f5",
   "theme_color": "#6d28d9",
   "icons": [

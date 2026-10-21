@@ -113,6 +113,9 @@ export function LoginPage() {
             Sign-in available after installing.
             <br />
             Requires iOS {MIN_IOS.join('.')} or later.
+            <br />
+            {/* Safari can't tell whether the app is installed (decision 42). */}
+            Already installed? Open rud. from your Home Screen.
           </p>
         </>
       ) : (

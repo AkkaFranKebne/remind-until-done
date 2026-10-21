@@ -151,6 +151,9 @@ describe('LoginPage: the install gate (design doc §0)', () => {
       '3Open rud. from your Home Screen',
     ])
     expect(screen.getByText(/Sign-in available after installing/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Already installed\? Open rud\. from your Home Screen\./),
+    ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument()
   })
 

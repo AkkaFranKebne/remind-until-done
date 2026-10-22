@@ -1,7 +1,12 @@
 /**
- * The id the API gave this device (POST /devices), kept in this browser (design doc 5.7). It
- * tells "this device gets the pushes" from "another one took over". Storage can be blocked or
- * cleared: then it's simply unknown.
+ * This device's id, kept in localStorage (design doc 5.7).
+ *
+ * The API gives each device an id when it registers (POST /devices), and only one device per
+ * account gets the pushes. To show "this device gets the pushes" or "another device took over",
+ * Settings compares the id the API has (GET /devices) with the one kept here.
+ *
+ * If the browser blocks storage or it was cleared, there's no id to compare, so this device looks
+ * like "another device". Tapping "Use this device instead" registers it again and fixes that.
  */
 const KEY = 'rud.deviceId'
 
@@ -17,6 +22,6 @@ export function saveDeviceId(id: string) {
   try {
     localStorage.setItem(KEY, id)
   } catch {
-    // Blocked storage: next start, this device looks like "another device" until re-enabled.
+    // Blocked storage: this device will look like "another device" (see above).
   }
 }

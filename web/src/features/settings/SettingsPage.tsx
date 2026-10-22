@@ -10,9 +10,10 @@ import { useMe } from '../auth/useMe'
 import { forgetThisDevice } from '../notifications/forgetThisDevice'
 import { NotificationsSection } from '../notifications/NotificationsSection'
 import { usePushClient } from '../notifications/usePushClient'
+import { PreferencesSection } from './PreferencesSection'
 
 /**
- * /settings: notifications on this device (M3) and the account. Preferences come in M3 PR 6.
+ * /settings: notifications on this device, preferences and the account (M3).
  * Design Inventory → Phone Screens → Settings ("Default", "Notifications denied — iOS",
  * "No device registered", "Sign-out confirm").
  */
@@ -45,6 +46,8 @@ export function SettingsPage() {
         <PageHeader title="Settings" backTo="/" />
 
         <NotificationsSection />
+
+        <PreferencesSection />
 
         <section aria-labelledby="account">
           <h2

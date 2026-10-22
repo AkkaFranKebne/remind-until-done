@@ -111,7 +111,7 @@ export function resetDevice() {
   Reflect.deleteProperty(navigator, 'getInstalledRelatedApps')
   Reflect.deleteProperty(window, 'Notification')
   localStorage.removeItem('rud.deviceId')
-  sessionStorage.removeItem('rud.notifBannerLater')
+  localStorage.removeItem('rud.notifBannerLater')
   resetRegisterOnStart()
   act(() => clearInstallPrompt())
 }

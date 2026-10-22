@@ -7,12 +7,14 @@ import { Spinner } from '../../components/ui/Spinner'
 import { useToast } from '../../components/ui/useToast'
 import { useNotifications } from './useNotifications'
 
-/** "Later" hides the banner until the app starts again (sessionStorage: this run of the app). */
+/** "Later" hides the banner for a day (localStorage: the time it was tapped). */
 const LATER_KEY = 'rud.notifBannerLater'
+const LATER_FOR_MS = 24 * 60 * 60 * 1000
 
 function saidLater(): boolean {
   try {
-    return sessionStorage.getItem(LATER_KEY) === '1'
+    const tapped = Number(localStorage.getItem(LATER_KEY))
+    return tapped > 0 && Date.now() - tapped < LATER_FOR_MS
   } catch {
     return false
   }
@@ -27,7 +29,7 @@ const action = cva(
 /**
  * The list's nudge to turn notifications on, in the installed app (design doc 5.1). Design
  * Inventory → Components → "NotifBanner":
- * - not asked yet: Enable, or Later (no API call; back next time the app starts);
+ * - not asked yet: Enable, or Later (no API call; back after a day);
  * - blocked: the browser won't ask again, so "Show me" opens Settings, which has the steps
  *   for this platform (decision 43). Later works the same.
  */
@@ -42,7 +44,7 @@ export function NotifBanner() {
 
   const dismiss = () => {
     try {
-      sessionStorage.setItem(LATER_KEY, '1')
+      localStorage.setItem(LATER_KEY, String(Date.now()))
     } catch {
       // Blocked storage: hidden for now, back on the next visit to the list.
     }

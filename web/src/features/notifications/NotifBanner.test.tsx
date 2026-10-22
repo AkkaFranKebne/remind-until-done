@@ -5,6 +5,8 @@ import { pretendInstalled, pretendNotifications, resetDevice } from '../../test-
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
 
+const HOUR = 60 * 60 * 1000
+
 const banner = () => screen.findByRole('region', { name: 'Turn on notifications' })
 
 describe('NotifBanner (the list)', () => {
@@ -85,7 +87,7 @@ describe('NotifBanner (the list)', () => {
     )
   })
 
-  it('Later hides it until the app starts again', async () => {
+  it('Later hides it for a day', async () => {
     pretendInstalled()
     pretendNotifications('default')
     renderApp('/', new FakeAuthClient(tester))
@@ -93,7 +95,27 @@ describe('NotifBanner (the list)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Later' }))
 
     expect(screen.queryByRole('region', { name: 'Turn on notifications' })).not.toBeInTheDocument()
-    expect(sessionStorage.getItem('rud.notifBannerLater')).toBe('1')
+    const tapped = Number(localStorage.getItem('rud.notifBannerLater'))
+    expect(Date.now() - tapped).toBeLessThan(1000)
+  })
+
+  it('Later from under a day ago: still hidden', async () => {
+    pretendInstalled()
+    pretendNotifications('default')
+    localStorage.setItem('rud.notifBannerLater', String(Date.now() - 23 * HOUR))
+    renderApp('/', new FakeAuthClient(tester))
+
+    expect(await screen.findByRole('heading', { name: 'Your reminders' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Turn on notifications' })).not.toBeInTheDocument()
+  })
+
+  it('Later from over a day ago: back', async () => {
+    pretendInstalled()
+    pretendNotifications('default')
+    localStorage.setItem('rud.notifBannerLater', String(Date.now() - 25 * HOUR))
+    renderApp('/', new FakeAuthClient(tester))
+
+    expect(await banner()).toBeInTheDocument()
   })
 
   it('blocked: says so, and Show me opens Settings with the steps', async () => {
@@ -111,7 +133,7 @@ describe('NotifBanner (the list)', () => {
     ).toBeInTheDocument()
   })
 
-  it('blocked: Later hides it until the app starts again', async () => {
+  it('blocked: Later hides it too', async () => {
     pretendInstalled()
     pretendNotifications('denied')
     renderApp('/', new FakeAuthClient(tester))

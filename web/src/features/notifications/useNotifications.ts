@@ -70,6 +70,14 @@ export function resetRegisterOnStart() {
   registeredThisStart = false
 }
 
+/** The registration running now, if any (sign-out waits for it, so its id isn't saved after). */
+let inFlight: Promise<unknown> = Promise.resolve()
+
+/** Resolves when no registration is running (whatever its result). */
+export function registrationSettled(): Promise<unknown> {
+  return inFlight
+}
+
 /**
  * Register this device: the permission answer (asked on the tap, see `enable`), then the push
  * token, then POST /devices. Returns null when permission wasn't given.
@@ -79,14 +87,18 @@ function useRegister() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationKey: REGISTER_KEY,
-    mutationFn: async (answer: Promise<NotificationPermission>): Promise<Device | null> => {
-      if ((await answer) !== 'granted') return null
-      registeredThisStart = true // a tap on Enable counts as this start's registration
-      const fcmToken = await push.getToken()
-      const platform = platformOf(navigator.userAgent, navigator.maxTouchPoints)
-      const device = await registerDevice({ fcmToken, platform })
-      saveDeviceId(device.id)
-      return device
+    mutationFn: (answer: Promise<NotificationPermission>): Promise<Device | null> => {
+      const run = (async () => {
+        if ((await answer) !== 'granted') return null
+        registeredThisStart = true // a tap on Enable counts as this start's registration
+        const fcmToken = await push.getToken()
+        const platform = platformOf(navigator.userAgent, navigator.maxTouchPoints)
+        const device = await registerDevice({ fcmToken, platform })
+        saveDeviceId(device.id)
+        return device
+      })()
+      inFlight = run.catch(() => null)
+      return run
     },
     onSuccess: async (device) => {
       if (!device) return

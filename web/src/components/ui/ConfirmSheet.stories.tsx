@@ -15,8 +15,7 @@ const meta = {
     icon: LogOut,
     title: 'Sign out?',
     children:
-      "Signing out stops all notifications on this phone. Any reminder that fires while you're signed out will go straight to Overdue.",
-    note: "You'll need to reinstall the app to sign back in on this device.",
+      "No notifications on this device until you're back. Anything that fires meanwhile goes straight to Overdue. We'll pretend not to notice.",
     confirmLabel: 'Sign out',
   },
 } satisfies Meta<typeof ConfirmSheet>
@@ -29,7 +28,8 @@ export const SignOut: Story = {}
 
 export const Confirming: Story = { args: { confirming: true } }
 
-export const WithoutNote: Story = { args: { note: undefined } }
+/** An extra warning in a grey box, under the text. */
+export const WithNote: Story = { args: { note: "This can't be undone." } }
 
 /** Throwing something away: red confirm button (Inventory → UX Copy "Discard draft"). */
 export const Danger: Story = {
@@ -37,7 +37,6 @@ export const Danger: Story = {
     icon: Trash2,
     title: 'Forget this one?',
     children: "You'll lose what you typed. Ironic, for a reminder app.",
-    note: undefined,
     confirmLabel: 'Discard',
     cancelLabel: 'Keep editing',
     danger: true,

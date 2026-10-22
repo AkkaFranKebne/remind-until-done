@@ -7,7 +7,9 @@ import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { useAuth } from '../auth/useAuth'
 import { useMe } from '../auth/useMe'
+import { forgetThisDevice } from '../notifications/forgetThisDevice'
 import { NotificationsSection } from '../notifications/NotificationsSection'
+import { usePushClient } from '../notifications/usePushClient'
 
 /**
  * /settings: notifications on this device (M3) and the account. Preferences come in M3 PR 6.
@@ -18,11 +20,19 @@ export function SettingsPage() {
   const { user, signOut } = useAuth()
   const me = useMe() // email and settings: our API (GET /me)
   const [confirming, setConfirming] = useState(false)
-  // Signing out: the button stays busy (isPending) until it's done. Then the route's guard
-  // (app/router.tsx) sends you to the plain /login (no `next`: you signed out on purpose).
-  // networkMode 'always': not an API call. Firebase signs out offline too; TanStack's default
+  const push = usePushClient()
+  // Signing out: first this device leaves the API and its push token is deleted (best effort,
+  // design doc 5.7), then Firebase signs out. The button stays busy (isPending) until it's done;
+  // then the route's guard (app/router.tsx) sends you to the plain /login (no `next`: you signed
+  // out on purpose). networkMode 'always': Firebase signs out offline too; TanStack's default
   // would pause the mutation while offline and leave the button busy.
-  const leave = useMutation({ mutationFn: signOut, networkMode: 'always' })
+  const leave = useMutation({
+    mutationFn: async () => {
+      await forgetThisDevice(push)
+      await signOut()
+    },
+    networkMode: 'always',
+  })
 
   // RequireAuth only shows this page when signed in.
   if (!user) return null
@@ -75,13 +85,12 @@ export function SettingsPage() {
           onOpenChange={setConfirming}
           icon={LogOut}
           title="Sign out?"
-          note="You'll need to reinstall the app to sign back in on this device."
           confirmLabel="Sign out"
           confirming={leave.isPending}
           onConfirm={() => leave.mutate()}
         >
-          Signing out stops all notifications on this phone. Any reminder that fires while
-          you&apos;re signed out will go straight to Overdue.
+          No notifications on this device until you&apos;re back. Anything that fires meanwhile goes
+          straight to Overdue. We&apos;ll pretend not to notice.
         </ConfirmSheet>
       </div>
     </AppScreen>

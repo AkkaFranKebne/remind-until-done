@@ -2,15 +2,15 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { App } from './app/App.tsx'
-import { createFirebaseAuthClient } from './lib/firebase'
+import { createFirebaseClients } from './lib/firebase'
 
 async function start() {
   // npm run dev:mock (Vite mode "mock"): a fake API and sign-in in the browser. In every other
   // mode this comparison is false when Vite builds, so the mock code is left out of the bundle.
-  const authClient =
+  const { authClient, pushClient } =
     import.meta.env.MODE === 'mock'
       ? await (await import('./mocks/startMockMode')).startMockMode()
-      : createFirebaseAuthClient()
+      : createFirebaseClients()
 
   // The service worker (app shell + pushes, src/sw.ts) exists only in builds. A failure here
   // (an old browser, a private window) just means no offline shell and no pushes.
@@ -20,7 +20,7 @@ async function start() {
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <App authClient={authClient} />
+      <App authClient={authClient} pushClient={pushClient} />
     </StrictMode>,
   )
 }

@@ -1,4 +1,5 @@
 import { act } from '@testing-library/react'
+import { resetRegisterOnStart } from '../features/notifications/useNotifications'
 import { checkInstalledApp, clearInstallPrompt } from '../features/pwa/installPrompt'
 
 /**
@@ -75,6 +76,32 @@ export async function pretendAppFound(answer: unknown[] | Error = [{ platform: '
   await act(() => checkInstalledApp())
 }
 
+/**
+ * The browser's notifications: `permission` now, and what the person answers when asked
+ * (`answer`). `asked` counts the system prompts. jsdom has no notifications at all.
+ */
+export function pretendNotifications(
+  permission: NotificationPermission,
+  answer: NotificationPermission = 'granted',
+) {
+  const fake = {
+    permission,
+    asked: 0,
+    requestPermission: () => {
+      fake.asked += 1
+      fake.permission = answer
+      return Promise.resolve(answer)
+    },
+  }
+  Object.defineProperty(window, 'Notification', { configurable: true, value: fake })
+  return fake
+}
+
+/** This device registered before, as `id` (what the app keeps after POST /devices). */
+export function pretendDeviceId(id: string) {
+  localStorage.setItem('rud.deviceId', id)
+}
+
 export function resetDevice() {
   Reflect.deleteProperty(window, 'matchMedia')
   displayMode = 'browser'
@@ -82,5 +109,9 @@ export function resetDevice() {
   Reflect.deleteProperty(navigator, 'userAgent')
   Reflect.deleteProperty(navigator, 'maxTouchPoints')
   Reflect.deleteProperty(navigator, 'getInstalledRelatedApps')
+  Reflect.deleteProperty(window, 'Notification')
+  localStorage.removeItem('rud.deviceId')
+  sessionStorage.removeItem('rud.notifBannerLater')
+  resetRegisterOnStart()
   act(() => clearInstallPrompt())
 }

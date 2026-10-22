@@ -8,10 +8,11 @@ const noReminders: ReminderList = { items: [], nextCursor: null }
 
 /**
  * The fake API for Jest tests (MSW). It answers every call the app makes: /me with the
- * mocks orval generated from swagger.json, the reminders list with an empty list. A test
+ * mocks orval generated from swagger.json, the reminders and devices lists empty. A test
  * changes one answer with `server.use(handler)`; jest.setup.ts resets that after each test.
  */
 export const server = setupServer(
   ...getUserMock(),
   http.get('*/api/v1/reminders', () => HttpResponse.json(noReminders)),
+  http.get('*/api/v1/devices', () => HttpResponse.json({ items: [] })),
 )

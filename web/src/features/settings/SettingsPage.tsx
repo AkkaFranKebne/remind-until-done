@@ -7,11 +7,12 @@ import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { useAuth } from '../auth/useAuth'
 import { useMe } from '../auth/useMe'
+import { NotificationsSection } from '../notifications/NotificationsSection'
 
 /**
- * /settings. M1 has the Account section only; notifications and preferences come
- * with push (M3) and reminders (M2).
- * Design Inventory → Phone Screens → Settings ("Default", "Sign-out confirm").
+ * /settings: notifications on this device (M3) and the account. Preferences come in M3 PR 6.
+ * Design Inventory → Phone Screens → Settings ("Default", "Notifications denied — iOS",
+ * "No device registered", "Sign-out confirm").
  */
 export function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -32,6 +33,8 @@ export function SettingsPage() {
     <AppScreen>
       <div className="flex flex-col gap-6">
         <PageHeader title="Settings" backTo="/" />
+
+        <NotificationsSection />
 
         <section aria-labelledby="account">
           <h2

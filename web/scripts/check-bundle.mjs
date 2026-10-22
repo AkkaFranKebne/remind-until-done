@@ -7,8 +7,16 @@ import { join, relative } from 'node:path'
 const dist = new URL('../dist', import.meta.url).pathname
 
 // Strings that survive minifying: MSW's worker file name and log prefix, faker's package
-// name, seed data from src/mocks/devApi.ts, and the fake sign-in's token (mockAuthClient.ts).
-const markers = ['mockServiceWorker', '[MSW]', '@faker-js', 'Renew passport', 'mock-token']
+// name, seed data from src/mocks/devApi.ts, the fake sign-in's token (mockAuthClient.ts) and the
+// fake push token (mockPushClient.ts: in prod, every phone would register it and get no pushes).
+const markers = [
+  'mockServiceWorker',
+  '[MSW]',
+  '@faker-js',
+  'Renew passport',
+  'mock-token',
+  'mock-push-token',
+]
 
 function filesIn(dir) {
   return readdirSync(dir).flatMap((name) => {

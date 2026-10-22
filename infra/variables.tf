@@ -61,3 +61,8 @@ variable "github_owner_id" {
   type        = string
   description = "Numeric id of the GitHub repository owner (gh api repos/OWNER/NAME -q .owner.id)"
 }
+
+variable "firebase_browser_key_uid" {
+  type        = string
+  description = "UID of the project's \"Browser key (auto created by Firebase)\" (gcloud services api-keys list): the key the Web App, and so init.json, uses. A UID, not the key itself."
+}

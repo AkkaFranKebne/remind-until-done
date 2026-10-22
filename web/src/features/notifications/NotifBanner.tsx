@@ -1,30 +1,8 @@
-import { Button as BaseButton } from '@base-ui/react/button'
-import { cva } from 'class-variance-authority'
-import { Link } from '@tanstack/react-router'
 import { Bell, BellOff } from 'lucide-react'
-import { useState } from 'react'
-import { Spinner } from '../../components/ui/Spinner'
+import { Banner, BannerButton, BannerLink } from '../../components/ui/Banner'
 import { useToast } from '../../components/ui/useToast'
+import { DAY_MS, useDismissal } from '../../lib/useDismissal'
 import { useNotifications } from './useNotifications'
-
-/** "Later" hides the banner for a day (localStorage: the time it was tapped). */
-const LATER_KEY = 'rud.notifBannerLater'
-const LATER_FOR_MS = 24 * 60 * 60 * 1000
-
-function saidLater(): boolean {
-  try {
-    const tapped = Number(localStorage.getItem(LATER_KEY))
-    return tapped > 0 && Date.now() - tapped < LATER_FOR_MS
-  } catch {
-    return false
-  }
-}
-
-/** The action (Enable, Show me) stands out; Later steps back. */
-const action = cva(
-  'group flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center px-1.5 text-sm focus-visible:outline-2 focus-visible:outline-accent',
-  { variants: { quiet: { false: 'font-semibold', true: 'text-fg2' } } },
-)
 
 /**
  * The list's nudge to turn notifications on, in the installed app (design doc 5.1). Design
@@ -36,60 +14,54 @@ const action = cva(
 export function NotifBanner() {
   const { state, enable, enabling } = useNotifications()
   const toast = useToast()
-  const [later, setLater] = useState(saidLater)
+  const [later, dismiss] = useDismissal('rud.notifBannerLater', DAY_MS)
 
   // Stays, busy, while its own Enable is registering (the state reads "checking" then).
   const blocked = state === 'blocked' && !enabling
   if (later || !(state === 'off' || enabling || blocked)) return null
 
-  const dismiss = () => {
-    try {
-      localStorage.setItem(LATER_KEY, String(Date.now()))
-    } catch {
-      // Blocked storage: hidden for now, back on the next visit to the list.
-    }
-    setLater(true)
+  const laterButton = (
+    <BannerButton quiet onClick={dismiss}>
+      Later
+    </BannerButton>
+  )
+
+  if (blocked) {
+    return (
+      <Banner
+        label="Notifications are blocked"
+        icon={BellOff}
+        actions={
+          <>
+            <BannerLink to="/settings">Show me</BannerLink>
+            {laterButton}
+          </>
+        }
+      >
+        Notifications are blocked. Here&apos;s how to fix it.
+      </Banner>
+    )
   }
 
   return (
-    <section
-      aria-label={blocked ? 'Notifications are blocked' : 'Turn on notifications'}
-      className="flex items-center gap-2.5 rounded-md bg-accent-bg py-1 pr-2 pl-3.5 text-sm text-accent"
-    >
-      {blocked ? (
+    <Banner
+      label="Turn on notifications"
+      icon={Bell}
+      actions={
         <>
-          <BellOff aria-hidden="true" size={16} strokeWidth={1.75} className="shrink-0" />
-          <p className="flex-1">Notifications are blocked. Here's how to fix it.</p>
-          <Link to="/settings" className={action({ quiet: false })}>
-            Show me
-          </Link>
-        </>
-      ) : (
-        <>
-          <Bell aria-hidden="true" size={16} strokeWidth={1.75} className="shrink-0" />
-          <p className="flex-1">Enable notifications so we can nag you.</p>
-          {/* Busy: the label stays (keeps the name and the width), hidden under a spinner. */}
-          <BaseButton
-            className={action({ quiet: false })}
-            disabled={enabling}
-            focusableWhenDisabled
-            aria-busy={enabling || undefined}
+          <BannerButton
+            busy={enabling}
             onClick={() =>
               enable({ onError: () => toast.error("Couldn't turn on notifications. Try again.") })
             }
           >
-            <span className="grid place-items-center">
-              <span className="col-start-1 row-start-1 group-aria-busy:invisible">Enable</span>
-              <span className="col-start-1 row-start-1 hidden group-aria-busy:block">
-                <Spinner size="sm" decorative />
-              </span>
-            </span>
-          </BaseButton>
+            Enable
+          </BannerButton>
+          {laterButton}
         </>
-      )}
-      <BaseButton className={action({ quiet: true })} onClick={dismiss}>
-        Later
-      </BaseButton>
-    </section>
+      }
+    >
+      Enable notifications so we can nag you.
+    </Banner>
   )
 }

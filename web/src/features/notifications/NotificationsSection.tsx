@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Button } from '../../components/ui/Button'
 import { useToast } from '../../components/ui/useToast'
 import { readIos } from '../pwa/platform'
+import { TabInstallHint } from '../pwa/TabInstallHint'
 import { useNotifications, type NotificationState } from './useNotifications'
 
 /**
@@ -171,6 +172,8 @@ export function NotificationsSection() {
             <span className={badge({ on: row.on })}>{row.on ? 'On' : 'Off'}</span>
           )}
         </div>
+
+        {state === 'needs-install' ? <TabInstallHint /> : null}
 
         {state === 'off' ? (
           <>

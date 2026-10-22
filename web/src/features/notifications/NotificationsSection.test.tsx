@@ -4,6 +4,7 @@ import type { Device } from '../../lib/api/generated/model'
 import { server } from '../../mocks/server'
 import {
   IPHONE_17,
+  offerInstall,
   pretendDeviceId,
   pretendInstalled,
   pretendNotifications,
@@ -57,6 +58,37 @@ describe('Settings → Notifications', () => {
     expect(within(section).getByText('Needs the installed app')).toBeInTheDocument()
     expect(within(section).getByText('Off')).toBeInTheDocument()
     expect(within(section).queryByRole('button')).not.toBeInTheDocument()
+    // No install offer here (jsdom): the tab's line.
+    expect(
+      within(section).getByText(
+        'Push notifications need the installed app. Already installed? Open rud. from your apps.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('in a tab where Chrome offers to install: Install app', async () => {
+    pretendNotifications('default')
+    const event = offerInstall('accepted')
+    const section = await openSettings()
+
+    fireEvent.click(within(section).getByRole('button', { name: 'Install app' }))
+
+    expect(
+      await within(section).findByText('Installed. Open rud. from your home screen.'),
+    ).toBeInTheDocument()
+    expect(event.prompted).toBe(1)
+    const line = within(section).getByRole('status')
+    expect(line).toHaveTextContent('Installed.')
+    expect(line).toHaveFocus()
+  })
+
+  it('in the installed app: no install hint', async () => {
+    pretendInstalled()
+    pretendNotifications('default')
+    const section = await openSettings()
+
+    expect(await within(section).findByText('Not on yet')).toBeInTheDocument()
+    expect(within(section).queryByText(/installed app/)).not.toBeInTheDocument()
   })
 
   it('not asked yet: Enable asks, registers this device, then says On', async () => {

@@ -8,6 +8,7 @@ import { Wordmark } from '../../components/ui/Wordmark'
 import { IosInstallSteps } from '../pwa/IosInstallSteps'
 import { IosVersionGate } from '../pwa/IosVersionGate'
 import { MIN_IOS } from '../pwa/platform'
+import { tabInstallLine } from '../pwa/tabInstall'
 import { useInstall, type InstallState } from '../pwa/useInstall'
 import { useAuth } from './useAuth'
 import { GoogleIcon } from './GoogleIcon'
@@ -25,9 +26,8 @@ const footnote = {
   installed: 'rud. is invite-only.',
   installable: 'Push notifications need the installed app.',
   'just-installed': 'Push notifications need the installed app.',
-  'app-found': 'rud. is installed. Open it from your apps for notifications.',
-  unavailable:
-    'Push notifications need the installed app. Already installed? Open rud. from your apps.',
+  'app-found': tabInstallLine['app-found'],
+  unavailable: tabInstallLine.unavailable,
 } satisfies Record<Exclude<InstallState, 'ios-too-old' | 'ios-browser'>, string>
 
 /**
@@ -139,7 +139,7 @@ export function LoginPage() {
           ) : null}
           {install === 'just-installed' ? (
             <output className="block rounded-md bg-accent-bg px-3.5 py-3 text-sm text-accent">
-              Installed. Open rud. from your home screen.
+              {tabInstallLine['just-installed']}
             </output>
           ) : null}
           {state.error ? (

@@ -111,6 +111,32 @@ const unblockSteps: Record<Platform, ReactNode[]> = {
   ],
 }
 
+/**
+ * iPhone and iPad hide what a notification says on a locked phone by default (Show Previews:
+ * When Unlocked): only "rud." shows. The path to "Always"; iOS 18 put apps under "Apps".
+ */
+function PreviewsTip() {
+  const ios = readIos(navigator.userAgent, navigator.maxTouchPoints)
+  if (!ios) return null
+  const major = ios.version?.[0]
+  const steps = [
+    `${ios.device} Settings`,
+    ...(major === undefined || major >= 18 ? ['Apps'] : []),
+    'rud.',
+    'Notifications',
+    'Show Previews',
+  ]
+  // A no-break space before each arrow: a line never starts with "→".
+  const path = steps.join('\u00a0→ ')
+  return (
+    <p className="text-sm text-fg2">
+      Locked phone shows only &ldquo;rud.&rdquo;? {path}
+      {'\u00a0'}→ <strong>Always</strong>. Your nags will be readable on your lock screen, and maybe
+      you&apos;ll become more productive.
+    </p>
+  )
+}
+
 /** An amber note with the button that registers this device. */
 const warnings: Record<'lost' | 'elsewhere', { title: string; text: string; button: string }> = {
   lost: {
@@ -174,6 +200,8 @@ export function NotificationsSection() {
         </div>
 
         {state === 'needs-install' ? <TabInstallHint /> : null}
+
+        {state === 'on' ? <PreviewsTip /> : null}
 
         {state === 'off' ? (
           <>

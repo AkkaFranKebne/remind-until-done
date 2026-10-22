@@ -114,7 +114,7 @@ const unblockSteps: Record<Platform, ReactNode[]> = {
 const warnings: Record<'lost' | 'elsewhere', { title: string; text: string; button: string }> = {
   lost: {
     title: "Pushes won't reach you.",
-    text: 'Your device lost its push subscription — this can happen after reinstalling. Tap the button below to re-register.',
+    text: "Registering this device didn't work. Tap below to try again.",
     button: 'Re-register this device',
   },
   elsewhere: {

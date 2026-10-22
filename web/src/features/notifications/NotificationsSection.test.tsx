@@ -187,6 +187,11 @@ describe('Settings → Notifications', () => {
     expect(
       await within(section).findByRole('button', { name: 'Re-register this device' }),
     ).toBeInTheDocument()
+    expect(
+      within(section).getByText("Registering this device didn't work. Tap below to try again.", {
+        exact: false,
+      }),
+    ).toBeInTheDocument()
   })
 
   it('a browser without pushes: says so', async () => {

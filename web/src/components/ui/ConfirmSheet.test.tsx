@@ -12,11 +12,11 @@ function renderSheet(props: Partial<Parameters<typeof ConfirmSheet>[0]> = {}) {
       onConfirm={onConfirm}
       icon={LogOut}
       title="Sign out?"
-      note="You'll need to reinstall the app to sign back in on this device."
+      note="This can't be undone."
       confirmLabel="Sign out"
       {...props}
     >
-      Signing out stops all notifications on this phone.
+      No notifications on this device until you're back.
     </ConfirmSheet>,
   )
   return { onOpenChange, onConfirm }
@@ -26,8 +26,8 @@ test('is an alert dialog named by its title and described by its text', () => {
   renderSheet()
 
   const dialog = screen.getByRole('alertdialog', { name: 'Sign out?' })
-  expect(dialog).toHaveAccessibleDescription('Signing out stops all notifications on this phone.')
-  expect(screen.getByText(/reinstall the app/)).toBeInTheDocument()
+  expect(dialog).toHaveAccessibleDescription("No notifications on this device until you're back.")
+  expect(screen.getByText("This can't be undone.")).toBeInTheDocument()
 })
 
 test('confirm runs the action', () => {

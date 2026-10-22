@@ -13,4 +13,8 @@ export class MockPushClient implements PushClient {
   getToken() {
     return Promise.resolve('mock-push-token')
   }
+
+  deleteToken() {
+    return Promise.resolve()
+  }
 }

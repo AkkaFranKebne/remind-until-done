@@ -27,3 +27,12 @@ export function saveDeviceId(id: string) {
     // Blocked storage: this device will look like "another device" (see above).
   }
 }
+
+/** Sign-out: this browser no longer has a device on the API. */
+export function clearDeviceId() {
+  try {
+    localStorage.removeItem(KEY)
+  } catch {
+    // Blocked storage: nothing was kept.
+  }
+}

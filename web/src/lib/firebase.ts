@@ -8,7 +8,7 @@ import {
   signOut,
   type Auth,
 } from 'firebase/auth'
-import { getMessaging, getToken, isSupported } from 'firebase/messaging'
+import { deleteToken, getMessaging, getToken, isSupported } from 'firebase/messaging'
 import type { AuthClient } from './authClient'
 import { toFirebaseOptions } from './firebaseOptions'
 import type { PushClient } from './pushClient'
@@ -113,6 +113,28 @@ function createPushClient(ready: Promise<FirebaseApp>): PushClient {
       const registration = await navigator.serviceWorker.getRegistration()
       if (!registration) throw new Error('No service worker: pushes need a build')
       return getToken(getMessaging(app), { vapidKey, serviceWorkerRegistration: registration })
+    },
+    async deleteToken() {
+      const registration = await navigator.serviceWorker?.getRegistration()
+      if (!registration) return // no worker, no subscription
+      const subscription = await registration.pushManager.getSubscription()
+      if (!subscription) return // never had a token here: nothing to delete
+      const app = await ready
+      const vapidKey = VAPID_KEYS[app.options.projectId ?? '']
+      try {
+        if (!vapidKey || !('Notification' in window) || Notification.permission !== 'granted') {
+          throw new Error('No token can be asked for now')
+        }
+        const messaging = getMessaging(app)
+        // deleteToken() can't be given our worker, and without one it registers Firebase's
+        // default worker file, which we don't have. getToken() hands it ours first (answered from
+        // storage, no request, when this device has its token already).
+        await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration })
+        await deleteToken(messaging)
+      } catch {
+        // Offline, or no permission: at least this browser stops receiving pushes.
+        await subscription.unsubscribe()
+      }
     },
   }
 }

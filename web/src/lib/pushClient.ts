@@ -11,4 +11,10 @@ export type PushClient = {
    * our service worker (design doc 5.7). The same token comes back until the browser rotates it.
    */
   getToken(): Promise<string>
+  /**
+   * Sign-out: this device's token stops working (FCM forgets it, the browser drops its push
+   * subscription), so nothing reaches it until it registers again. Nothing to do if it never had
+   * one.
+   */
+  deleteToken(): Promise<void>
 }

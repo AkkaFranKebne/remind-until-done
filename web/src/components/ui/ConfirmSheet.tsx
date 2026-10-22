@@ -29,7 +29,7 @@ export function ConfirmSheet({
   title: string
   /** What happens, in one or two sentences. */
   children: ReactNode
-  /** Extra warning in a grey box, e.g. "You'll need to reinstall ..." */
+  /** Extra warning in a grey box, under the text. */
   note?: string
   confirmLabel: string
   cancelLabel?: string

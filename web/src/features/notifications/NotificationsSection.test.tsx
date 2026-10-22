@@ -157,6 +157,51 @@ describe('Settings → Notifications', () => {
     expect(within(section).getByText('Apps → rud.')).toBeInTheDocument()
   })
 
+  it('On, on an iPhone: how to see the text on a locked phone', async () => {
+    pretendInstalled()
+    pretendUserAgent(IPHONE_17)
+    pretendNotifications('granted')
+    pretendDeviceId('d1')
+    mockDevices(device('d1'), 'd1')
+    const section = await openSettings()
+
+    expect(await within(section).findByText('This device is registered')).toBeInTheDocument()
+    expect(within(section).getByText(/Locked phone shows only/)).toHaveTextContent(
+      'Locked phone shows only “rud.”? iPhone Settings → rud. → Notifications → Show Previews → Always. Anyone can then read your nags on the lock screen.',
+    )
+  })
+
+  it('On, on an iPad that says "Mac" and no version: iPad wording, through Apps', async () => {
+    pretendInstalled()
+    pretendUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)',
+      5,
+    )
+    pretendNotifications('granted')
+    pretendDeviceId('d1')
+    mockDevices(device('d1'), 'd1')
+    const section = await openSettings()
+
+    expect(await within(section).findByText(/Locked phone shows only/)).toHaveTextContent(
+      'iPad Settings → Apps → rud. → Notifications',
+    )
+  })
+
+  it('On, on iOS 18 or later: the path goes through Apps', async () => {
+    pretendInstalled()
+    pretendUserAgent(
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1',
+    )
+    pretendNotifications('granted')
+    pretendDeviceId('d1')
+    mockDevices(device('d1'), 'd1')
+    const section = await openSettings()
+
+    expect(await within(section).findByText(/Locked phone shows only/)).toHaveTextContent(
+      'iPhone Settings → Apps → rud. → Notifications',
+    )
+  })
+
   it('allowed and this device registered: On, and it registers again once per start', async () => {
     pretendInstalled()
     pretendNotifications('granted')
@@ -167,6 +212,8 @@ describe('Settings → Notifications', () => {
 
     expect(await within(section).findByText('This device is registered')).toBeInTheDocument()
     await waitFor(() => expect(posted).toHaveLength(1))
+    // Not an iPhone: no lock-screen tip.
+    expect(within(section).queryByText(/Locked phone/)).not.toBeInTheDocument()
     expect(posted).toEqual([{ fcmToken: 'tok-1', platform: 'web' }])
   })
 

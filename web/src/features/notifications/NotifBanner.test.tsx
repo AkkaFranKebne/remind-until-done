@@ -96,7 +96,48 @@ describe('NotifBanner (the list)', () => {
     expect(sessionStorage.getItem('rud.notifBannerLater')).toBe('1')
   })
 
-  it('not in a browser tab, and not once notifications were answered', async () => {
+  it('blocked: says so, and Show me opens Settings with the steps', async () => {
+    pretendInstalled()
+    pretendNotifications('denied')
+    renderApp('/', new FakeAuthClient(tester))
+
+    const blocked = await screen.findByRole('region', { name: 'Notifications are blocked' })
+    expect(blocked).toHaveTextContent("Notifications are blocked. Here's how to fix it.")
+    expect(screen.queryByRole('button', { name: 'Enable' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('link', { name: 'Show me' }))
+
+    expect(
+      await screen.findByRole('heading', { name: 'How to turn on notifications' }),
+    ).toBeInTheDocument()
+  })
+
+  it('blocked: Later hides it until the app starts again', async () => {
+    pretendInstalled()
+    pretendNotifications('denied')
+    renderApp('/', new FakeAuthClient(tester))
+    await screen.findByRole('region', { name: 'Notifications are blocked' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Later' }))
+
+    expect(
+      screen.queryByRole('region', { name: 'Notifications are blocked' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('saying no in the prompt: the Enable banner turns into the blocked one', async () => {
+    pretendInstalled()
+    pretendNotifications('default', 'denied')
+    renderApp('/', new FakeAuthClient(tester))
+    await banner()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enable' }))
+
+    expect(
+      await screen.findByRole('region', { name: 'Notifications are blocked' }),
+    ).toBeInTheDocument()
+  })
+
+  it('not in a browser tab', async () => {
     pretendNotifications('default')
     renderApp('/', new FakeAuthClient(tester))
     expect(await screen.findByRole('heading', { name: 'Your reminders' })).toBeInTheDocument()

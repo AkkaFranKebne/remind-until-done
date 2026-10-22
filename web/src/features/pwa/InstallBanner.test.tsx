@@ -31,6 +31,7 @@ describe('InstallBanner (the list, in a browser tab)', () => {
 
     const banner = screen.getByRole('region', { name })
     expect(banner).toHaveTextContent('Install rud. to get push notifications')
+    expect(banner.querySelector('.lucide-download')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Install' }))
 
     expect(
@@ -51,14 +52,20 @@ describe('InstallBanner (the list, in a browser tab)', () => {
       'rud. is installed. Open it from your apps for notifications.',
     )
     expect(screen.queryByRole('button', { name: 'Install' })).not.toBeInTheDocument()
+    // Nothing to download here: the app-window icon, not the download arrow.
+    const banner = screen.getByRole('region', { name })
+    expect(banner.querySelector('.lucide-app-window')).toBeInTheDocument()
+    expect(banner.querySelector('.lucide-download')).not.toBeInTheDocument()
   })
 
   it('no install offer (Firefox, Safari, a dismissed offer): says the app is needed', async () => {
     await openList()
 
-    expect(screen.getByRole('region', { name })).toHaveTextContent(
+    const banner = screen.getByRole('region', { name })
+    expect(banner).toHaveTextContent(
       'Push notifications need the installed app. Already installed? Open rud. from your apps.',
     )
+    expect(banner.querySelector('.lucide-app-window')).toBeInTheDocument()
   })
 
   it('✕ hides it for 7 days', async () => {

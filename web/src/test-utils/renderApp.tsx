@@ -5,9 +5,11 @@ import { AppRouter } from '../app/AppRouter'
 import { createAppRouter } from '../app/router'
 import { ToastProvider } from '../components/ui/Toast'
 import { AuthProvider } from '../features/auth/AuthProvider'
+import { PushClientProvider } from '../features/notifications/PushClientProvider'
 import type { User } from '../lib/api/generated/model'
 import { server } from '../mocks/server'
 import type { FakeAuthClient } from './fakeAuthClient'
+import { FakePushClient } from './fakePushClient'
 import { TestQueryProvider } from './TestQueryProvider'
 
 export const testMe: User = {
@@ -35,15 +37,17 @@ export function mockMe(status = 200, body: JsonBodyType = testMe) {
   )
 }
 
-/** The whole app (real routes) at `path`, signed in or out through `client`. */
-export function renderApp(path: string, client: FakeAuthClient) {
+/** The whole app (real routes) at `path`, signed in or out through `client`; pushes through `push`. */
+export function renderApp(path: string, client: FakeAuthClient, push = new FakePushClient()) {
   const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }))
   render(
     <TestQueryProvider>
       <AuthProvider client={client}>
-        <ToastProvider>
-          <AppRouter router={router} />
-        </ToastProvider>
+        <PushClientProvider client={push}>
+          <ToastProvider>
+            <AppRouter router={router} />
+          </ToastProvider>
+        </PushClientProvider>
       </AuthProvider>
     </TestQueryProvider>,
   )

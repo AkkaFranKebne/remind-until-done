@@ -21,6 +21,7 @@ import {
 import { useNow } from '../../lib/useNow'
 import { cn } from '../../lib/cn'
 import { useMe } from '../auth/useMe'
+import { NotifBanner } from '../notifications/NotifBanner'
 import { AddReminderSheet } from './AddReminderSheet'
 import { ReminderRow } from './ReminderRow'
 import { SwipeableRow } from './SwipeableRow'
@@ -146,6 +147,7 @@ export function RemindersPage() {
     >
       <h1 className="sr-only">Your reminders</h1>
       <div className="flex flex-1 flex-col gap-4 pb-24">
+        <NotifBanner />
         {/* Only when there's nothing to show: a failed background reload keeps the list. */}
         {upcoming.isError && !upcoming.data ? (
           <div

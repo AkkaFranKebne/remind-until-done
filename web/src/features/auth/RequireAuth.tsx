@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useRegisterOnStart } from '../notifications/useNotifications'
 import { useAuth } from './useAuth'
 import { SplashScreen } from './SplashScreen'
 
@@ -9,5 +10,16 @@ import { SplashScreen } from './SplashScreen'
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { state } = useAuth()
   if (state.status !== 'signedIn') return <SplashScreen />
-  return children
+  return (
+    <>
+      <RegisterOnStart />
+      {children}
+    </>
+  )
+}
+
+/** Signed in: register this device for pushes again, if allowed (design doc 5.7). */
+function RegisterOnStart() {
+  useRegisterOnStart()
+  return null
 }

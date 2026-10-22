@@ -53,3 +53,8 @@ test('error: red; a new toast replaces the one before', () => {
   // One at a time: the older one is hidden (Base UI marks it data-limited).
   expect(screen.getByText('Finally. Done.').closest('[data-limited]')).not.toBeNull()
 })
+
+test('the toast area is named "Messages" (Settings has a section called Notifications)', () => {
+  renderToasts()
+  expect(screen.getByRole('region', { name: 'Messages' })).toBeInTheDocument()
+})

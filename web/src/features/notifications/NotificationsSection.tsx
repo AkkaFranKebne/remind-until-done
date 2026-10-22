@@ -131,7 +131,8 @@ function PreviewsTip() {
   return (
     <p className="text-sm text-fg2">
       Locked phone shows only &ldquo;rud.&rdquo;? {path}
-      {'\u00a0'}→ <strong>Always</strong>. Anyone can then read your nags on the lock screen.
+      {'\u00a0'}→ <strong>Always</strong>. Your nags will be readable on your lock screen, and maybe
+      you&apos;ll become more productive.
     </p>
   )
 }

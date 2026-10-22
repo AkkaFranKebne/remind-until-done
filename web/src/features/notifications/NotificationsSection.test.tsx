@@ -167,7 +167,7 @@ describe('Settings → Notifications', () => {
 
     expect(await within(section).findByText('This device is registered')).toBeInTheDocument()
     expect(within(section).getByText(/Locked phone shows only/)).toHaveTextContent(
-      'Locked phone shows only “rud.”? iPhone Settings → rud. → Notifications → Show Previews → Always. Anyone can then read your nags on the lock screen.',
+      "Locked phone shows only “rud.”? iPhone Settings → rud. → Notifications → Show Previews → Always. Your nags will be readable on your lock screen, and maybe you'll become more productive.",
     )
   })
 

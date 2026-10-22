@@ -5,8 +5,10 @@
  * account gets the pushes. To show "this device gets the pushes" or "another device took over",
  * Settings compares the id the API has (GET /devices) with the one kept here.
  *
- * If the browser blocks storage or it was cleared, there's no id to compare, so this device looks
- * like "another device". Tapping "Use this device instead" registers it again and fixes that.
+ * No id here means this device looks like "another device":
+ * - storage was cleared: tapping "Use this device instead" registers again and saves a new id;
+ * - the browser blocks storage (rare, e.g. some private modes): nothing can be saved, so it keeps
+ *   looking like "another device", although pushes do reach it after the tap.
  */
 const KEY = 'rud.deviceId'
 

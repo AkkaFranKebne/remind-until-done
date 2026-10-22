@@ -1,10 +1,18 @@
-import { Download, X } from 'lucide-react'
+import { AppWindow, Download, X, type LucideIcon } from 'lucide-react'
 import { useRef } from 'react'
 import { Banner, BannerButton } from '../../components/ui/Banner'
 import { IconButton } from '../../components/ui/IconButton'
 import { DAY_MS, useDismissal } from '../../lib/useDismissal'
-import { isTabInstallState, tabInstallLine } from './tabInstall'
+import { isTabInstallState, tabInstallLine, type TabInstallState } from './tabInstall'
 import { useInstall } from './useInstall'
+
+/** Download only next to Install; without a button the line asks you to use the app (decision 44). */
+const icons = {
+  installable: Download,
+  'just-installed': AppWindow,
+  'app-found': AppWindow,
+  unavailable: AppWindow,
+} satisfies Record<TabInstallState, LucideIcon>
 
 /**
  * The list's nudge to install, in a signed-in browser tab (design doc 5.1; decision 44).
@@ -22,7 +30,7 @@ export function InstallBanner() {
   return (
     <Banner
       label="Install the app"
-      icon={Download}
+      icon={icons[state]}
       live
       actions={
         <>

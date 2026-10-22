@@ -12,6 +12,7 @@ locals {
     "identitytoolkit.googleapis.com",
     "fcm.googleapis.com",
     "fcmregistrations.googleapis.com",
+    "firebaseinstallations.googleapis.com", # FCM getToken registers the browser here first
   ]
 }
 

@@ -1,4 +1,4 @@
-import { initializeApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app'
+import { initializeApp, type FirebaseApp } from 'firebase/app'
 import {
   getAuth,
   getRedirectResult,
@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth'
 import { getMessaging, getToken, isSupported } from 'firebase/messaging'
 import type { AuthClient } from './authClient'
+import { toFirebaseOptions } from './firebaseOptions'
 import type { PushClient } from './pushClient'
 
 /**
@@ -25,7 +26,7 @@ import type { PushClient } from './pushClient'
 async function loadApp(): Promise<FirebaseApp> {
   const res = await fetch('/__/firebase/init.json')
   if (!res.ok) throw new Error(`Firebase settings not found (${res.status})`)
-  return initializeApp({ ...toOptions(await res.json()), authDomain: window.location.host })
+  return initializeApp({ ...toFirebaseOptions(await res.json()), authDomain: window.location.host })
 }
 
 /**
@@ -39,23 +40,6 @@ const VAPID_KEYS: Record<string, string> = {
     'BGJF2q7eDCT2B04tLIOrJhbWPqoSh_CcPKHDCY9Sla_qXpu7O4bSvo_1quGi4SF_tL4UhkZlTYIm-pVimSrNK6Y',
   'rud-prod-4f7k2':
     'BPz1SY-blUEvPYg_nq9g-sUOnV6p6hc1HDJTMD-mH4Pu_ScjIovl3_zGLcHBEaTHMSM674oky_d5fF8e9NLVaLY',
-}
-
-/** Only the settings sign-in needs, each checked to be text. */
-function toOptions(data: unknown): FirebaseOptions {
-  const get = (key: string): unknown =>
-    typeof data === 'object' && data !== null ? Reflect.get(data, key) : undefined
-  const apiKey = get('apiKey')
-  const projectId = get('projectId')
-  const messagingSenderId = get('messagingSenderId')
-  if (typeof apiKey !== 'string' || typeof projectId !== 'string') {
-    throw new Error('Firebase settings are incomplete')
-  }
-  return {
-    apiKey,
-    projectId,
-    ...(typeof messagingSenderId === 'string' ? { messagingSenderId } : {}),
-  }
 }
 
 /** The real sign-in and push clients, sharing one Firebase app. */
@@ -122,6 +106,9 @@ function createPushClient(ready: Promise<FirebaseApp>): PushClient {
       const app = await ready
       const vapidKey = VAPID_KEYS[app.options.projectId ?? '']
       if (!vapidKey) throw new Error(`No Web Push key for project ${app.options.projectId}`)
+      // Without it Firebase Installations fails inside the browser, before any request.
+      if (!app.options.appId)
+        throw new Error('No appId in the Firebase settings (infra/firebase.tf)')
       // The worker is registered in builds only (main.tsx): `npm run dev` has none.
       const registration = await navigator.serviceWorker.getRegistration()
       if (!registration) throw new Error('No service worker: pushes need a build')

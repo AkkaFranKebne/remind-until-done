@@ -80,6 +80,7 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - M5 (actions): `/actions/{token}` puts the token into the URL path unencoded (orval's generated code). Check that tokens are URL-safe, or encode them, when building it.
 - Before inviting testers (at the latest M7): the per-user request rate limit (design doc 7.2). Today an invited user could loop create/delete and keep the database awake; invite-only and Cloud Run's 2 instances limit the damage.
 - M7 (hardening): Content-Security-Policy in `web/firebase.json`, report-only first (design doc 7.1).
+- M7 (hardening): limit the Firebase browser key (the public `apiKey` in `/__/firebase/init.json`) to our two `web.app` sites, and drop paid APIs we don't use from its list (e.g. `firebasevertexai`). Today any website can use it for the Firebase APIs on its list.
 - M7 (hardening): database TLS with certificate check (`sslmode=verify-full`) for the API and Flyway. Today `require` encrypts but doesn't verify the server.
 - M7 (hardening): a separate Neon role for the app that can only read and write rows; Flyway keeps the owner role for schema changes.
 - M7 (e2e tests): Firebase Auth emulator, only if Playwright needs it (Google blocks automated logins; design doc decision 32).

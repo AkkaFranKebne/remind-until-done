@@ -12,11 +12,13 @@ resource "google_cloud_scheduler_job" "sweep" {
 
   http_target {
     http_method = "POST"
-    uri         = "${google_cloud_run_v2_service.api.uri}/internal/sweep"
+    uri         = "${var.service_url}/internal/sweep"
 
     oidc_token {
       service_account_email = google_service_account.invoker.email
-      audience              = google_cloud_run_v2_service.api.uri
+      # The API accepts tokens made for SERVICE_URL only (auth.Invoker). The service
+      # also answers on an older hashed URL (its .uri); tokens for that would get 401.
+      audience = var.service_url
     }
   }
 

@@ -12,6 +12,7 @@ export function AppScreen({
   background,
   contextLine,
   tight = false,
+  showSettings = true,
   children,
 }: {
   /** The TopBar icon colour that fits the background. */
@@ -22,11 +23,13 @@ export function AppScreen({
   contextLine?: string
   /** Content starts right under the TopBar (the list's tiles, as the Inventory mockup). */
   tight?: boolean
+  /** The TopBar's Settings icon; off on Settings itself (Inventory → Phone Screens → Settings). */
+  showSettings?: boolean
   children: ReactNode
 }) {
   return (
     <div className={cn('flex min-h-dvh flex-col bg-bg', background)}>
-      <TopBar tone={tone} contextLine={contextLine} />
+      <TopBar tone={tone} contextLine={contextLine} showSettings={showSettings} />
       <main
         className={cn(
           'flex flex-1 flex-col px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]',

@@ -10,10 +10,11 @@ import { IconLink } from './IconButton'
 export function PageHeader({ title, backTo }: { title: string; backTo: LinkProps['to'] }) {
   return (
     // The 16px arrow sits in a 44px tap area (14px of space each side): pull the row left so
-    // the arrow lines up with the content, and the title in to an 8px gap (Inventory mockup).
-    <div className="-ml-3.5 flex items-center">
+    // the arrow lines up with the content. The title starts right after the tap area, not inside
+    // it, so the button's hover background never runs under the title (owner 2026-10-23).
+    <div className="-ml-3.5 flex items-center gap-1">
       <IconLink to={backTo} icon={ChevronLeft} size="sm" label="Back" className="text-accent" />
-      <h1 className="-ml-1.5 text-lg font-bold">{title}</h1>
+      <h1 className="text-lg font-bold">{title}</h1>
     </div>
   )
 }

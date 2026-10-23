@@ -273,8 +273,10 @@
   --text-input--line-height: 1.5;
   --text-lg: 1.125rem; /* 18px: page and screen headings */
   --text-lg--line-height: 1.35;
-  --text-xl: 1.375rem; /* 22px: logo, reminder title on the detail page */
+  --text-xl: 1.375rem; /* 22px: logo */
   --text-xl--line-height: 1.25;
+  --text-title: 1.75rem; /* 28px: the reminder's title on its page (owner 2026-10-23) */
+  --text-title--line-height: 1.2;
   --text-countdown: 2.5rem; /* 40px: the countdown on the reminder page */
   --text-countdown--line-height: 1;
   --text-display: 4.5rem; /* 72px: the big "404" */

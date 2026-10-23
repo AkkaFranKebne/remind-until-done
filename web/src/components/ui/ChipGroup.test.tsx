@@ -75,3 +75,22 @@ test('an overlay sits in its chip’s box and adds no radio', () => {
   )
   expect(screen.getAllByRole('radio')).toHaveLength(2)
 })
+
+test('the legend is the bold question by default, or a quieter label', () => {
+  const { rerender } = render(
+    <ChipGroup legend="Then nag me every" options={options} value="60" onChange={jest.fn()} />,
+  )
+  expect(screen.getByText('Then nag me every')).toHaveClass('font-semibold', 'text-fg')
+
+  rerender(
+    <ChipGroup
+      legend="Default nag interval"
+      legendLook="label"
+      options={options}
+      value="60"
+      onChange={jest.fn()}
+    />,
+  )
+  expect(screen.getByText('Default nag interval')).toHaveClass('font-medium', 'text-fg2')
+  expect(screen.getByRole('radiogroup', { name: 'Default nag interval' })).toBeInTheDocument()
+})

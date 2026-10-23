@@ -147,6 +147,19 @@ describe('Settings → Notifications', () => {
     expect(posted).toEqual([])
   })
 
+  it('blocked on iOS 18 or later: rud. is under Apps', async () => {
+    pretendInstalled()
+    pretendUserAgent(
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1',
+    )
+    pretendNotifications('denied')
+    const section = await openSettings()
+
+    expect(await within(section).findByText('Blocked by iOS')).toBeInTheDocument()
+    expect(within(section).getByText('Apps → rud.')).toBeInTheDocument()
+    expect(within(section).queryByText('Scroll to', { exact: false })).not.toBeInTheDocument()
+  })
+
   it('blocked on Android: the Android steps', async () => {
     pretendInstalled()
     pretendUserAgent('Mozilla/5.0 (Linux; Android 15; Pixel 9) Chrome/141.0 Mobile Safari/537.36')
@@ -157,7 +170,7 @@ describe('Settings → Notifications', () => {
     expect(within(section).getByText('Apps → rud.')).toBeInTheDocument()
   })
 
-  it('On, on an iPhone: how to see the text on a locked phone', async () => {
+  it('On, on an iPhone (iOS 17): a card with the steps to see nags on a locked phone', async () => {
     pretendInstalled()
     pretendUserAgent(IPHONE_17)
     pretendNotifications('granted')
@@ -166,12 +179,26 @@ describe('Settings → Notifications', () => {
     const section = await openSettings()
 
     expect(await within(section).findByText('This device is registered')).toBeInTheDocument()
-    expect(within(section).getByText(/Locked phone shows only/)).toHaveTextContent(
-      "Locked phone shows only “rud.”? iPhone Settings → rud. → Notifications → Show Previews → Always. Your nags will be readable on your lock screen, and maybe you'll become more productive.",
+    const tip = within(section)
+      .getByRole('heading', { name: 'Nags say just “rud.” when locked?' })
+      .closest('div')
+    if (!tip) throw new Error('no tip card')
+    const steps = within(tip)
+      .getAllByRole('listitem')
+      .map((li) => li.textContent)
+    // iOS 17: rud. is further down the list, not under Apps.
+    expect(steps).toEqual([
+      '1Open iPhone Settings',
+      '2Scroll to rud.',
+      '3Tap Notifications → Show Previews',
+      '4Pick Always',
+    ])
+    expect(tip).toHaveTextContent(
+      "Your nags will be readable on the lock screen, and maybe you'll become more productive.",
     )
   })
 
-  it('On, on an iPad that says "Mac" and no version: iPad wording, through Apps', async () => {
+  it('On, on an iPad that says "Mac" and no version: iPad wording, under Apps', async () => {
     pretendInstalled()
     pretendUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)',
@@ -182,12 +209,14 @@ describe('Settings → Notifications', () => {
     mockDevices(device('d1'), 'd1')
     const section = await openSettings()
 
-    expect(await within(section).findByText(/Locked phone shows only/)).toHaveTextContent(
-      'iPad Settings → Apps → rud. → Notifications',
+    const tip = (await within(section).findByRole('heading', { name: /when locked/ })).closest(
+      'div',
     )
+    expect(tip).toHaveTextContent('Open iPad Settings')
+    expect(tip).toHaveTextContent('Tap Apps → rud.')
   })
 
-  it('On, on iOS 18 or later: the path goes through Apps', async () => {
+  it('On, on iOS 18 or later: rud. is under Apps', async () => {
     pretendInstalled()
     pretendUserAgent(
       'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1',
@@ -197,9 +226,10 @@ describe('Settings → Notifications', () => {
     mockDevices(device('d1'), 'd1')
     const section = await openSettings()
 
-    expect(await within(section).findByText(/Locked phone shows only/)).toHaveTextContent(
-      'iPhone Settings → Apps → rud. → Notifications',
+    const tip = (await within(section).findByRole('heading', { name: /when locked/ })).closest(
+      'div',
     )
+    expect(tip).toHaveTextContent('Tap Apps → rud.')
   })
 
   it('allowed and this device registered: On, and it registers again once per start', async () => {
@@ -213,7 +243,7 @@ describe('Settings → Notifications', () => {
     expect(await within(section).findByText('This device is registered')).toBeInTheDocument()
     await waitFor(() => expect(posted).toHaveLength(1))
     // Not an iPhone: no lock-screen tip.
-    expect(within(section).queryByText(/Locked phone/)).not.toBeInTheDocument()
+    expect(within(section).queryByRole('heading', { name: /when locked/ })).not.toBeInTheDocument()
     expect(posted).toEqual([{ fcmToken: 'tok-1', platform: 'web' }])
   })
 

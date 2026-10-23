@@ -71,7 +71,7 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     src/index.css: bg-bg2, text-fg2, text-accent, bg-(image:--grad-shell-brand) ...
     No pixel sizes (text-[13px], rounded-[10px]). Text sizes come from the type scale only:
     text-xs 11 · text-sm 13 · text-base 15 · text-input 16 (typed text in fields only) · text-lg 18 ·
-    text-xl 22 · text-countdown 40 (the reminder page's countdown) · text-display 72 (in rem).
+    text-xl 22 · text-title 28 (the reminder page's title) · text-countdown 40 (the reminder page's countdown) · text-display 72 (in rem).
     Radii: rounded-sm 6 · rounded-md 12 · rounded-lg 20 (and rounded-full).
     No one-off values in [ ] at all (border-[1.5px], tracking-[-3px], h-[844px]); only env(...)
     for safe areas. Named extras: border-strong (1.5px), animate-spin-fast (0.7s), sheet-slide and

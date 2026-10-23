@@ -24,6 +24,8 @@ describe('SettingsPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument()
     expect(screen.getByText('Tess')).toBeInTheDocument()
+    // No Settings icon on Settings itself: ‹ Back and the logo lead away.
+    expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument()
     expect(screen.getByText('tester@example.com')).toBeInTheDocument()
   })
 

@@ -6,7 +6,7 @@ import {
   createReminderBodyTitleMax,
 } from '../../lib/api/generated/zod/reminders/reminders'
 import type { ChipOption } from '../../components/ui/ChipGroup'
-import { fromLocalInputValue, toMinute, tomorrowAt } from '../../lib/dates'
+import { fromLocalInputValue, nextAtAsShown, toMinute } from '../../lib/dates'
 import { countCharacters } from '../../lib/text'
 
 /**
@@ -41,7 +41,7 @@ export const titleExamples = [
 ]
 
 /** Inventory → TimeChips: quick picks, plus Custom… (the phone's own date-time picker). */
-export type WhenChoice = 'in1h' | 'tomorrow' | 'in3h' | 'custom'
+export type WhenChoice = 'in1h' | 'defaultTime' | 'in3h' | 'custom'
 
 export type AddReminderValues = {
   title: string
@@ -52,20 +52,24 @@ export type AddReminderValues = {
   interval: string
 }
 
-/** The moment a choice means, in the phone's zone. Null if Custom has no valid value yet. */
+/**
+ * The moment a choice means, in the phone's zone. Null if Custom has no valid value yet.
+ * `shownNow`: the moment the default-time chip's label was built from, so it saves what it said.
+ */
 export function resolveDue(
   when: WhenChoice | null,
   customAt: string,
   defaultTimeOfDay: string,
   now: Date = new Date(),
+  shownNow: Date = now,
 ): Date | null {
   switch (when) {
     case 'in1h':
       return toMinute(new Date(now.getTime() + 60 * 60_000))
     case 'in3h':
       return toMinute(new Date(now.getTime() + 3 * 60 * 60_000))
-    case 'tomorrow':
-      return tomorrowAt(defaultTimeOfDay, now)
+    case 'defaultTime':
+      return nextAtAsShown(defaultTimeOfDay, shownNow, now)
     case 'custom':
       return fromLocalInputValue(customAt)
     default:
@@ -103,7 +107,7 @@ export function addReminderSchema(defaultTimeOfDay: string, keepCustomAt?: strin
         .refine((t) => countCharacters(t) <= MAX_NOTE, {
           error: `Keep it under ${MAX_NOTE} characters. It's a reminder, not a diary.`,
         }),
-      when: z.enum(['in1h', 'tomorrow', 'in3h', 'custom']).nullable(),
+      when: z.enum(['in1h', 'defaultTime', 'in3h', 'custom']).nullable(),
       customAt: z.string(),
       interval: z.string().refine((v) => intervalOptions.some((o) => o.value === v), {
         error: 'Pick how often to nag you.',

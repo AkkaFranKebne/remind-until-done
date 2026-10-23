@@ -25,6 +25,29 @@ function recordPatches(answer: 'ok' | 'refuse' = 'ok') {
   return patches
 }
 
+/** Only the clock is fake (timers, promises and MSW stay real): a fixed "now" for the chip labels. */
+function pretendNow(iso: string) {
+  jest.useFakeTimers({
+    now: new Date(iso),
+    doNotFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setInterval',
+      'clearInterval',
+      'setImmediate',
+      'clearImmediate',
+      'queueMicrotask',
+      'nextTick',
+      'requestAnimationFrame',
+      'cancelAnimationFrame',
+      'requestIdleCallback',
+      'cancelIdleCallback',
+      'hrtime',
+      'performance',
+    ],
+  })
+}
+
 async function openPreferences() {
   renderApp('/settings', new FakeAuthClient(tester))
   const heading = await screen.findByRole('heading', { level: 2, name: 'Preferences' })
@@ -34,7 +57,11 @@ async function openPreferences() {
 }
 
 describe('Settings → Preferences', () => {
-  beforeEach(() => mockMe())
+  beforeEach(() => {
+    mockMe()
+    pretendNow('2026-10-14T10:00:00Z')
+  })
+  afterEach(() => jest.useRealTimers())
 
   it('shows the defaults and the time zone', async () => {
     const section = await openPreferences()

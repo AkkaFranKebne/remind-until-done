@@ -7,8 +7,37 @@ import { aReminder, mockReminders } from '../../test-utils/reminders'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
 import { titleExamples } from './addReminderForm'
 
-beforeEach(() => mockMe())
-afterEach(() => Reflect.deleteProperty(HTMLInputElement.prototype, 'showPicker'))
+/** Only the clock is fake (timers, promises and MSW stay real): a fixed "now" for the chip labels. */
+function pretendNow(iso: string) {
+  jest.useFakeTimers({
+    now: new Date(iso),
+    doNotFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setInterval',
+      'clearInterval',
+      'setImmediate',
+      'clearImmediate',
+      'queueMicrotask',
+      'nextTick',
+      'requestAnimationFrame',
+      'cancelAnimationFrame',
+      'requestIdleCallback',
+      'cancelIdleCallback',
+      'hrtime',
+      'performance',
+    ],
+  })
+}
+
+beforeEach(() => {
+  mockMe() // default time 09:00
+  pretendNow('2026-10-14T10:00:00Z') // after 09:00: the chip says "Tomorrow 09:00"
+})
+afterEach(() => {
+  Reflect.deleteProperty(HTMLInputElement.prototype, 'showPicker')
+  jest.useRealTimers()
+})
 
 /** The hidden native picker behind "Custom…" (aria-hidden, so it has no role to find it by). */
 function picker(sheet: HTMLElement) {
@@ -73,6 +102,19 @@ test('opens with the questions from the Inventory; "Tomorrow <default time>" and
   expect(within(sheet).getByRole('radio', { name: '1 h' })).toBeChecked()
   expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).not.toBeChecked()
   expect(within(sheet).getByRole('radio', { name: '15 min' })).toBeInTheDocument()
+})
+
+test('before the default time: "Today 09:00", and it saves today at 09:00', async () => {
+  pretendNow('2026-10-14T08:15:00Z')
+  const sent = mockCreate()
+  const sheet = await openSheet()
+
+  expect(within(sheet).getByRole('radio', { name: 'Today 09:00' })).toBeChecked()
+  typeTitle(sheet, 'Call mum')
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Start nagging me' }))
+
+  await waitFor(() => expect(sent).toHaveLength(1))
+  expect(sent[0]?.dueAt).toBe('2026-10-14T09:00:00.000Z')
 })
 
 test('sending empty shows what is missing, inline', async () => {

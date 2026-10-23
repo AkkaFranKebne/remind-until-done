@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { useToast } from '../../components/ui/useToast'
 import { readIos, type Ios } from '../pwa/platform'
 import { TabInstallHint } from '../pwa/TabInstallHint'
+import { FindRud, MacMutedTip, PreviewsTip, StepsCard } from './StepsCard'
 import { useNotifications, type NotificationState } from './useNotifications'
 
 /**
@@ -59,63 +60,6 @@ const blockedBy: Record<Platform, string> = {
   desktop: 'Blocked by your browser',
 }
 
-/** Numbered steps in a card: amber when something is wrong (blocked), grey for a tip. */
-const stepsCard = cva('flex flex-col gap-2 rounded-lg px-3.5 py-3', {
-  variants: { tone: { warn: 'bg-nag-low text-nag-low-fg', quiet: 'bg-bg3 text-fg2' } },
-})
-const stepDot = cva(
-  'mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-  { variants: { tone: { warn: 'bg-nag-low-fg text-nag-low', quiet: 'bg-fg2 text-bg3' } } },
-)
-const stepsTitle = cva('text-sm font-bold', {
-  variants: { tone: { warn: '', quiet: 'text-fg' } },
-})
-
-type Tone = NonNullable<VariantProps<typeof stepsCard>['tone']>
-
-function StepsCard({
-  tone,
-  title,
-  steps,
-  footer,
-}: {
-  tone: Tone
-  title: string
-  steps: ReactNode[]
-  footer?: string
-}) {
-  return (
-    <div className={stepsCard({ tone })}>
-      <h3 className={stepsTitle({ tone })}>{title}</h3>
-      <ol className="flex flex-col gap-1.5">
-        {steps.map((step, i) => (
-          <li key={i} className="flex gap-2 text-sm">
-            <span aria-hidden="true" className={stepDot({ tone })}>
-              {i + 1}
-            </span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ol>
-      {footer ? <p className="text-sm">{footer}</p> : null}
-    </div>
-  )
-}
-
-/** iOS 18 put every app under Settings → Apps; before that, apps were further down the list. */
-function findRud(ios: Ios): ReactNode {
-  const major = ios.version?.[0]
-  return major === undefined || major >= 18 ? (
-    <>
-      Tap <strong>Apps → rud.</strong>
-    </>
-  ) : (
-    <>
-      Scroll to <strong>rud.</strong>
-    </>
-  )
-}
-
 /** How to allow notifications again: only the phone's or browser's settings can (decision 43). */
 function unblockSteps(platform: Platform, ios: Ios | null): ReactNode[] {
   const back = 'Come back and pretend you never left'
@@ -124,7 +68,7 @@ function unblockSteps(platform: Platform, ios: Ios | null): ReactNode[] {
       <>
         Open {ios.device} <strong>Settings</strong>
       </>,
-      findRud(ios),
+      <FindRud key="find" ios={ios} />,
       <>
         Tap <strong>Notifications → Allow</strong>
       </>,
@@ -157,34 +101,6 @@ function unblockSteps(platform: Platform, ios: Ios | null): ReactNode[] {
     </>,
     back,
   ]
-}
-
-/**
- * iPhone and iPad hide what a notification says on a locked phone by default (Show Previews:
- * When Unlocked): only "rud." shows. A grey card with the way to "Always" (decision 43).
- */
-function PreviewsTip() {
-  const ios = readIos(navigator.userAgent, navigator.maxTouchPoints)
-  if (!ios) return null
-  return (
-    <StepsCard
-      tone="quiet"
-      title="Nags say just “rud.” when locked?"
-      steps={[
-        <>
-          Open {ios.device} <strong>Settings</strong>
-        </>,
-        findRud(ios),
-        <>
-          Tap <strong>Notifications → Show Previews</strong>
-        </>,
-        <>
-          Pick <strong>Always</strong>
-        </>,
-      ]}
-      footer="Your nags will be readable on the lock screen, and maybe you'll become more productive."
-    />
-  )
 }
 
 /** An amber note with the button that registers this device. */
@@ -251,7 +167,12 @@ export function NotificationsSection() {
 
         {state === 'needs-install' ? <TabInstallHint /> : null}
 
-        {state === 'on' ? <PreviewsTip /> : null}
+        {state === 'on' ? (
+          <>
+            <PreviewsTip />
+            <MacMutedTip />
+          </>
+        ) : null}
 
         {state === 'off' ? (
           <>

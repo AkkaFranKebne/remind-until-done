@@ -101,10 +101,33 @@ export function toMinute(d: Date): Date {
   return m
 }
 
-/** Tomorrow at "HH:MM" (the user's default morning time from Settings), local time. */
-export function tomorrowAt(timeOfDay: string, now: Date = new Date()): Date {
+/**
+ * The next time it's "HH:MM" (the user's default time from Settings), local time: today if that
+ * moment is still ahead, even by a minute, otherwise tomorrow (owner 2026-10-23, decision 49).
+ */
+export function nextAt(timeOfDay: string, now: Date = new Date()): Date {
   const [h = 9, m = 0] = timeOfDay.split(':').map(Number)
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, h, m)
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m)
+  return today > now ? today : new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, h, m)
+}
+
+/**
+ * What a chip built from `shownNow` promised (decision 49): nextAt from that moment, so the save
+ * matches the label. If that moment has passed by now (the screen's clock ticks a hair late),
+ * the next one.
+ */
+export function nextAtAsShown(timeOfDay: string, shownNow: Date, now: Date = new Date()): Date {
+  const shown = nextAt(timeOfDay, shownNow)
+  return shown > now ? shown : nextAt(timeOfDay, now)
+}
+
+/** Same calendar day as `now`, in the phone's zone. */
+export function isSameDay(d: Date, now: Date = new Date()): boolean {
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  )
 }
 
 /**

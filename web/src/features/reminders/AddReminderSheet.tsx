@@ -36,12 +36,12 @@ export function AddReminderSheet({
   const startInterval = intervalOptions.some((o) => o.value === String(defaultNagIntervalMin))
     ? String(defaultNagIntervalMin)
     : '60'
-  // "Tomorrow <default time>" starts picked, so the default time from Settings is what a title
-  // alone gets (Inventory → TimeChips; owner 2026-10-23, was "In 1 h").
+  // The default-time chip ("Today 15:00" or "Tomorrow 15:00") starts picked, so the default time
+  // from Settings is what a title alone gets (Inventory → TimeChips; decisions 48, 49).
   const empty: AddReminderValues = {
     title: '',
     note: '',
-    when: 'tomorrow',
+    when: 'defaultTime',
     customAt: '',
     interval: startInterval,
   }

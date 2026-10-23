@@ -8,7 +8,9 @@ import {
   formatDue,
   fromLocalInputValue,
   toLocalInputValue,
-  tomorrowAt,
+  isSameDay,
+  nextAt,
+  nextAtAsShown,
 } from './dates'
 
 // Jest runs in UTC (jest.config.js), so local time = UTC here.
@@ -39,9 +41,18 @@ test('datetime-local values go both ways, in local time', () => {
   expect(fromLocalInputValue('nonsense')).toBeNull()
 })
 
-test("tomorrowAt uses the user's morning time", () => {
-  expect(tomorrowAt('09:00', now)).toEqual(new Date('2026-10-15T09:00:00Z'))
-  expect(tomorrowAt('07:30', now)).toEqual(new Date('2026-10-15T07:30:00Z'))
+test('nextAt: today when the time is still ahead, otherwise tomorrow', () => {
+  // now = 10:00 (UTC, as Jest runs)
+  expect(nextAt('15:00', now)).toEqual(new Date('2026-10-14T15:00:00Z'))
+  expect(nextAt('10:01', now)).toEqual(new Date('2026-10-14T10:01:00Z')) // a minute ahead: today
+  expect(nextAt('10:00', now)).toEqual(new Date('2026-10-15T10:00:00Z')) // right now: tomorrow
+  expect(nextAt('09:00', now)).toEqual(new Date('2026-10-15T09:00:00Z'))
+  expect(nextAt('07:30', now)).toEqual(new Date('2026-10-15T07:30:00Z'))
+})
+
+test('isSameDay compares calendar days', () => {
+  expect(isSameDay(new Date('2026-10-14T23:59:00Z'), now)).toBe(true)
+  expect(isSameDay(new Date('2026-10-15T00:00:00Z'), now)).toBe(false)
 })
 
 test('far-future hints by distance (Inventory tiers), none within a month', () => {
@@ -80,4 +91,16 @@ test('formatTook: minutes, hours, days', () => {
   expect(formatTook(3 * 3_600_000 + 20 * 60_000)).toBe('3 h')
   expect(formatTook(2 * 86_400_000)).toBe('2 d')
   expect(formatTook(-60_000)).toBe('0 min')
+})
+
+test('nextAtAsShown: what the label promised, unless that moment has passed', () => {
+  const shown = new Date('2026-10-14T14:59:30Z') // the chip said "Today 15:00"
+  // Saved a few seconds later, still before 15:00: today, as promised.
+  expect(nextAtAsShown('15:00', shown, new Date('2026-10-14T14:59:59Z'))).toEqual(
+    new Date('2026-10-14T15:00:00Z'),
+  )
+  // The tick was late and 15:00 has passed: tomorrow, never a moment in the past.
+  expect(nextAtAsShown('15:00', shown, new Date('2026-10-14T15:00:01Z'))).toEqual(
+    new Date('2026-10-15T15:00:00Z'),
+  )
 })

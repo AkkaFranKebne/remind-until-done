@@ -9,7 +9,14 @@ import { ChipGroup, type ChipOption } from '../../components/ui/ChipGroup'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
 import { Sheet, SheetContent, SheetTitle } from '../../components/ui/Sheet'
 import { TextField } from '../../components/ui/TextField'
-import { farFutureHint, formatDue, fromLocalInputValue, toLocalInputValue } from '../../lib/dates'
+import {
+  farFutureHint,
+  formatDue,
+  fromLocalInputValue,
+  isSameDay,
+  nextAt,
+  toLocalInputValue,
+} from '../../lib/dates'
 import { useNow } from '../../lib/useNow'
 import {
   addReminderSchema,
@@ -141,7 +148,8 @@ export function ReminderFormSheet({
   const submit = handleSubmit(
     (v) => {
       const keep = keepsSavedTime(v, keepCustomAt)
-      const due = keep ? null : resolveDue(v.when, v.customAt, defaultTimeOfDay)
+      // `now`: the default-time chip saves what its label (defaultDue) says (decision 49).
+      const due = keep ? null : resolveDue(v.when, v.customAt, defaultTimeOfDay, undefined, now)
       if (!keep && !due) return
       onSave({
         title: v.title.trim(),
@@ -186,9 +194,12 @@ export function ReminderFormSheet({
     setValue('when', 'custom', { shouldDirty: true, shouldValidate: isSubmitted })
   }
 
+  const defaultDue = nextAt(defaultTimeOfDay, now)
+  const defaultLabel = `${isSameDay(defaultDue, now) ? 'Today' : 'Tomorrow'} ${defaultTimeOfDay}`
   const timeOptions: ChipOption<WhenChoice>[] = [
     { value: 'in1h', label: 'In 1 h' },
-    { value: 'tomorrow', label: `Tomorrow ${defaultTimeOfDay}` },
+    // The next time it's the default time: "Today 15:00" while that's still ahead (decision 49).
+    { value: 'defaultTime', label: defaultLabel },
     { value: 'in3h', label: 'In 3 h' },
     // Once picked, the chip shows the chosen time (Inventory → TimeChips).
     {

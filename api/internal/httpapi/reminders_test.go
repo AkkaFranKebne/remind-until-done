@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
@@ -24,8 +26,13 @@ const (
 )
 
 // newRemindersAPI is the real API (reminders and devices) on a throwaway database. Only the
-// sign-in is fake.
+// sign-in and Cloud Tasks are fake.
 func newRemindersAPI(t *testing.T) http.Handler {
+	t.Helper()
+	return newRemindersAPIWithTasks(t, &scheduling.Fake{})
+}
+
+func newRemindersAPIWithTasks(t *testing.T, tasks *scheduling.Fake) http.Handler {
 	t.Helper()
 	pool := dbtest.Start(t)
 	return New(logging.New(io.Discard), Deps{
@@ -35,7 +42,7 @@ func newRemindersAPI(t *testing.T) http.Handler {
 			"token-bob":   {UID: "u-bob", Email: "bob@example.com", EmailVerified: true, SignInProvider: auth.GoogleProvider},
 		},
 		Users:     users.NewRepo(pool),
-		Reminders: reminders.NewService(pool),
+		Reminders: reminders.NewService(pool, tasks),
 		Devices:   devices.NewService(pool),
 		Invited:   auth.NewAllowlist("alice@example.com,bob@example.com"),
 	}).Router()
@@ -193,6 +200,26 @@ func TestSixthActiveReminderIs409(t *testing.T) {
 	}
 	// Bob has his own 5.
 	createVia(t, h, bob, "bob's first", 1)
+}
+
+func TestSchedulingFailureIs503(t *testing.T) {
+	tasks := &scheduling.Fake{}
+	h := newRemindersAPIWithTasks(t, tasks)
+	id := createVia(t, h, alice, "Pay rent", 2)
+
+	tasks.Fail(errors.New("cloud tasks is down"))
+	res := send(t, h, "POST", "/api/v1/reminders", alice, fmt.Sprintf(`{"title":"Dentist","dueAt":%q}`, dueIn(3)))
+	if res.status != 503 || errorCode(res.body) != "unavailable" {
+		t.Errorf("create: %d %s, want 503 unavailable", res.status, res.raw)
+	}
+	res = send(t, h, "PATCH", "/api/v1/reminders/"+id, alice, fmt.Sprintf(`{"dueAt":%q}`, dueIn(4)))
+	if res.status != 503 || errorCode(res.body) != "unavailable" {
+		t.Errorf("move: %d %s, want 503 unavailable", res.status, res.raw)
+	}
+	// A title edit books nothing, so it still works.
+	if res = send(t, h, "PATCH", "/api/v1/reminders/"+id, alice, `{"title":"Pay rent today"}`); res.status != 200 {
+		t.Errorf("title edit: %d %s, want 200", res.status, res.raw)
+	}
 }
 
 func TestBadRequestsAre400(t *testing.T) {

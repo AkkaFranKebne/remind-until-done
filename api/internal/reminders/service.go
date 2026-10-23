@@ -11,14 +11,19 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 )
 
 type Service struct {
-	pool *pgxpool.Pool
-	now  func() time.Time // tests can stop the clock
+	pool  *pgxpool.Pool
+	sched scheduling.Scheduler
+	now   func() time.Time // tests can stop the clock
 }
 
-func NewService(pool *pgxpool.Pool) *Service { return &Service{pool: pool, now: time.Now} }
+func NewService(pool *pgxpool.Pool, sched scheduling.Scheduler) *Service {
+	return &Service{pool: pool, sched: sched, now: time.Now}
+}
 
 const columns = `id, title, note, due_at, nag_interval_min, status::text, nag_count, next_nag_at,
 	schedule_version, sent_at, done_at, created_at, updated_at`
@@ -60,6 +65,24 @@ func checkActiveLimit(ctx context.Context, tx pgx.Tx, userID string) error {
 	}
 	if active >= MaxActive {
 		return ErrLimitReached
+	}
+	return nil
+}
+
+// scheduleFirstPush books push 0 of the reminder's current schedule version (design doc 3.2)
+// and records that it has one (enqueued_version). It runs inside the caller's transaction:
+// if Cloud Tasks fails, the caller rolls back, so nothing is saved and a retry is safe.
+// A reminder due beyond scheduling.Horizon gets no task yet; the daily sweep books it later.
+func (s *Service) scheduleFirstPush(ctx context.Context, tx pgx.Tx, r Reminder) error {
+	if r.DueAt.After(s.now().Add(scheduling.Horizon)) {
+		return nil
+	}
+	task := scheduling.Task{ReminderID: r.ID, Version: r.ScheduleVersion, N: 0, At: r.DueAt}
+	if err := s.sched.Enqueue(ctx, task); err != nil {
+		return fmt.Errorf("%w: %w", ErrScheduleFailed, err)
+	}
+	if _, err := tx.Exec(ctx, `UPDATE reminders SET enqueued_version = $2 WHERE id = $1`, r.ID, r.ScheduleVersion); err != nil {
+		return fmt.Errorf("set enqueued_version: %w", err)
 	}
 	return nil
 }
@@ -114,10 +137,9 @@ func (s *Service) Create(ctx context.Context, userID string, in CreateInput) (Re
 	if err := addEvent(ctx, tx, r.ID, "created"); err != nil {
 		return Reminder{}, fmt.Errorf("add event: %w", err)
 	}
-	// M4 plugs the scheduler in here (design doc 3.2): create the Cloud Task for
-	// push 0, set enqueued_version, and roll back with a 503 if that fails. Until
-	// then enqueued_version stays NULL, which is exactly what the M4 sweep looks
-	// for, so reminders saved now get their task once scheduling exists.
+	if err := s.scheduleFirstPush(ctx, tx, r); err != nil {
+		return Reminder{}, err
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return Reminder{}, err
 	}
@@ -139,8 +161,12 @@ func (s *Service) Get(ctx context.Context, userID, id string) (Reminder, error) 
 }
 
 // Update edits a reminder. A new dueAt restarts the push cycle (design doc 2.1):
-// status pending, nag count 0, schedule_version + 1. On a done reminder that makes
-// it active again, so the 5-active limit applies.
+// status pending, nag count 0, a new schedule_version and a task for its first push.
+// On a done reminder that makes it active again, so the 5-active limit applies.
+//
+// The new version comes from a sequence, not + 1 (decision 52): a sequence never hands
+// out a number twice, even after a rollback. So if this edit booked its task and then
+// failed, the next edit gets a new task name instead of colliding with that task.
 func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput) (Reminder, error) {
 	id, err := parseID(id)
 	if err != nil {
@@ -207,7 +233,7 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 		   next_nag_at      = CASE WHEN $8::bool THEN NULL ELSE next_nag_at END,
 		   claimed_at       = CASE WHEN $8::bool THEN NULL ELSE claimed_at END,
 		   done_at          = CASE WHEN $8::bool THEN NULL ELSE done_at END,
-		   schedule_version = schedule_version + CASE WHEN $8::bool THEN 1 ELSE 0 END,
+		   schedule_version = CASE WHEN $8::bool THEN nextval('reminder_schedule_version_seq')::int ELSE schedule_version END,
 		   updated_at       = now()
 		 WHERE id = $1 AND user_id = $2
 		 RETURNING `+columns,
@@ -215,8 +241,11 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 	if err != nil {
 		return Reminder{}, fmt.Errorf("update reminder: %w", err)
 	}
-	// M4: on restart, create the task for the new schedule_version here (design doc 3.2).
-	// Until then the M4 sweep finds it (enqueued_version differs from schedule_version).
+	if restart {
+		if err := s.scheduleFirstPush(ctx, tx, r); err != nil {
+			return Reminder{}, err
+		}
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return Reminder{}, err
 	}

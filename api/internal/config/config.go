@@ -26,6 +26,11 @@ type Config struct {
 	ServiceURL      string
 	InvokerEmail    string
 	InternalAuthOff bool // INTERNAL_AUTH=off: no check, local only (nothing signs tokens there)
+
+	// Pushes are booked as Cloud Tasks in this queue; each task calls ServiceURL as InvokerEmail.
+	TasksLocation string
+	TasksQueue    string
+	SchedulerLog  bool // SCHEDULER=log: tasks are only logged, local only (Cloud Tasks can't call a laptop)
 }
 
 func Load() (Config, error) {
@@ -39,6 +44,10 @@ func Load() (Config, error) {
 		ServiceURL:      os.Getenv("SERVICE_URL"),
 		InvokerEmail:    os.Getenv("INVOKER_SA_EMAIL"),
 		InternalAuthOff: os.Getenv("INTERNAL_AUTH") == "off",
+
+		TasksLocation: os.Getenv("TASKS_LOCATION"),
+		TasksQueue:    os.Getenv("TASKS_QUEUE"),
+		SchedulerLog:  os.Getenv("SCHEDULER") == "log",
 	}
 	switch cfg.Env {
 	case "local", "dev", "prod":
@@ -62,6 +71,12 @@ func Load() (Config, error) {
 	}
 	if !cfg.InternalAuthOff && (cfg.ServiceURL == "" || cfg.InvokerEmail == "") {
 		return Config{}, errors.New("SERVICE_URL and INVOKER_SA_EMAIL are required for the /internal check (locally, make run sets INTERNAL_AUTH=off)")
+	}
+	if cfg.SchedulerLog && cfg.Env != "local" {
+		return Config{}, errors.New("SCHEDULER=log must never be set in dev or prod: no push would ever be sent")
+	}
+	if !cfg.SchedulerLog && (cfg.TasksLocation == "" || cfg.TasksQueue == "" || cfg.ServiceURL == "" || cfg.InvokerEmail == "") {
+		return Config{}, errors.New("TASKS_LOCATION, TASKS_QUEUE, SERVICE_URL and INVOKER_SA_EMAIL are required to book pushes (locally, make run sets SCHEDULER=log)")
 	}
 	if cfg.GCPProject == "" {
 		return Config{}, errors.New("GCP_PROJECT is required (locally, make run sets the dev project)")

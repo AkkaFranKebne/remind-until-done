@@ -61,6 +61,10 @@ func (a *API) writeReminderError(w http.ResponseWriter, r *http.Request, err err
 		writeError(w, http.StatusNotFound, "not_found", "no such reminder")
 	case errors.Is(err, reminders.ErrLimitReached):
 		writeError(w, http.StatusConflict, "limit_reached", "you can have 5 active reminders; finish or delete one first")
+	case errors.Is(err, reminders.ErrScheduleFailed):
+		a.log.ErrorContext(r.Context(), "scheduling failed, nothing saved",
+			"user_id", currentUser(r.Context()).ID, "reminder_id", r.PathValue("id"), "err", err)
+		writeError(w, http.StatusServiceUnavailable, "unavailable", "couldn't schedule the reminder; nothing was saved, try again")
 	default:
 		// Ids only: titles and notes are personal data and never logged.
 		a.log.ErrorContext(r.Context(), "reminders failed",

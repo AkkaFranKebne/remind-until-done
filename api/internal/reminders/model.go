@@ -62,6 +62,8 @@ func (r Reminder) NagsExhausted() bool {
 var (
 	ErrNotFound     = errors.New("reminder not found")                     // HTTP 404
 	ErrLimitReached = errors.New("at most 5 active reminders, finish one") // HTTP 409 limit_reached
+	// Cloud Tasks didn't take the first push. Nothing was saved; trying again is safe.
+	ErrScheduleFailed = errors.New("could not schedule the first push") // HTTP 503 unavailable
 )
 
 // ValidationError is a bad value from the caller (HTTP 400), not a server problem.

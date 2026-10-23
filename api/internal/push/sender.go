@@ -7,6 +7,7 @@ package push
 import (
 	"context"
 	"strconv"
+	"time"
 )
 
 // Message is one push. The service worker (web/src/sw/notification.ts) shows it.
@@ -17,6 +18,7 @@ type Message struct {
 	URL         string // opened on tap: /r/{id}
 	Attempt     int    // this push's number, 1 to MaxAttempts
 	MaxAttempts int
+	SentAt      time.Time // the notification shows this time, even if the phone was off (decision 54)
 }
 
 // data is what the service worker reads from the push. FCM data values must be strings.
@@ -28,6 +30,7 @@ func (m Message) data() map[string]string {
 		"url":         m.URL,
 		"attempt":     strconv.Itoa(m.Attempt),
 		"maxAttempts": strconv.Itoa(m.MaxAttempts),
+		"sentAt":      m.SentAt.UTC().Format(time.RFC3339),
 	}
 }
 

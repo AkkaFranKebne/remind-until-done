@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // LocalDatabaseURL is the Postgres from docker-compose.yml (make db-up).
@@ -31,6 +32,7 @@ type Config struct {
 	TasksLocation string
 	TasksQueue    string
 	SchedulerLog  bool // SCHEDULER=log: tasks are only logged, local only (Cloud Tasks can't call a laptop)
+	PushLog       bool // PUSH=log: pushes are only logged, local only
 }
 
 func Load() (Config, error) {
@@ -48,6 +50,7 @@ func Load() (Config, error) {
 		TasksLocation: os.Getenv("TASKS_LOCATION"),
 		TasksQueue:    os.Getenv("TASKS_QUEUE"),
 		SchedulerLog:  os.Getenv("SCHEDULER") == "log",
+		PushLog:       os.Getenv("PUSH") == "log",
 	}
 	switch cfg.Env {
 	case "local", "dev", "prod":
@@ -75,11 +78,19 @@ func Load() (Config, error) {
 	if cfg.SchedulerLog && cfg.Env != "local" {
 		return Config{}, errors.New("SCHEDULER=log must never be set in dev or prod: no push would ever be sent")
 	}
+	if cfg.PushLog && cfg.Env != "local" {
+		return Config{}, errors.New("PUSH=log must never be set in dev or prod: every nag would count as sent and none would arrive")
+	}
 	if !cfg.SchedulerLog && (cfg.TasksLocation == "" || cfg.TasksQueue == "" || cfg.ServiceURL == "" || cfg.InvokerEmail == "") {
 		return Config{}, errors.New("TASKS_LOCATION, TASKS_QUEUE, SERVICE_URL and INVOKER_SA_EMAIL are required to book pushes (locally, make run sets SCHEDULER=log)")
 	}
 	if cfg.GCPProject == "" {
 		return Config{}, errors.New("GCP_PROJECT is required (locally, make run sets the dev project)")
+	}
+	// Sign-in, Cloud Tasks and FCM all use this project. Project ids are rud-<env>-...: a dev
+	// project in prod would send pushes no prod phone can get, and delete every device for it.
+	if cfg.Env != "local" && !strings.HasPrefix(cfg.GCPProject, "rud-"+cfg.Env+"-") {
+		return Config{}, fmt.Errorf("GCP_PROJECT %q is not a %s project (want rud-%s-...)", cfg.GCPProject, cfg.Env, cfg.Env)
 	}
 	return cfg, nil
 }

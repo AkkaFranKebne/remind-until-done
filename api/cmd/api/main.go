@@ -15,8 +15,10 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/config"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/db"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/dispatch"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/httpapi"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/push"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
@@ -79,9 +81,24 @@ func main() {
 		sched = tasks
 	}
 
+	// Pushes go through FCM. Locally PUSH=log only logs them; config refuses that in dev and prod.
+	var sender push.Sender
+	if cfg.PushLog {
+		sender = push.Log{Logger: log}
+		log.Warn("PUSH=log: pushes are logged, not sent (local only)")
+	} else {
+		fcm, err := push.NewFCM(context.Background(), cfg.GCPProject)
+		if err != nil {
+			log.Error("fcm", "err", err)
+			os.Exit(1)
+		}
+		sender = fcm
+	}
+
 	api := httpapi.New(log, httpapi.Deps{
 		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool, sched),
 		Devices: devices.NewService(pool), Invited: invited, Invoker: invoker,
+		Dispatcher: dispatch.New(pool, sender, sched, log),
 	})
 
 	// Check the database once, before taking requests (/healthz reports this result).

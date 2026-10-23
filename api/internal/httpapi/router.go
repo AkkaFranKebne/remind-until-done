@@ -10,6 +10,7 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
@@ -53,32 +54,40 @@ type DeviceStore interface {
 	Delete(ctx context.Context, userID, id string) error
 }
 
+// Dispatcher runs a push Cloud Tasks asks for. *dispatch.Dispatcher is the real one.
+type Dispatcher interface {
+	Fire(ctx context.Context, t scheduling.Body) error
+}
+
 // Deps is everything the API talks to. main passes the real ones, tests pass fakes.
 type Deps struct {
-	DB        Pinger
-	Tokens    TokenVerifier
-	Users     UserStore
-	Reminders ReminderStore
-	Devices   DeviceStore
-	Invited   auth.Allowlist
-	Invoker   InvokerVerifier
+	DB         Pinger
+	Tokens     TokenVerifier
+	Users      UserStore
+	Reminders  ReminderStore
+	Devices    DeviceStore
+	Invited    auth.Allowlist
+	Invoker    InvokerVerifier
+	Dispatcher Dispatcher
 }
 
 type API struct {
-	log       *slog.Logger
-	health    *dbHealth
-	tokens    TokenVerifier
-	users     UserStore
-	reminders ReminderStore
-	devices   DeviceStore
-	invited   auth.Allowlist
-	invoker   InvokerVerifier
+	log        *slog.Logger
+	health     *dbHealth
+	tokens     TokenVerifier
+	users      UserStore
+	reminders  ReminderStore
+	devices    DeviceStore
+	invited    auth.Allowlist
+	invoker    InvokerVerifier
+	dispatcher Dispatcher
 }
 
 func New(log *slog.Logger, d Deps) *API {
 	return &API{
 		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users,
 		reminders: d.Reminders, devices: d.Devices, invited: d.Invited, invoker: d.Invoker,
+		dispatcher: d.Dispatcher,
 	}
 }
 
@@ -109,7 +118,9 @@ func (a *API) routes() []route {
 // the /internal prefix. They are not in swagger.json (not for the web app). Router
 // wraps each one in requireInvoker.
 func (a *API) internalRoutes() []route {
-	return []route{}
+	return []route{
+		{"POST", "/tasks/fire", a.fireTask},
+	}
 }
 
 // Router returns the handler for the whole service.

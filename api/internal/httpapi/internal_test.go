@@ -67,7 +67,7 @@ func TestInternalRefusesCallersWithoutTheInvokerToken(t *testing.T) {
 }
 
 func TestInternalLetsTheInvokerThrough(t *testing.T) {
-	// No internal route matches yet, so a caller who passes the check gets 404.
+	// An unknown internal path: a caller who passes the check gets 404.
 	status, code, _ := callInternal(t, fakeInvoker{}, "POST", "/internal/nope", "Bearer good")
 	if status != http.StatusNotFound || code != "not_found" {
 		t.Errorf("status = %d, code = %q, want 404 not_found after the check", status, code)

@@ -19,6 +19,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 - `httpapi` only translates HTTP to service calls. Business rules live in the feature packages.
 - Only `auth`, `scheduling` and `push` import Google SDKs. Everything else uses their interfaces (`httpapi.TokenVerifier`, ...), so tests can use fakes.
 - Public routes live under `/api/v1/` (Firebase Hosting forwards the full path). Cloud Tasks and Scheduler call `/internal/*`.
+- Internal routes are listed in `API.internalRoutes()` (not in `swagger.json`). `Router` wraps every `/internal/*` path in `requireInvoker`: a Google ID token (OIDC) signed by Google, issued by Google sign-in, made for `SERVICE_URL`, from `INVOKER_SA_EMAIL` with a verified email (`auth.Invoker`, design doc 7.1). The Cloud Run URL is public (Hosting must reach it), so this check is the only lock. Locally `make run` sets `INTERNAL_AUTH=off` (nothing signs tokens there); config refuses it in dev and prod.
 - Routes are listed once in `API.routes()` (`internal/httpapi/router.go`). Every route except `/healthz` is wrapped in `requireUser` (401 without a valid token, 403 `not_invited` if not on the invite list). Every route must be in `swagger.json`, and every `swagger.json` route must be served or listed in `notBuiltYet` (with its milestone): `router_contract_test.go` fails otherwise. Building a route? Remove it from `notBuiltYet`. The web app's API code is generated from `swagger.json`.
 - The invite list (`ALLOWED_EMAILS`) works the same everywhere: listed and verified emails only; empty = nobody (design doc decision 31). Locally, put your Gmail in `api/.env.local` (`ALLOWED_EMAILS=you@gmail.com`; git-ignored).
 - Errors use one JSON shape: `{"error":{"code":"...","message":"..."}}` (`writeError` in `internal/httpapi/errors.go`).
@@ -37,5 +38,5 @@ Run in `api/`. Needs Go (version in `go.mod`).
 ## Never
 - Never build SQL by string concatenation. Use query parameters.
 - Never log secrets, ID tokens, emails or full connection strings (log the Firebase uid instead). Errors that could quote `DATABASE_URL` aren't wrapped (see `db.Open`).
-- Never add an `/internal/*` route without the OIDC check (from M4).
+- Never add an `/internal/*` route outside `internalRoutes()`, and never turn the OIDC check off outside `ENV=local`.
 - Never edit an applied migration. Add a new one (design doc 6.5).

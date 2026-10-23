@@ -73,7 +73,6 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 
 ## Deferred work (do it when its milestone starts)
 - Any time: Terraform Google provider is pinned `~> 6.0`; the registry has 8.x (two major versions). Upgrade in its own PR, dev first, read both upgrade guides.
-- M4 (dispatcher): OIDC check on every `/internal/*` route, with a 401 test.
 - M6 (delete account): the Delete account sheet closes only on Cancel, so the typed DELETE isn't lost by a swipe or a tap outside (Inventory). `ConfirmSheet` has no option for that yet; add one (blocks swipe, tap outside and Escape).
 - M5 (messages): the reminder page's line under the title rotates like the design doc says (3.8, decision 38): nagging shows the latest push line, done shows the level-5 done line picked when it was marked done. Today `pageSubLine()` (`web/src/features/reminders/reminderState.ts`) returns fixed UX Copy lines. The API needs to send those lines first.
 - M5 (actions): `/actions/{token}` puts the token into the URL path unencoded (orval's generated code). Check that tokens are URL-safe, or encode them, when building it.

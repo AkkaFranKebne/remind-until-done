@@ -24,6 +24,12 @@ type TokenVerifier interface {
 	Verify(ctx context.Context, idToken string) (auth.Identity, error)
 }
 
+// InvokerVerifier checks the Google ID token on /internal/* calls. *auth.Invoker
+// is the real one; locally (INTERNAL_AUTH=off) auth.AnyInvoker.
+type InvokerVerifier interface {
+	Verify(ctx context.Context, token string) error
+}
+
 // UserStore finds and updates users. *users.Repo is the real one.
 type UserStore interface {
 	FindOrCreate(ctx context.Context, firebaseUID, email string) (users.User, error)
@@ -55,6 +61,7 @@ type Deps struct {
 	Reminders ReminderStore
 	Devices   DeviceStore
 	Invited   auth.Allowlist
+	Invoker   InvokerVerifier
 }
 
 type API struct {
@@ -65,12 +72,13 @@ type API struct {
 	reminders ReminderStore
 	devices   DeviceStore
 	invited   auth.Allowlist
+	invoker   InvokerVerifier
 }
 
 func New(log *slog.Logger, d Deps) *API {
 	return &API{
 		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users,
-		reminders: d.Reminders, devices: d.Devices, invited: d.Invited,
+		reminders: d.Reminders, devices: d.Devices, invited: d.Invited, invoker: d.Invoker,
 	}
 }
 
@@ -97,6 +105,13 @@ func (a *API) routes() []route {
 	}
 }
 
+// internalRoutes lists the routes Cloud Tasks and Cloud Scheduler call, without
+// the /internal prefix. They are not in swagger.json (not for the web app). Router
+// wraps each one in requireInvoker.
+func (a *API) internalRoutes() []route {
+	return []route{}
+}
+
 // Router returns the handler for the whole service.
 //
 // Browser calls arrive through the Firebase Hosting rewrite, which forwards
@@ -107,6 +122,12 @@ func (a *API) Router() http.Handler {
 	for _, r := range a.routes() {
 		mux.HandleFunc(r.method+" /api/v1"+r.path, r.handler)
 	}
+	for _, r := range a.internalRoutes() {
+		mux.HandleFunc(r.method+" /internal"+r.path, a.requireInvoker(r.handler))
+	}
+	// Anything else under /internal answers 401 before 404, so anonymous callers
+	// can't even learn which internal paths exist.
+	mux.HandleFunc("/internal/", a.requireInvoker(a.notFound))
 	mux.HandleFunc("/", a.notFound)
 	return a.logRequests(apiHeaders(mux))
 }

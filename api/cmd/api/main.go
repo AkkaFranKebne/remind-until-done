@@ -47,9 +47,25 @@ func main() {
 		log.Warn("ALLOWED_EMAILS is empty: nobody can sign in")
 	}
 
+	// Who may call /internal/* (Cloud Tasks, Cloud Scheduler). Locally nothing signs
+	// tokens, so INTERNAL_AUTH=off skips the check; config refuses that in dev and prod.
+	// No verifier refuses every call, so a mistake here closes the door, not opens it.
+	var invoker httpapi.InvokerVerifier
+	if cfg.InternalAuthOff {
+		invoker = auth.AnyInvoker{}
+		log.Warn("INTERNAL_AUTH=off: /internal/* is open (local only)")
+	} else {
+		checked, err := auth.NewInvoker(context.Background(), cfg.ServiceURL, cfg.InvokerEmail)
+		if err != nil {
+			log.Error("invoker check", "err", err)
+			os.Exit(1)
+		}
+		invoker = checked
+	}
+
 	api := httpapi.New(log, httpapi.Deps{
 		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool),
-		Devices: devices.NewService(pool), Invited: invited,
+		Devices: devices.NewService(pool), Invited: invited, Invoker: invoker,
 	})
 
 	// Check the database once, before taking requests (/healthz reports this result).

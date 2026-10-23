@@ -11,6 +11,9 @@ export GCP_PROJECT ?= rud-dev-4f7k2
 # Locally nothing signs Google ID tokens, so /internal/* is open (the API refuses this in dev and prod).
 export INTERNAL_AUTH ?= off
 
+# Cloud Tasks can't call a laptop, so locally pushes are only logged (the API refuses this in dev and prod).
+export SCHEDULER ?= log
+
 # Start the API on http://localhost:8080 (local database: make db-up migrate in the repo root)
 run:
 	go run ./cmd/api

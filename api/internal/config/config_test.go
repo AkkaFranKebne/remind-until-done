@@ -8,6 +8,7 @@ func TestLoadDefaults(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
 	t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
 	t.Setenv("INTERNAL_AUTH", "off")
+	t.Setenv("SCHEDULER", "log")
 
 	cfg, err := Load()
 	if err != nil {
@@ -27,6 +28,9 @@ func TestLoadFromEnv(t *testing.T) {
 	t.Setenv("SERVICE_URL", "https://rud-api.run.app")
 	t.Setenv("INVOKER_SA_EMAIL", "rud-invoker-dev@rud-dev-4f7k2.iam.gserviceaccount.com")
 	t.Setenv("INTERNAL_AUTH", "")
+	t.Setenv("TASKS_LOCATION", "europe-west3")
+	t.Setenv("TASKS_QUEUE", "reminders")
+	t.Setenv("SCHEDULER", "")
 
 	cfg, err := Load()
 	if err != nil {
@@ -34,7 +38,8 @@ func TestLoadFromEnv(t *testing.T) {
 	}
 	if cfg.Env != "dev" || cfg.Port != "9000" || cfg.DatabaseURL != "postgres://u:p@neon/rud" ||
 		cfg.GCPProject != "rud-dev-4f7k2" || cfg.AllowedEmails != "a@example.com" ||
-		cfg.ServiceURL != "https://rud-api.run.app" || cfg.InvokerEmail == "" || cfg.InternalAuthOff {
+		cfg.ServiceURL != "https://rud-api.run.app" || cfg.InvokerEmail == "" || cfg.InternalAuthOff ||
+		cfg.TasksLocation != "europe-west3" || cfg.TasksQueue != "reminders" || cfg.SchedulerLog {
 		t.Errorf("Load() = %+v, want the values from the environment", cfg)
 	}
 }
@@ -78,17 +83,21 @@ func TestLoadRequiresGCPProject(t *testing.T) {
 	t.Setenv("ENV", "local")
 	t.Setenv("GCP_PROJECT", "")
 	t.Setenv("INTERNAL_AUTH", "off")
+	t.Setenv("SCHEDULER", "log")
 
 	if _, err := Load(); err == nil {
 		t.Error("Load() error = nil, want an error: without a project no token can be checked")
 	}
 }
 
-// setInternalAuth gives the /internal check valid settings, so a test fails only for its own reason.
+// setInternalAuth gives the /internal check and Cloud Tasks valid settings, so a test fails only for its own reason.
 func setInternalAuth(t *testing.T) {
 	t.Setenv("INTERNAL_AUTH", "")
 	t.Setenv("SERVICE_URL", "https://rud-api.run.app")
 	t.Setenv("INVOKER_SA_EMAIL", "inv@x.iam.gserviceaccount.com")
+	t.Setenv("TASKS_LOCATION", "europe-west3")
+	t.Setenv("TASKS_QUEUE", "reminders")
+	t.Setenv("SCHEDULER", "")
 }
 
 func TestLoadInternalAuth(t *testing.T) {
@@ -112,6 +121,41 @@ func TestLoadInternalAuth(t *testing.T) {
 			t.Setenv("INTERNAL_AUTH", tt.off)
 			t.Setenv("SERVICE_URL", tt.url)
 			t.Setenv("INVOKER_SA_EMAIL", tt.email)
+			t.Setenv("TASKS_LOCATION", "europe-west3")
+			t.Setenv("TASKS_QUEUE", "reminders")
+			t.Setenv("SCHEDULER", "")
+			if tt.env == "local" {
+				t.Setenv("SCHEDULER", "log") // so only the /internal settings can fail
+			}
+
+			if _, err := Load(); (err != nil) != tt.wantErr {
+				t.Errorf("Load() error = %v, want error = %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestLoadScheduler(t *testing.T) {
+	tests := []struct {
+		name, env, scheduler, location, queue string
+		wantErr                               bool
+	}{
+		{"dev with the queue", "dev", "", "europe-west3", "reminders", false},
+		{"dev without the location", "dev", "", "", "reminders", true},
+		{"dev without the queue", "dev", "", "europe-west3", "", true},
+		{"log only in dev", "dev", "log", "europe-west3", "reminders", true},
+		{"log only in prod", "prod", "log", "europe-west3", "reminders", true},
+		{"log only locally", "local", "log", "", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("ENV", tt.env)
+			t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
+			t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
+			setInternalAuth(t)
+			t.Setenv("SCHEDULER", tt.scheduler)
+			t.Setenv("TASKS_LOCATION", tt.location)
+			t.Setenv("TASKS_QUEUE", tt.queue)
 
 			if _, err := Load(); (err != nil) != tt.wantErr {
 				t.Errorf("Load() error = %v, want error = %v", err, tt.wantErr)

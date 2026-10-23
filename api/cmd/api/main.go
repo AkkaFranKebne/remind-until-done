@@ -18,6 +18,7 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/httpapi"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
@@ -63,8 +64,23 @@ func main() {
 		invoker = checked
 	}
 
+	// Pushes are booked as Cloud Tasks. Locally SCHEDULER=log only logs them; config refuses that in dev and prod.
+	var sched scheduling.Scheduler
+	if cfg.SchedulerLog {
+		sched = scheduling.Log{Logger: log}
+		log.Warn("SCHEDULER=log: pushes are logged, not booked (local only)")
+	} else {
+		tasks, err := scheduling.NewCloudTasks(context.Background(), cfg.GCPProject, cfg.TasksLocation, cfg.TasksQueue, cfg.ServiceURL, cfg.InvokerEmail)
+		if err != nil {
+			log.Error("cloud tasks", "err", err)
+			os.Exit(1)
+		}
+		defer func() { _ = tasks.Close() }()
+		sched = tasks
+	}
+
 	api := httpapi.New(log, httpapi.Deps{
-		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool),
+		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool, sched),
 		Devices: devices.NewService(pool), Invited: invited, Invoker: invoker,
 	})
 

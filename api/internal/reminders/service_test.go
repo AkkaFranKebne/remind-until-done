@@ -12,6 +12,7 @@ import (
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
@@ -23,8 +24,16 @@ var ctx = context.Background()
 // service, the pool and the user's id.
 func setup(t *testing.T) (*reminders.Service, *pgxpool.Pool, string) {
 	t.Helper()
+	s, _, pool, user := setupWithTasks(t)
+	return s, pool, user
+}
+
+// setupWithTasks also returns the fake Cloud Tasks, to see or break the scheduling.
+func setupWithTasks(t *testing.T) (*reminders.Service, *scheduling.Fake, *pgxpool.Pool, string) {
+	t.Helper()
 	pool := dbtest.Start(t)
-	return reminders.NewService(pool), pool, newUser(t, pool, "uid-a")
+	tasks := &scheduling.Fake{}
+	return reminders.NewService(pool, tasks), tasks, pool, newUser(t, pool, "uid-a")
 }
 
 func newUser(t *testing.T, pool *pgxpool.Pool, uid string) string {
@@ -240,8 +249,8 @@ func TestUpdate(t *testing.T) {
 	if u, err = s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(5))}); err != nil {
 		t.Fatal(err)
 	}
-	if !u.DueAt.Equal(in(5)) || u.ScheduleVersion != 2 || u.Status != reminders.StatusPending || u.NagCount != 0 {
-		t.Errorf("after moving dueAt = %+v, want version 2, pending, 0 nags", u)
+	if !u.DueAt.Equal(in(5)) || u.ScheduleVersion <= r.ScheduleVersion || u.Status != reminders.StatusPending || u.NagCount != 0 {
+		t.Errorf("after moving dueAt = %+v, want a new version, pending, 0 nags", u)
 	}
 
 	if _, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(-2))}); !isValidation(err) {
@@ -271,7 +280,7 @@ func TestUpdateRestartsANaggingReminder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u.Status != reminders.StatusPending || u.NagCount != 0 || u.ScheduleVersion != 2 || u.NagsExhausted() {
+	if u.Status != reminders.StatusPending || u.NagCount != 0 || u.ScheduleVersion <= r.ScheduleVersion || u.NagsExhausted() {
 		t.Errorf("after reschedule = %+v, want a fresh pending cycle", u)
 	}
 }
@@ -447,5 +456,131 @@ func TestCursorFromAnotherUserShowsNothingOfTheirs(t *testing.T) {
 	}
 	if len(theirs.Items) != 1 || theirs.Items[0].ID != bobs.ID {
 		t.Errorf("bob with alice's cursor got %+v, want only his own reminder", theirs.Items)
+	}
+}
+
+// enqueuedVersion is the schedule version that has its first task (NULL = none).
+func enqueuedVersion(t *testing.T, pool *pgxpool.Pool, id string) *int {
+	t.Helper()
+	var v *int
+	if err := pool.QueryRow(ctx, `SELECT enqueued_version FROM reminders WHERE id = $1`, id).Scan(&v); err != nil {
+		t.Fatal(err)
+	}
+	return v
+}
+
+func TestCreateBooksTheFirstPush(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	due := in(2)
+	r := create(t, s, user, "Pay rent", due)
+
+	want := scheduling.Task{ReminderID: r.ID, Version: r.ScheduleVersion, N: 0, At: due}
+	if got := tasks.Tasks(); len(got) != 1 || got[0] != want {
+		t.Errorf("tasks = %+v, want only %+v", got, want)
+	}
+	if v := enqueuedVersion(t, pool, r.ID); v == nil || *v != r.ScheduleVersion {
+		t.Errorf("enqueued_version = %v, want %d", v, r.ScheduleVersion)
+	}
+}
+
+func TestCreateFarAheadWaitsForTheSweep(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	far := create(t, s, user, "Renew passport", in(26*24))
+	if len(tasks.Tasks()) != 0 || enqueuedVersion(t, pool, far.ID) != nil {
+		t.Errorf("26 days ahead: tasks %+v, want none (Cloud Tasks takes 30 days at most; the sweep books it)", tasks.Tasks())
+	}
+	near := create(t, s, user, "Book flights", in(24*24))
+	if got := tasks.Tasks(); len(got) != 1 || got[0].ReminderID != near.ID {
+		t.Errorf("24 days ahead: tasks %+v, want one for it", got)
+	}
+}
+
+func TestCreateSavesNothingWhenSchedulingFails(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	tasks.Fail(errors.New("cloud tasks is down"))
+
+	if _, err := s.Create(ctx, user, reminders.CreateInput{Title: "Pay rent", DueAt: in(2)}); !errors.Is(err, reminders.ErrScheduleFailed) {
+		t.Fatalf("err = %v, want ErrScheduleFailed", err)
+	}
+	var rows int
+	if err := pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM reminders) + (SELECT count(*) FROM reminder_events)`).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
+	if rows != 0 {
+		t.Errorf("%d rows saved, want none (the app shows an error and the user tries again)", rows)
+	}
+}
+
+func TestUpdateBooksTheNewVersion(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	r := create(t, s, user, "Dentist", in(2))
+
+	if _, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{Title: ptr("Dentist 14:00")}); err != nil {
+		t.Fatal(err)
+	}
+	if n := len(tasks.Tasks()); n != 1 {
+		t.Errorf("a title edit booked %d tasks in total, want only the first one", n)
+	}
+
+	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(5))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := scheduling.Task{ReminderID: r.ID, Version: u.ScheduleVersion, N: 0, At: in(5)}
+	if got := tasks.Tasks(); len(got) != 2 || got[1] != want {
+		t.Errorf("tasks = %+v, want the second to be %+v", got, want)
+	}
+	if v := enqueuedVersion(t, pool, r.ID); v == nil || *v != u.ScheduleVersion {
+		t.Errorf("enqueued_version = %v, want %d", v, u.ScheduleVersion)
+	}
+}
+
+func TestUpdateFarAheadLeavesTheOldTaskBehind(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	r := create(t, s, user, "Renew passport", in(2))
+
+	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(40 * 24))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The sweep looks for enqueued_version <> schedule_version; the old task finds a new version and does nothing.
+	if n := len(tasks.Tasks()); n != 1 {
+		t.Errorf("%d tasks, want only the first one", n)
+	}
+	if v := enqueuedVersion(t, pool, r.ID); v == nil || *v == u.ScheduleVersion {
+		t.Errorf("enqueued_version = %v, want the old version, not %d", v, u.ScheduleVersion)
+	}
+}
+
+func TestFailedEditChangesNothingAndItsVersionIsNeverReused(t *testing.T) {
+	s, tasks, _, user := setupWithTasks(t)
+	r := create(t, s, user, "Dentist", in(2))
+
+	// Cloud Tasks may have saved this task even though the call failed (a timeout).
+	tasks.Fail(errors.New("deadline exceeded"))
+	if _, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(5)), Title: ptr("Dentist 14:00")}); !errors.Is(err, reminders.ErrScheduleFailed) {
+		t.Fatalf("err = %v, want ErrScheduleFailed", err)
+	}
+	got, err := s.Get(ctx, user, r.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Title != "Dentist" || !got.DueAt.Equal(r.DueAt) || got.ScheduleVersion != r.ScheduleVersion {
+		t.Errorf("after a failed edit = %+v, want it unchanged", got)
+	}
+
+	tasks.Fail(nil)
+	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(7))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	all := tasks.Tasks()
+	if len(all) != 3 {
+		t.Fatalf("tasks = %+v, want create, failed edit, edit", all)
+	}
+	failed, booked := all[1], all[2]
+	if booked.Version == failed.Version || booked.Version != u.ScheduleVersion {
+		t.Errorf("failed edit used v%d, next edit v%d (saved v%d): want a new version, so the task name is new too",
+			failed.Version, booked.Version, u.ScheduleVersion)
 	}
 }

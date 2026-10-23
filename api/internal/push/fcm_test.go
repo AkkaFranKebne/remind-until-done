@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -13,7 +14,9 @@ import (
 	"google.golang.org/api/option"
 )
 
-var msg = Message{ReminderID: "abc", Title: "Pay rent", Body: "Still waiting for you.", URL: "/r/abc", Attempt: 3, MaxAttempts: 12}
+const reminderID = "0b3f6c1e-8d2a-4f5b-9c7e-1a2b3c4d5e6f"
+
+var msg = Message{ReminderID: reminderID, Title: "Pay rent", Body: "Still waiting for you.", URL: "/r/" + reminderID, Attempt: 3, MaxAttempts: 12}
 
 // fcmServer stands in for FCM: it answers every send with this status and body,
 // and keeps the last request body.
@@ -75,7 +78,7 @@ func TestSendIsADataOnlyWebPush(t *testing.T) {
 		t.Errorf("token = %q", m.Token)
 	}
 	// What web/src/sw/notification.ts reads.
-	want := map[string]string{"reminderId": "abc", "title": "Pay rent", "body": "Still waiting for you.", "url": "/r/abc", "attempt": "3", "maxAttempts": "12"}
+	want := map[string]string{"reminderId": reminderID, "title": "Pay rent", "body": "Still waiting for you.", "url": "/r/" + reminderID, "attempt": "3", "maxAttempts": "12"}
 	if len(m.Data) != len(want) {
 		t.Errorf("data = %v, want %v", m.Data, want)
 	}
@@ -88,8 +91,13 @@ func TestSendIsADataOnlyWebPush(t *testing.T) {
 	if m.Notification != nil || m.Webpush.Notification != nil {
 		t.Error("the push has a notification block, want data only")
 	}
-	if m.Webpush.Headers["Urgency"] != "high" || m.Webpush.Headers["TTL"] != "3600" {
-		t.Errorf("webpush headers = %v, want Urgency high and TTL 3600", m.Webpush.Headers)
+	h := m.Webpush.Headers
+	if h["Urgency"] != "high" || h["TTL"] != "86400" {
+		t.Errorf("webpush headers = %v, want Urgency high and TTL 86400 (a day)", h)
+	}
+	// Web push topics: at most 32 characters, URL-safe base64 alphabet.
+	if h["Topic"] != "0b3f6c1e8d2a4f5b9c7e1a2b3c4d5e6f" || !regexp.MustCompile(`^[A-Za-z0-9_-]{1,32}$`).MatchString(h["Topic"]) {
+		t.Errorf("Topic = %q, want the reminder id without dashes", h["Topic"])
 	}
 }
 

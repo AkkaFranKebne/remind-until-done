@@ -16,9 +16,10 @@ import (
 const (
 	// A push waits at most this long for FCM, then counts as TryLater (design doc 3.3).
 	sendTimeout = 5 * time.Second
-	// An offline phone gets the push if it comes back within this time; after that FCM drops
-	// it. The next nag comes anyway and replaces it on the phone (same tag).
-	ttl = time.Hour
+	// An offline phone gets the push if it comes back within this time: the longest nag
+	// interval, so a phone that was off for up to a day still hears about the reminder.
+	// The Topic header (below) makes sure it gets only the newest one.
+	ttl = 24 * time.Hour
 )
 
 // FCM sends data-only web pushes for one Firebase project.
@@ -68,10 +69,17 @@ func message(token string, m Message) *messaging.Message {
 			Headers: map[string]string{
 				"Urgency": "high", // deliver now, even on a phone saving battery
 				"TTL":     strconv.Itoa(int(ttl.Seconds())),
+				// While the phone is off, a new push with the same topic replaces the waiting one,
+				// so a phone coming back gets one notification: the latest nag.
+				"Topic": topic(m.ReminderID),
 			},
 		},
 	}
 }
+
+// topic is the reminder's id without dashes: web push allows at most 32 characters
+// from the URL-safe base64 alphabet, and a UUID is 32 hex digits.
+func topic(reminderID string) string { return strings.ReplaceAll(reminderID, "-", "") }
 
 func outcome(err error) Outcome {
 	switch {

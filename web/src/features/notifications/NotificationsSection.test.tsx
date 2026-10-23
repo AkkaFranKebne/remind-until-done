@@ -232,6 +232,36 @@ describe('Settings → Notifications', () => {
     expect(tip).toHaveTextContent('Tap Apps → rud.')
   })
 
+  it('On, in Chrome on a Mac: a card with the steps to unmute Chrome in macOS', async () => {
+    pretendInstalled()
+    pretendUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+      0,
+    )
+    pretendNotifications('granted')
+    pretendDeviceId('d1')
+    mockDevices(device('d1'), 'd1')
+    const section = await openSettings()
+
+    const tip = (
+      await within(section).findByRole('heading', { name: 'No nagging showing up on your Mac?' })
+    ).closest('div')
+    if (!tip) throw new Error('no tip card')
+    expect(
+      within(tip)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent),
+    ).toEqual([
+      '1Open System Settings → Notifications',
+      "2Open Google Chrome, and rud. if it's there. Google Chrome may show up twice: do each one.",
+      '3Turn on Allow notifications',
+      '4Pick Banners or Alerts',
+    ])
+    expect(tip).toHaveTextContent('macOS can mute Google Chrome even when rud. says On.')
+    // Not an iPhone: no lock-screen tip.
+    expect(within(section).queryByRole('heading', { name: /when locked/ })).not.toBeInTheDocument()
+  })
+
   it('allowed and this device registered: On, and it registers again once per start', async () => {
     pretendInstalled()
     pretendNotifications('granted')
@@ -242,8 +272,9 @@ describe('Settings → Notifications', () => {
 
     expect(await within(section).findByText('This device is registered')).toBeInTheDocument()
     await waitFor(() => expect(posted).toHaveLength(1))
-    // Not an iPhone: no lock-screen tip.
+    // jsdom is no iPhone and no Mac: no tips.
     expect(within(section).queryByRole('heading', { name: /when locked/ })).not.toBeInTheDocument()
+    expect(within(section).queryByRole('heading', { name: /on your Mac/ })).not.toBeInTheDocument()
     expect(posted).toEqual([{ fcmToken: 'tok-1', platform: 'web' }])
   })
 

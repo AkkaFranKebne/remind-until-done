@@ -39,6 +39,22 @@ export function isTooOld(ios: Ios): boolean {
   return major < MIN_IOS[0] || (major === MIN_IOS[0] && minor < MIN_IOS[1])
 }
 
+/**
+ * On a Mac, the browser whose name macOS lists under System Settings → Notifications: Chrome or
+ * Edge (they show the installed app's pushes under their own name). Null for anything else,
+ * including an iPad that says "Macintosh" (it has a touch screen), Safari and Opera (it also says
+ * "Chrome/", but macOS lists it as Opera).
+ */
+export function macBrowser(
+  userAgent: string,
+  maxTouchPoints: number,
+): 'Google Chrome' | 'Microsoft Edge' | null {
+  if (!/\bMacintosh\b/.test(userAgent) || maxTouchPoints > 1) return null
+  if (/\bOPR\//.test(userAgent)) return null
+  if (/\bEdg\//.test(userAgent)) return 'Microsoft Edge'
+  return /\bChrome\//.test(userAgent) ? 'Google Chrome' : null
+}
+
 const STANDALONE = '(display-mode: standalone)'
 
 /** Opened from the home screen icon (the installed app), not in a browser tab. */

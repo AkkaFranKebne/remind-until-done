@@ -41,7 +41,7 @@ export function SettingsPage() {
   const name = user.name ?? email // the name comes from Google only; the API doesn't store it
 
   return (
-    <AppScreen>
+    <AppScreen showSettings={false}>
       <div className="flex flex-col gap-6">
         <PageHeader title="Settings" backTo="/" />
 
@@ -52,11 +52,11 @@ export function SettingsPage() {
         <section aria-labelledby="account">
           <h2
             id="account"
-            className="border-b border-border px-1 pb-2 text-xs font-semibold tracking-wider text-fg2 uppercase"
+            className="border-b border-border px-1 pb-2 text-xs font-bold tracking-wider text-fg2 uppercase"
           >
             Account
           </h2>
-          <div className="flex items-center gap-3.5 border-b border-border px-1 py-3.5">
+          <div className="flex items-center gap-3.5 border-b border-border px-3.5 py-3.5">
             <span
               aria-hidden="true"
               className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-bg text-base font-semibold text-accent"
@@ -70,7 +70,7 @@ export function SettingsPage() {
           </div>
           <BaseButton
             onClick={() => setConfirming(true)}
-            className="flex min-h-11 w-full cursor-pointer items-center gap-3.5 border-b border-border px-1 py-3 text-left focus-visible:outline-2 focus-visible:outline-accent"
+            className="flex min-h-11 w-full cursor-pointer items-center gap-3.5 border-b border-border px-3.5 py-3 text-left focus-visible:outline-2 focus-visible:outline-accent"
           >
             <span
               aria-hidden="true"
@@ -78,7 +78,7 @@ export function SettingsPage() {
             >
               <LogOut size={17} strokeWidth={1.75} />
             </span>
-            <span className="flex-1 text-base">Sign out</span>
+            <span className="flex-1 text-base font-medium">Sign out</span>
             <ChevronRight aria-hidden="true" size={16} strokeWidth={1.75} className="text-fg3" />
           </BaseButton>
         </section>

@@ -1,3 +1,4 @@
+import { cva, type VariantProps } from 'class-variance-authority'
 import { Fieldset } from '@base-ui/react/fieldset'
 import { Radio } from '@base-ui/react/radio'
 import { RadioGroup } from '@base-ui/react/radio-group'
@@ -14,6 +15,13 @@ export type ChipOption<T extends string> = {
   overlay?: ReactNode
 }
 
+/** The question above the pills: bold in a form (Add sheet), a quieter label in Settings. */
+const legendVariants = cva('text-sm', {
+  variants: {
+    look: { question: 'font-semibold text-fg', label: 'font-medium text-fg2' },
+  },
+})
+
 /**
  * Pick exactly one of a few options, shown as pills: the nag interval ("Then nag me every")
  * and the due-time quick picks ("When should we start?"). Built on Base UI's Radio Group, so
@@ -29,6 +37,7 @@ export function ChipGroup<T extends string>({
   onOptionClick,
   focusRef,
   error,
+  legendLook = 'question',
   className,
 }: {
   /** The question above the pills, e.g. "Then nag me every". Names the group. */
@@ -43,6 +52,8 @@ export function ChipGroup<T extends string>({
   focusRef?: Ref<HTMLButtonElement>
   /** Shown right under the question (not under the chips, which may be cut off at the bottom). */
   error?: string
+  /** question: the Add sheet's bold question. label: a quieter grey label (Settings rows). */
+  legendLook?: NonNullable<VariantProps<typeof legendVariants>['look']>
   className?: string
 }) {
   const focusValue = value ?? options[0]?.value
@@ -59,7 +70,7 @@ export function ChipGroup<T extends string>({
       }
       className={cn('flex flex-col gap-2', className)}
     >
-      <Fieldset.Legend className="text-sm font-semibold text-fg">{legend}</Fieldset.Legend>
+      <Fieldset.Legend className={legendVariants({ look: legendLook })}>{legend}</Fieldset.Legend>
       {error ? (
         <p role="alert" className="-mt-1 text-sm text-error-text">
           {error}

@@ -12,10 +12,24 @@ const intervals: ChipOption<string>[] = [
   { value: '1440', label: '24 h' },
 ]
 
-function Controlled({ initial }: { initial: string | null }) {
+function Controlled({
+  initial,
+  legend = 'Then nag me every',
+  legendLook,
+}: {
+  initial: string | null
+  legend?: string
+  legendLook?: 'question' | 'label'
+}) {
   const [value, setValue] = useState(initial)
   return (
-    <ChipGroup legend="Then nag me every" options={intervals} value={value} onChange={setValue} />
+    <ChipGroup
+      legend={legend}
+      legendLook={legendLook}
+      options={intervals}
+      value={value}
+      onChange={setValue}
+    />
   )
 }
 
@@ -33,3 +47,8 @@ export const Interval: Story = { render: () => <Controlled initial="60" /> }
 
 /** Nothing picked yet (TimeChips before a choice). */
 export const NothingPicked: Story = { render: () => <Controlled initial={null} /> }
+
+/** Settings → Preferences: a quieter grey label instead of the bold question. */
+export const QuietLabel: Story = {
+  render: () => <Controlled initial="60" legend="Default nag interval" legendLook="label" />,
+}

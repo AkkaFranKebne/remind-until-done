@@ -138,7 +138,7 @@ export function ReminderDetail({
 
         <h1
           className={cn(
-            'mt-2 text-xl font-bold text-balance break-words',
+            'mt-2 text-title font-bold text-balance break-words',
             done && 'line-through decoration-current/40',
           )}
         >

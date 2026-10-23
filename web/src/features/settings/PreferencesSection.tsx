@@ -20,16 +20,14 @@ export function PreferencesSection() {
     <section aria-labelledby="preferences">
       <h2
         id="preferences"
-        className="border-b border-border px-1 pb-2 text-xs font-semibold tracking-wider text-fg2 uppercase"
+        className="border-b border-border px-1 pb-2 text-xs font-bold tracking-wider text-fg2 uppercase"
       >
         Preferences
       </h2>
-      <p className="px-1 pt-3 text-sm text-fg2">
-        For new reminders. The ones you have keep theirs.
-      </p>
-      <div className="border-b border-border px-1 py-3.5">
+      <div className="border-b border-border px-3.5 py-3.5">
         <ChipGroup
           legend="Default nag interval"
+          legendLook="label"
           options={intervalOptions}
           value={intervalOptions.some((o) => o.value === interval) ? interval : null}
           onChange={(v) => save.mutate({ defaultNagIntervalMin: Number(v) })}
@@ -41,8 +39,8 @@ export function PreferencesSection() {
         saved={me.defaultTimeOfDay}
         onSave={(t) => save.mutate({ defaultTimeOfDay: t })}
       />
-      <div className="flex min-h-11 items-center justify-between gap-3 border-b border-border px-1 py-3.5">
-        <span className="shrink-0 text-base">Time zone</span>
+      <div className="flex min-h-11 items-center justify-between gap-3 border-b border-border px-3.5 py-3.5">
+        <span className="shrink-0 text-base font-medium">Time zone</span>
         <span className="min-w-0 truncate text-sm text-fg2">{me.timezone}</span>
       </div>
     </section>
@@ -57,8 +55,8 @@ export function PreferencesSection() {
 function DefaultTime({ saved, onSave }: { saved: string; onSave: (time: string) => void }) {
   const [draft, setDraft] = useState(saved)
   return (
-    <Field.Root className="flex min-h-11 items-center justify-between gap-3 border-b border-border px-1 py-2.5">
-      <Field.Label className="text-base">Default time</Field.Label>
+    <Field.Root className="flex min-h-11 items-center justify-between gap-3 border-b border-border px-3.5 py-2.5">
+      <Field.Label className="text-base font-medium">Default time</Field.Label>
       <Field.Control
         type="time"
         value={draft}

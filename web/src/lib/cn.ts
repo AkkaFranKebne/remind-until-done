@@ -9,7 +9,7 @@ import { extendTailwindMerge } from 'tailwind-merge'
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {
-      'font-size': [{ text: ['display', 'input', 'countdown'] }],
+      'font-size': [{ text: ['display', 'input', 'countdown', 'title'] }],
       'border-w': [{ border: ['strong'] }],
       animate: [{ animate: ['spin-fast', 'shimmer', 'nag-pulse'] }],
       'bg-image': ['bg-shimmer'],

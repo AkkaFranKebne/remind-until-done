@@ -61,3 +61,8 @@ test('text-countdown is a font size, not a colour', () => {
   expect(cn('text-countdown', 'text-nag-mid-fg')).toBe('text-countdown text-nag-mid-fg')
   expect(cn('text-xl', 'text-countdown')).toBe('text-countdown')
 })
+
+test('text-title is a font size, not a colour', () => {
+  expect(cn('text-title', 'text-on-grad')).toBe('text-title text-on-grad')
+  expect(cn('text-xl', 'text-title')).toBe('text-title')
+})

@@ -60,7 +60,7 @@ const typeTitle = (sheet: HTMLElement, text: string) =>
     target: { value: text },
   })
 
-test('opens with the questions from the Inventory; "In 1 h" and your default interval (1 h) are picked', async () => {
+test('opens with the questions from the Inventory; "Tomorrow <default time>" and your default interval (1 h) are picked', async () => {
   const sheet = await openSheet()
 
   expect(
@@ -69,9 +69,9 @@ test('opens with the questions from the Inventory; "In 1 h" and your default int
   expect(
     within(sheet).getByRole('radiogroup', { name: 'When should we start?' }),
   ).toBeInTheDocument()
-  expect(within(sheet).getByRole('radio', { name: 'Tomorrow 09:00' })).toBeInTheDocument()
+  expect(within(sheet).getByRole('radio', { name: 'Tomorrow 09:00' })).toBeChecked()
   expect(within(sheet).getByRole('radio', { name: '1 h' })).toBeChecked()
-  expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).toBeChecked()
+  expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).not.toBeChecked()
   expect(within(sheet).getByRole('radio', { name: '15 min' })).toBeInTheDocument()
 })
 
@@ -196,12 +196,12 @@ test('Custom… opens the native picker at once; the chip is picked only once a 
 
   fireEvent.click(within(sheet).getByRole('radio', { name: 'Custom…' }))
   expect(showPicker).toHaveBeenCalledTimes(1)
-  // Nothing chosen yet (or the picker was cancelled): "In 1 h" stays picked.
-  expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).toBeChecked()
+  // Nothing chosen yet (or the picker was cancelled): "Tomorrow 09:00" stays picked.
+  expect(within(sheet).getByRole('radio', { name: 'Tomorrow 09:00' })).toBeChecked()
 
   // The picker's Reset (empty value) counts as a cancel too.
   fireEvent.change(picker(sheet), { target: { value: '' } })
-  expect(within(sheet).getByRole('radio', { name: 'In 1 h' })).toBeChecked()
+  expect(within(sheet).getByRole('radio', { name: 'Tomorrow 09:00' })).toBeChecked()
 
   const value = localValue(1, '14:30')
   fireEvent.change(picker(sheet), { target: { value } })

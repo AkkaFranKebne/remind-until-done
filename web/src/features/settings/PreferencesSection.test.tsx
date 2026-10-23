@@ -39,9 +39,6 @@ describe('Settings → Preferences', () => {
   it('shows the defaults and the time zone', async () => {
     const section = await openPreferences()
 
-    expect(
-      within(section).getByText('For new reminders. The ones you have keep theirs.'),
-    ).toBeInTheDocument()
     const interval = within(section).getByRole('radiogroup', { name: 'Default nag interval' })
     expect(within(interval).getByRole('radio', { name: '1 h' })).toBeChecked()
     expect(within(section).getByLabelText('Default time')).toHaveValue('09:00')

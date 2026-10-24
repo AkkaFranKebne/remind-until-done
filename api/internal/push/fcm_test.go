@@ -16,7 +16,8 @@ import (
 
 const reminderID = "0b3f6c1e-8d2a-4f5b-9c7e-1a2b3c4d5e6f"
 
-var msg = Message{ReminderID: reminderID, Title: "Pay rent", Body: "Still waiting for you.", URL: "/r/" + reminderID, Attempt: 3, MaxAttempts: 12}
+var msg = Message{ReminderID: reminderID, Title: "Pay rent", Body: "Still waiting for you.", URL: "/r/" + reminderID, Attempt: 3, MaxAttempts: 12,
+	SentAt: time.Date(2026, 10, 23, 21, 5, 0, 0, time.FixedZone("CEST", 2*3600))}
 
 // fcmServer stands in for FCM: it answers every send with this status and body,
 // and keeps the last request body.
@@ -78,7 +79,7 @@ func TestSendIsADataOnlyWebPush(t *testing.T) {
 		t.Errorf("token = %q", m.Token)
 	}
 	// What web/src/sw/notification.ts reads.
-	want := map[string]string{"reminderId": reminderID, "title": "Pay rent", "body": "Still waiting for you.", "url": "/r/" + reminderID, "attempt": "3", "maxAttempts": "12"}
+	want := map[string]string{"reminderId": reminderID, "title": "Pay rent", "body": "Still waiting for you.", "url": "/r/" + reminderID, "attempt": "3", "maxAttempts": "12", "sentAt": "2026-10-23T19:05:00Z"}
 	if len(m.Data) != len(want) {
 		t.Errorf("data = %v, want %v", m.Data, want)
 	}

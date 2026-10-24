@@ -9,6 +9,7 @@ func TestLoadDefaults(t *testing.T) {
 	t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
 	t.Setenv("INTERNAL_AUTH", "off")
 	t.Setenv("SCHEDULER", "log")
+	t.Setenv("PUSH", "log")
 
 	cfg, err := Load()
 	if err != nil {
@@ -31,6 +32,7 @@ func TestLoadFromEnv(t *testing.T) {
 	t.Setenv("TASKS_LOCATION", "europe-west3")
 	t.Setenv("TASKS_QUEUE", "reminders")
 	t.Setenv("SCHEDULER", "")
+	t.Setenv("PUSH", "")
 
 	cfg, err := Load()
 	if err != nil {
@@ -57,7 +59,7 @@ func TestLoadRequiresDatabaseURLOutsideLocal(t *testing.T) {
 		t.Run(env, func(t *testing.T) {
 			t.Setenv("ENV", env)
 			t.Setenv("DATABASE_URL", "")
-			t.Setenv("GCP_PROJECT", "rud-dev-4f7k2") // so only the missing database can fail
+			t.Setenv("GCP_PROJECT", "rud-"+env+"-4f7k2") // so only the missing database can fail
 			setInternalAuth(t)
 
 			if _, err := Load(); err == nil {
@@ -98,6 +100,7 @@ func setInternalAuth(t *testing.T) {
 	t.Setenv("TASKS_LOCATION", "europe-west3")
 	t.Setenv("TASKS_QUEUE", "reminders")
 	t.Setenv("SCHEDULER", "")
+	t.Setenv("PUSH", "")
 }
 
 func TestLoadInternalAuth(t *testing.T) {
@@ -117,10 +120,11 @@ func TestLoadInternalAuth(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("ENV", tt.env)
 			t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
-			t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
+			t.Setenv("GCP_PROJECT", "rud-"+tt.env+"-4f7k2")
 			t.Setenv("INTERNAL_AUTH", tt.off)
 			t.Setenv("SERVICE_URL", tt.url)
 			t.Setenv("INVOKER_SA_EMAIL", tt.email)
+			t.Setenv("PUSH", "")
 			t.Setenv("TASKS_LOCATION", "europe-west3")
 			t.Setenv("TASKS_QUEUE", "reminders")
 			t.Setenv("SCHEDULER", "")
@@ -151,7 +155,7 @@ func TestLoadScheduler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("ENV", tt.env)
 			t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
-			t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
+			t.Setenv("GCP_PROJECT", "rud-"+tt.env+"-4f7k2")
 			setInternalAuth(t)
 			t.Setenv("SCHEDULER", tt.scheduler)
 			t.Setenv("TASKS_LOCATION", tt.location)
@@ -159,6 +163,43 @@ func TestLoadScheduler(t *testing.T) {
 
 			if _, err := Load(); (err != nil) != tt.wantErr {
 				t.Errorf("Load() error = %v, want error = %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestLoadPushLogOnlyLocally(t *testing.T) {
+	for _, env := range []string{"dev", "prod"} {
+		t.Run(env, func(t *testing.T) {
+			t.Setenv("ENV", env)
+			t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
+			t.Setenv("GCP_PROJECT", "rud-"+env+"-4f7k2")
+			setInternalAuth(t)
+			if _, err := Load(); err != nil {
+				t.Fatalf("Load() without PUSH: %v", err)
+			}
+			t.Setenv("PUSH", "log")
+			if _, err := Load(); err == nil {
+				t.Error("Load() error = nil, want an error: no nag would ever arrive")
+			}
+		})
+	}
+}
+
+func TestLoadRefusesAnotherEnvironmentsProject(t *testing.T) {
+	tests := []struct{ env, project string }{
+		{"prod", "rud-dev-4f7k2"},
+		{"dev", "rud-prod-4f7k2"},
+		{"prod", "someone-elses-project"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.env+" with "+tt.project, func(t *testing.T) {
+			t.Setenv("ENV", tt.env)
+			t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
+			t.Setenv("GCP_PROJECT", tt.project)
+			setInternalAuth(t)
+			if _, err := Load(); err == nil {
+				t.Error("Load() error = nil, want an error: pushes would go to the wrong project's phones")
 			}
 		})
 	}

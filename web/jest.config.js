@@ -6,6 +6,8 @@ process.env.TZ = 'UTC'
 export default {
   testEnvironment: 'jest-fixed-jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // TEST_CLOCK_SHIFT_H: start the clock that many hours later (jest.setup.ts).
+  globals: { CLOCK_SHIFT_H: Number(process.env.TEST_CLOCK_SHIFT_H ?? 0) },
   testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}'],
   transform: {
     // ts-jest compiles TypeScript for Jest, using tsconfig.test.json.

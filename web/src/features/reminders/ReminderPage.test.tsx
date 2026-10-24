@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import type { Reminder, UpdateReminder } from '../../lib/api/generated/model'
+import { formatDue } from '../../lib/dates'
 import { server } from '../../mocks/server'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { aReminder, mockReminders } from '../../test-utils/reminders'
@@ -173,18 +174,15 @@ test('delete from a picked tile goes back to that tile', async () => {
 })
 
 test('edit: "Adjust the trap" starts with the saved values; keeping the time does not send it', async () => {
-  const sent = mockReminder({
-    status: 'sent',
-    nagCount: 3,
-    dueAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
-  })
+  const dueAt = new Date(Date.now() - 3 * 3_600_000)
+  const sent = mockReminder({ status: 'sent', nagCount: 3, dueAt: dueAt.toISOString() })
   openPage()
 
   fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
   const sheet = await screen.findByRole('dialog', { name: 'Adjust the trap' })
   const titleField = within(sheet).getByRole('textbox', { name: 'What are you forgetting?' })
   expect(titleField).toHaveValue('Call the bank')
-  expect(within(sheet).getByRole('radio', { name: /^Today/ })).toBeChecked() // the saved time
+  expect(within(sheet).getByRole('radio', { name: formatDue(dueAt) })).toBeChecked() // the saved time
   expect(within(sheet).getByRole('radio', { name: '1 h' })).toBeChecked()
   expect(within(sheet).getByText(/Changing the start time resets everything/)).toBeInTheDocument()
 

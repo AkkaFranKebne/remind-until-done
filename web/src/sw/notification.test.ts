@@ -17,8 +17,23 @@ test('our data-only push: title, body, one notification per reminder, a tap open
     renotify: true,
     icon: '/icon-192.png',
     badge: '/badge-96.png',
+    requireInteraction: true, // desktop: stays on screen until clicked or closed
     data: { url: '/r/abc' },
   })
+  expect(shown.reminderId).toBe('abc') // so open pages refresh it
+  expect(shown.options.timestamp).toBeUndefined() // no sentAt: the browser uses "now"
+})
+
+test('the time it was sent, not the time it arrived (a phone that was off)', () => {
+  const sentAt = '2026-10-24T07:40:00Z'
+  expect(toNotification({ data: { reminderId: 'abc', sentAt } }).options.timestamp).toBe(
+    Date.parse(sentAt),
+  )
+  for (const bad of ['', 'yesterday', 42, null]) {
+    expect(toNotification({ data: { reminderId: 'abc', sentAt: bad } }).options).not.toHaveProperty(
+      'timestamp',
+    )
+  }
 })
 
 test('a test message from the Firebase console (a notification, no data) is shown too', () => {
@@ -27,6 +42,8 @@ test('a test message from the Firebase console (a notification, no data) is show
   expect(shown.title).toBe('Test')
   expect(shown.options.body).toBe('Hello from the console')
   expect(shown.options.tag).toBeUndefined() // no reminder: it doesn't replace anything
+  expect(shown.options.requireInteraction).toBeUndefined() // and slides away as usual
+  expect(shown.reminderId).toBeUndefined()
   expect(shown.options.data).toEqual({ url: '/' })
 })
 

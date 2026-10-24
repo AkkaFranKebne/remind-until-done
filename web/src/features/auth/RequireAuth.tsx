@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { usePushRefresh } from '../notifications/usePushRefresh'
 import { useRegisterOnStart } from '../notifications/useNotifications'
 import { useAuth } from './useAuth'
 import { SplashScreen } from './SplashScreen'
@@ -18,8 +19,12 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   )
 }
 
-/** Signed in: register this device for pushes again, if allowed (design doc 5.7). */
+/**
+ * Signed in: register this device for pushes again, if allowed (design doc 5.7), and refresh the
+ * reminders when a push arrives (5.8).
+ */
 function RegisterOnStart() {
   useRegisterOnStart()
+  usePushRefresh()
   return null
 }

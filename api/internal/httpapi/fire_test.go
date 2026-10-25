@@ -14,15 +14,21 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 )
 
-// fakeDispatcher remembers the task and answers err.
+// fakeDispatcher remembers the task (or that a sweep ran) and answers err.
 type fakeDispatcher struct {
-	got *scheduling.Body
-	err error
+	got   *scheduling.Body
+	swept bool
+	err   error
 }
 
 func (f *fakeDispatcher) Fire(_ context.Context, t scheduling.Body) error {
 	f.got = &t
 	return f.err
+}
+
+func (f *fakeDispatcher) Sweep(context.Context) (dispatch.SweepStats, error) {
+	f.swept = true
+	return dispatch.SweepStats{}, f.err
 }
 
 func fire(t *testing.T, d *fakeDispatcher, body string) int {
@@ -79,5 +85,29 @@ func TestFireTaskRefusesBadBodies(t *testing.T) {
 		if status := fire(t, d, body); status != http.StatusBadRequest || d.got != nil {
 			t.Errorf("%s: status = %d, fired = %v, want 400 and nothing fired", body, status, d.got != nil)
 		}
+	}
+}
+
+func TestSweep(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want int
+	}{
+		{"it ran", nil, http.StatusNoContent},
+		{"the database couldn't be read: Scheduler tries again", errors.New("connection reset"), http.StatusInternalServerError},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &fakeDispatcher{err: tt.err}
+			api := New(logging.New(io.Discard), Deps{DB: fakeDB{}, Invoker: fakeInvoker{}, Dispatcher: d})
+			req := httptest.NewRequest("POST", "/internal/sweep", nil)
+			req.Header.Set("Authorization", "Bearer good")
+			rec := httptest.NewRecorder()
+			api.Router().ServeHTTP(rec, req)
+			if rec.Code != tt.want || !d.swept {
+				t.Errorf("status = %d, swept = %v; want %d, true", rec.Code, d.swept, tt.want)
+			}
+		})
 	}
 }

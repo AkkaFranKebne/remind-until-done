@@ -8,12 +8,14 @@
  *    open, as decision 33 wants) and from the cache only when offline. /api and Firebase's own
  *    /__ pages (the Google sign-in round trip) always go to the network.
  * 2. Pushes: FCM delivers through the browser's standard Push API. Every push shows a
- *    notification (iOS requires one); a tap opens or focuses the app on the reminder.
+ *    notification (iOS requires one) and tells open app pages to refresh; a tap opens or
+ *    focuses the app on the reminder.
  *    No Firebase in here: the page gets the push token with Firebase (M3 PR 4).
  */
 import { clientsClaim } from 'workbox-core'
 import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import { pushArrived } from './sw/messages'
 import { toNotification, urlOf } from './sw/notification'
 
 declare const self: ServiceWorkerGlobalScope
@@ -70,9 +72,24 @@ self.addEventListener('push', (event) => {
   } catch {
     payload = undefined // not JSON: still show something (iOS requires a notification)
   }
-  const { title, options } = toNotification(payload)
-  event.waitUntil(self.registration.showNotification(title, options))
+  const { title, options, reminderId } = toNotification(payload)
+  event.waitUntil(
+    Promise.all([self.registration.showNotification(title, options), tellPages(reminderId)]),
+  )
 })
+
+/**
+ * Open app pages refresh the reminder: a push means it changed (design doc 5.8). Best effort:
+ * the notification matters, a page that just closed doesn't.
+ */
+async function tellPages(reminderId: string | undefined) {
+  try {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const page of windows) page.postMessage(pushArrived(reminderId))
+  } catch {
+    // Nothing to tell: the pages reload the reminders when next opened or focused anyway.
+  }
+}
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()

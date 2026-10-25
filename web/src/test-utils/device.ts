@@ -1,6 +1,7 @@
 import { act } from '@testing-library/react'
 import { resetRegisterOnStart } from '../features/notifications/useNotifications'
 import { checkInstalledApp, clearInstallPrompt } from '../features/pwa/installPrompt'
+import { pushArrived } from '../sw/messages'
 
 /**
  * Pretend devices for the install gate (src/features/pwa). jsdom is a desktop browser tab with no
@@ -102,6 +103,44 @@ export function pretendDeviceId(id: string) {
   localStorage.setItem('rud.deviceId', id)
 }
 
+/**
+ * The app's service worker (jsdom has none): `push(id)` is a push arriving, as sw.ts tells open
+ * pages; `tray` holds the shown notifications by tag, and `closed` the tags the app closed.
+ */
+export function pretendServiceWorker() {
+  const worker = new EventTarget()
+  const fake = {
+    tray: new Set<string>(),
+    closed: [] as string[],
+    push: (reminderId?: string) =>
+      act(() => {
+        worker.dispatchEvent(new MessageEvent('message', { data: pushArrived(reminderId) }))
+      }),
+    message: (data: unknown) =>
+      act(() => {
+        worker.dispatchEvent(new MessageEvent('message', { data }))
+      }),
+  }
+  const registration = {
+    getNotifications: ({ tag }: { tag: string }) =>
+      Promise.resolve(
+        fake.tray.has(tag)
+          ? [
+              {
+                close: () => {
+                  fake.tray.delete(tag)
+                  fake.closed.push(tag)
+                },
+              },
+            ]
+          : [],
+      ),
+  }
+  Object.assign(worker, { getRegistration: () => Promise.resolve(registration) })
+  Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: worker })
+  return fake
+}
+
 export function resetDevice() {
   Reflect.deleteProperty(window, 'matchMedia')
   displayMode = 'browser'
@@ -110,6 +149,7 @@ export function resetDevice() {
   Reflect.deleteProperty(navigator, 'maxTouchPoints')
   Reflect.deleteProperty(navigator, 'getInstalledRelatedApps')
   Reflect.deleteProperty(window, 'Notification')
+  Reflect.deleteProperty(navigator, 'serviceWorker')
   localStorage.removeItem('rud.deviceId')
   localStorage.removeItem('rud.notifBannerLater')
   resetRegisterOnStart()

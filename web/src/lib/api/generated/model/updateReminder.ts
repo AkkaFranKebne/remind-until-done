@@ -21,6 +21,7 @@ export interface UpdateReminder {
   /** A new time restarts the push cycle; same rules as on create */
   dueAt?: string
   /**
+   * A new interval on a nagging reminder moves its next nag: last push plus the new interval, or now if that has passed. The count goes on
    * @minimum 15
    * @maximum 1440
    */

@@ -261,12 +261,18 @@ export const UpdateReminderBody = /*#__PURE__*/ zod.object({
     .check(
       /*#__PURE__*/ zod.describe('A new time restarts the push cycle; same rules as on create'),
     ),
-  nagIntervalMin: /*#__PURE__*/ zod.optional(
-    /*#__PURE__*/ zod
-      .int()
-      .check(/*#__PURE__*/ zod.gte(updateReminderBodyNagIntervalMinMin))
-      .check(/*#__PURE__*/ zod.lte(updateReminderBodyNagIntervalMinMax)),
-  ),
+  nagIntervalMin: /*#__PURE__*/ zod
+    .optional(
+      /*#__PURE__*/ zod
+        .int()
+        .check(/*#__PURE__*/ zod.gte(updateReminderBodyNagIntervalMinMin))
+        .check(/*#__PURE__*/ zod.lte(updateReminderBodyNagIntervalMinMax)),
+    )
+    .check(
+      /*#__PURE__*/ zod.describe(
+        'A new interval on a nagging reminder moves its next nag: last push plus the new interval, or now if that has passed. The count goes on',
+      ),
+    ),
 })
 
 export const updateReminderResponseTitleMax = 200

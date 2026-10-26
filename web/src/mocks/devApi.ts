@@ -15,7 +15,8 @@ import { devDevicesHandlers, resetDevDevices } from './devDevicesApi'
  * The fake API for `npm run dev:mock`: the app's real calls, answered in the browser by MSW from
  * data kept in memory (a reload starts over). It follows the real API's rules where the screens
  * notice them (design doc 2.2 and decision 35): 5 active at most, the title/note/interval limits,
- * a new time restarts the cycle, done is final until moved to a new time, unknown ids are 404.
+ * a new time restarts the cycle, a new interval moves a nagging reminder's next nag (decision 62),
+ * done is final until moved to a new time, unknown ids are 404.
  * It starts with one reminder in each state, so nagging and overdue screens can be built before
  * M4 (the real API can't produce them yet). Nothing sends pushes here: a nagging countdown stops
  * at 00:00:00 (reload to reset the clocks). Dev only: never imported by the production build.
@@ -216,7 +217,14 @@ export const devHandlers = [
     }
     if (body.title !== undefined) r.title = body.title.trim()
     if (body.note !== undefined) r.note = body.note?.trim() || null
-    if (body.nagIntervalMin !== undefined) r.nagIntervalMin = body.nagIntervalMin
+    if (body.nagIntervalMin !== undefined && body.nagIntervalMin !== r.nagIntervalMin) {
+      r.nagIntervalMin = body.nagIntervalMin
+      // Nagging: the next nag moves to the last push plus the new interval, or now if that's past.
+      if (!moved && r.status === 'sent' && r.nextNagAt != null && r.sentAt != null) {
+        const next = Date.parse(r.sentAt) + body.nagIntervalMin * MINUTE
+        r.nextNagAt = iso(Math.max(next, Date.now()))
+      }
+    }
     if (moved && body.dueAt) {
       // A new time starts the cycle again (and makes a done reminder active again).
       Object.assign(r, {

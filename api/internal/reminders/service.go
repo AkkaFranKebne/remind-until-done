@@ -164,6 +164,11 @@ func (s *Service) Get(ctx context.Context, userID, id string) (Reminder, error) 
 // status pending, nag count 0, a new schedule_version and a task for its first push.
 // On a done reminder that makes it active again, so the 5-active limit applies.
 //
+// A new nag interval on a nagging reminder moves its next nag at once (decision 62): to the
+// last push plus the new interval, or now if that has passed. The count goes on; a new
+// schedule_version makes the task booked with the old interval do nothing. A push being sent
+// right now is left alone: when it's recorded it books the next nag with the new interval.
+//
 // The new version comes from a sequence, not + 1 (decision 52): a sequence never hands
 // out a number twice, even after a rollback. So if this edit booked its task and then
 // failed, the next edit gets a new task name instead of colliding with that task.
@@ -211,6 +216,8 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 	}
 
 	restart := in.DueAt != nil && !in.DueAt.Equal(current.DueAt)
+	moveNextNag := !restart && in.NagIntervalMin != nil && *in.NagIntervalMin != current.NagIntervalMin &&
+		current.Status == StatusSent && current.NextNagAt != nil
 	if restart {
 		if err := checkDueAt(*in.DueAt, s.now()); err != nil {
 			return Reminder{}, err
@@ -230,20 +237,29 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 		   due_at           = COALESCE($7, due_at),
 		   status           = CASE WHEN $8::bool THEN 'pending'::reminder_status ELSE status END,
 		   nag_count        = CASE WHEN $8::bool THEN 0 ELSE nag_count END,
-		   next_nag_at      = CASE WHEN $8::bool THEN NULL ELSE next_nag_at END,
+		   next_nag_at      = CASE WHEN $8::bool THEN NULL
+		                           WHEN $9::bool THEN GREATEST(sent_at + make_interval(mins => $6::int), now())
+		                           ELSE next_nag_at END,
 		   claimed_at       = CASE WHEN $8::bool THEN NULL ELSE claimed_at END,
 		   done_at          = CASE WHEN $8::bool THEN NULL ELSE done_at END,
-		   schedule_version = CASE WHEN $8::bool THEN nextval('reminder_schedule_version_seq')::int ELSE schedule_version END,
+		   schedule_version = CASE WHEN $8::bool OR $9::bool THEN nextval('reminder_schedule_version_seq')::int ELSE schedule_version END,
 		   updated_at       = now()
 		 WHERE id = $1 AND user_id = $2
 		 RETURNING `+columns,
-		id, userID, title, in.NoteSet, note, in.NagIntervalMin, in.DueAt, restart))
+		id, userID, title, in.NoteSet, note, in.NagIntervalMin, in.DueAt, restart, moveNextNag))
 	if err != nil {
 		return Reminder{}, fmt.Errorf("update reminder: %w", err)
 	}
 	if restart {
 		if err := s.scheduleFirstPush(ctx, tx, r); err != nil {
 			return Reminder{}, err
+		}
+	}
+	if moveNextNag {
+		// Like push 0: booked inside the transaction, so a Cloud Tasks failure saves nothing.
+		task := scheduling.Task{ReminderID: r.ID, Version: r.ScheduleVersion, N: r.NagCount, At: *r.NextNagAt}
+		if err := s.sched.Enqueue(ctx, task); err != nil {
+			return Reminder{}, fmt.Errorf("%w: %w", ErrScheduleFailed, err)
 		}
 	}
 	if err := tx.Commit(ctx); err != nil {

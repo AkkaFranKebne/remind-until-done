@@ -116,6 +116,7 @@ Keep a skill true: a PR that changes how one of these is done updates the skill 
 
 ## Design agent
 - `designer` (`.claude/agents/designer.md`): proposes how a screen, state, animation or copy should look, from the Design Inventory and our tokens, with contrast and reduced motion checked. Advice and mockups only, never code. Ask it when the owner asks for the designer, or before building UI the Inventory doesn't cover; the `ui-reviewer` then checks what was built.
+- Anthropic's **Design plugin** (installed from claude.ai → Settings → Skills, synced to Claude Code) adds design skills: `design-critique`, `accessibility-review`, `ux-copy`, `design-system`, `design-handoff`, and research ones. Use them directly with `/design:<skill>`. The `designer` agent loads `accessibility-review` and `ux-copy` by itself (`skills:` in its front matter). Our Inventory and UI rules win where they differ. To give an agent another skill, add its name to that agent's `skills:` list: plugin skills are written `plugin:skill`.
 
 ## Review agents
 - `ui-reviewer` (`.claude/agents/ui-reviewer.md`): checks frontend changes against the UI rules in `web/AGENTS.md` and the Design Inventory. Run it on every PR that touches `web/src/`.

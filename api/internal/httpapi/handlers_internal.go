@@ -36,3 +36,15 @@ func (a *API) fireTask(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 	}
 }
+
+// POST /internal/sweep (no body): Cloud Scheduler, daily at 03:00 UTC (design doc 3.4). 204 when
+// it ran, even if some reminders couldn't be booked (the log says how many; the next sweep tries
+// them again). 500 only if the database couldn't be read; Scheduler then tries once more.
+func (a *API) sweep(w http.ResponseWriter, r *http.Request) {
+	if _, err := a.dispatcher.Sweep(r.Context()); err != nil {
+		a.log.ErrorContext(r.Context(), "sweep failed", "err", err)
+		writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}

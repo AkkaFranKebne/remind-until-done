@@ -1,4 +1,4 @@
-.PHONY: run test vet fmt build docker fire
+.PHONY: run test vet fmt build docker fire sweep
 
 # Your personal local settings, not in git (.gitignore has .env.*). For example:
 #   ALLOWED_EMAILS=you@gmail.com
@@ -29,6 +29,10 @@ fire:
 	curl -sS -i -X POST http://localhost:$${PORT:-8080}/internal/tasks/fire \
 	  -H "Authorization: Bearer local" -H "Content-Type: application/json" \
 	  -d '{"reminderId":"$(ID)","version":$(V),"n":$(N)}'
+
+# Do what Cloud Scheduler does daily: run the sweep now (books first pushes that have no task).
+sweep:
+	curl -sS -i -X POST http://localhost:$${PORT:-8080}/internal/sweep -H "Authorization: Bearer local"
 
 test:
 	go test ./...

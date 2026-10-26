@@ -9,6 +9,7 @@ import (
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/dispatch"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
@@ -54,9 +55,11 @@ type DeviceStore interface {
 	Delete(ctx context.Context, userID, id string) error
 }
 
-// Dispatcher runs a push Cloud Tasks asks for. *dispatch.Dispatcher is the real one.
+// Dispatcher runs a push Cloud Tasks asks for, and the daily sweep Cloud Scheduler asks for.
+// *dispatch.Dispatcher is the real one.
 type Dispatcher interface {
 	Fire(ctx context.Context, t scheduling.Body) error
+	Sweep(ctx context.Context) (dispatch.SweepStats, error)
 }
 
 // Deps is everything the API talks to. main passes the real ones, tests pass fakes.
@@ -120,6 +123,7 @@ func (a *API) routes() []route {
 func (a *API) internalRoutes() []route {
 	return []route{
 		{"POST", "/tasks/fire", a.fireTask},
+		{"POST", "/sweep", a.sweep},
 	}
 }
 

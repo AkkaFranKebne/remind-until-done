@@ -60,7 +60,7 @@ export const StartingNow: Story = {
   args: { reminder: reminder({ dueAt: new Date(Date.now() + 40_000).toISOString() }) },
 }
 
-/** A nag going out: 00:00:00 pulses until the push arrives and the page moves on. */
+/** A nag going out: 00:00 pulses until the push arrives and the page moves on. */
 export const PushDue: Story = { args: { reminder: reminder({ ...nagging(3), nextNagAt: null }) } }
 
 /** Pushes 1–3. */
@@ -68,6 +68,17 @@ export const NagLow: Story = { args: { reminder: reminder(nagging(2)) } }
 
 /** Pushes 4–8: the countdown ticks to the second. */
 export const NagMid: Story = { args: { reminder: reminder(nagging(4)) } }
+
+/** A daily interval: the next nag is far away, so it shows units, "23 h 59 min" (decision 63). */
+export const NagLongInterval: Story = {
+  args: {
+    reminder: reminder({
+      ...nagging(1),
+      nagIntervalMin: 1440,
+      nextNagAt: new Date(Date.now() + 23 * hour + 59 * minute + 30_000).toISOString(),
+    }),
+  },
+}
 
 /** Pushes 9–11. */
 export const NagHigh: Story = { args: { reminder: reminder(nagging(10)) } }

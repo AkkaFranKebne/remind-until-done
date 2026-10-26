@@ -172,7 +172,7 @@ test('"Add a note" shows the note with its counter; over 200 characters is refus
   const sheet = await openSheet()
 
   fireEvent.click(within(sheet).getByRole('button', { name: 'Add a note' }))
-  const note = await within(sheet).findByRole('textbox', { name: 'Note (optional)' })
+  const note = await within(sheet).findByRole('textbox', { name: 'Note · optional' })
   fireEvent.change(note, { target: { value: 'x'.repeat(201) } })
   typeTitle(sheet, 'Call mum')
   fireEvent.click(within(sheet).getByRole('radio', { name: 'In 3 h' }))

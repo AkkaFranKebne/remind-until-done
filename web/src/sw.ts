@@ -17,6 +17,7 @@ import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { pushArrived } from './sw/messages'
 import { toNotification, urlOf } from './sw/notification'
+import { showOnlyNewest } from './sw/show'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -72,9 +73,9 @@ self.addEventListener('push', (event) => {
   } catch {
     payload = undefined // not JSON: still show something (iOS requires a notification)
   }
-  const { title, options, reminderId } = toNotification(payload)
+  const shown = toNotification(payload)
   event.waitUntil(
-    Promise.all([self.registration.showNotification(title, options), tellPages(reminderId)]),
+    Promise.all([showOnlyNewest(self.registration, shown), tellPages(shown.reminderId)]),
   )
 })
 

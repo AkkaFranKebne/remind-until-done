@@ -270,7 +270,7 @@ export const UpdateReminderBody = /*#__PURE__*/ zod.object({
     )
     .check(
       /*#__PURE__*/ zod.describe(
-        'A new interval on a nagging reminder moves its next nag: last push plus the new interval, or now if that has passed. The count goes on',
+        'A new interval on a nagging reminder moves its next nag: last push plus the new interval, or, if that has passed, the new interval from now. The count goes on',
       ),
     ),
 })

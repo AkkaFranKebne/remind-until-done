@@ -59,7 +59,7 @@ test('counts characters like the form: 200 emoji fit; a reminder done after 12 p
   expect(done).toMatchObject({ status: 'done', nagsExhausted: false })
 })
 
-test("a new interval moves a nagging reminder's next nag: last push + interval, or now (decision 62)", async () => {
+test("a new interval moves a nagging reminder's next nag: last push + interval, or the interval from now (decision 62)", async () => {
   // Reply to landlord: 5 pushes every 60 min, the last one 20 min ago.
   const landlord = '00000000-0000-4000-8000-000000000002'
   const patch = (nagIntervalMin: number) =>
@@ -70,10 +70,11 @@ test("a new interval moves a nagging reminder's next nag: last push + interval, 
   expect(Date.parse(later.nextNagAt)).toBe(Date.parse(later.sentAt) + 30 * 60_000)
   expect(later.nagCount).toBe(5)
 
+  // 15 min after the last push has passed: 15 min from now, never right away.
   const before = Date.now()
-  const now = Answer.parse(await (await patch(15)).json())
-  expect(Date.parse(now.nextNagAt)).toBeGreaterThanOrEqual(before - 1000) // 15 min after the last push has passed
-  expect(Date.parse(now.nextNagAt)).toBeLessThanOrEqual(Date.now())
+  const fromNow = Answer.parse(await (await patch(15)).json())
+  expect(Date.parse(fromNow.nextNagAt)).toBeGreaterThanOrEqual(before + 15 * 60_000)
+  expect(Date.parse(fromNow.nextNagAt)).toBeLessThanOrEqual(Date.now() + 15 * 60_000)
 })
 
 test('a new interval leaves the next nag alone when nothing is nagging or the time moved', async () => {

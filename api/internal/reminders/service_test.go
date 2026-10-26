@@ -578,17 +578,18 @@ func TestNewIntervalMovesTheNextNag(t *testing.T) {
 	}
 }
 
-func TestNewIntervalAlreadyPastNagsNow(t *testing.T) {
+func TestNewIntervalAlreadyPastWaitsTheNewInterval(t *testing.T) {
 	s, tasks, pool, user := setupWithTasks(t)
 	r := create(t, s, user, "Sing", in(1))
-	nagging(t, pool, r.ID, 20) // the screenshot: last push 20 minutes ago
+	nagging(t, pool, r.ID, 55) // last push 55 minutes ago: 15 min after it has passed
 
 	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{NagIntervalMin: ptr(15)})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u.NextNagAt == nil || !near(*u.NextNagAt, time.Now()) {
-		t.Errorf("nextNagAt = %v, want now: last push + 15 min has passed", u.NextNagAt)
+	// Never right after the save: 15 minutes from now.
+	if want := time.Now().Add(15 * time.Minute); u.NextNagAt == nil || !near(*u.NextNagAt, want) {
+		t.Errorf("nextNagAt = %v, want about %v: last push + 15 min has passed", u.NextNagAt, want)
 	}
 	if got := tasks.Tasks(); len(got) != 2 || got[1].N != 1 {
 		t.Errorf("tasks = %+v, want push 1 booked", got)

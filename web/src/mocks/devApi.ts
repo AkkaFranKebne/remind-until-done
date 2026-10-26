@@ -219,10 +219,13 @@ export const devHandlers = [
     if (body.note !== undefined) r.note = body.note?.trim() || null
     if (body.nagIntervalMin !== undefined && body.nagIntervalMin !== r.nagIntervalMin) {
       r.nagIntervalMin = body.nagIntervalMin
-      // Nagging: the next nag moves to the last push plus the new interval, or now if that's past.
+      // Nagging: the next nag moves to the last push plus the new interval, or, if that has
+      // passed, the new interval from now. Never right after the save.
       if (!moved && r.status === 'sent' && r.nextNagAt != null && r.sentAt != null) {
-        const next = Date.parse(r.sentAt) + body.nagIntervalMin * MINUTE
-        r.nextNagAt = iso(Math.max(next, Date.now()))
+        const fromLast = Date.parse(r.sentAt) + body.nagIntervalMin * MINUTE
+        r.nextNagAt = iso(
+          fromLast > Date.now() ? fromLast : Date.now() + body.nagIntervalMin * MINUTE,
+        )
       }
     }
     if (moved && body.dueAt) {

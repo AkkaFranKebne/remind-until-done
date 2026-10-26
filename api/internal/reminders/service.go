@@ -165,7 +165,8 @@ func (s *Service) Get(ctx context.Context, userID, id string) (Reminder, error) 
 // On a done reminder that makes it active again, so the 5-active limit applies.
 //
 // A new nag interval on a nagging reminder moves its next nag at once (decision 62): to the
-// last push plus the new interval, or now if that has passed. The count goes on; a new
+// last push plus the new interval, or, if that has passed, the new interval from now. It never
+// nags right after the save. The count goes on; a new
 // schedule_version makes the task booked with the old interval do nothing. A push being sent
 // right now is left alone: when it's recorded it books the next nag with the new interval.
 //
@@ -238,7 +239,9 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 		   status           = CASE WHEN $8::bool THEN 'pending'::reminder_status ELSE status END,
 		   nag_count        = CASE WHEN $8::bool THEN 0 ELSE nag_count END,
 		   next_nag_at      = CASE WHEN $8::bool THEN NULL
-		                           WHEN $9::bool THEN GREATEST(sent_at + make_interval(mins => $6::int), now())
+		                           WHEN $9::bool AND sent_at + make_interval(mins => $6::int) > now()
+		                                THEN sent_at + make_interval(mins => $6::int)
+		                           WHEN $9::bool THEN now() + make_interval(mins => $6::int)
 		                           ELSE next_nag_at END,
 		   claimed_at       = CASE WHEN $8::bool THEN NULL ELSE claimed_at END,
 		   done_at          = CASE WHEN $8::bool THEN NULL ELSE done_at END,

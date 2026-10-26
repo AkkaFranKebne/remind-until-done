@@ -49,7 +49,8 @@ export function rowSubLine(r: Reminder, now: Date = new Date()): string {
 }
 
 /**
- * The reminder page's line under the title (Inventory → UX Copy, owner decision 2026-10-15).
+ * The reminder page's funny line, at the bottom above the button (Inventory → UX Copy, owner
+ * decisions 2026-10-15 and 2026-10-26).
  * Nagging uses the row's lines until M5, when it shows the latest push message instead.
  */
 export function pageSubLine(r: Reminder): string {
@@ -65,12 +66,16 @@ export function pageSubLine(r: Reminder): string {
   }
 }
 
-/** The big countdown on the reminder page: its label and value (null = label only). */
-export type Countdown = { label: string; value: string | null }
+/**
+ * The big countdown on the reminder page: its small label, the big value, and whether a push is
+ * due right now (the value pulses until it arrives; Inventory → Motion "Countdown pulse").
+ */
+export type Countdown = { label: string; value: string; due: boolean }
 
 /**
- * Waiting: time to the first push. Nagging: time to the next push, to the second (the API's
- * nextNagAt). Overdue: how late, counted from the due time. Done: no countdown (null).
+ * Waiting: time to the first push ("Starting now" in its last minute). Nagging: time to the next
+ * push, to the second (the API's nextNagAt). Overdue: how late, counted from the due time.
+ * Done: no countdown (null).
  */
 export function pageCountdown(r: Reminder, now: Date): Countdown | null {
   const due = new Date(r.dueAt).getTime()
@@ -79,14 +84,15 @@ export function pageCountdown(r: Reminder, now: Date): Countdown | null {
       return null
     case 'waiting':
       return due - now.getTime() < 60_000
-        ? { label: 'Starting now', value: null }
-        : { label: 'Starts in', value: formatSpan(due - now.getTime()) }
+        ? { label: 'First nag', value: 'Starting now', due: true }
+        : { label: 'Starts in', value: formatSpan(due - now.getTime()), due: false }
     case 'overdue':
-      return { label: 'Overdue by', value: formatSpan(now.getTime() - due) }
+      return { label: 'Overdue by', value: formatSpan(now.getTime() - due), due: false }
     default: {
       // While a push is going out there's no next time yet: 00:00:00.
       const next = r.nextNagAt ? new Date(r.nextNagAt).getTime() : now.getTime()
-      return { label: 'Next nag in', value: formatClock(next - now.getTime()) }
+      const value = formatClock(next - now.getTime())
+      return { label: 'Next nag in', value, due: value === formatClock(0) }
     }
   }
 }

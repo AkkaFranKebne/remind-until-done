@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Check, ChevronLeft, CircleCheck, Pencil, Trash2 } from 'lucide-react'
+import { cva } from 'class-variance-authority'
+import { Check, ChevronLeft, Pencil, Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { AppScreen } from '../../app/AppScreen'
 import { Button } from '../../components/ui/Button'
@@ -47,9 +48,41 @@ const stateText = {
 const label = 'text-xs font-semibold tracking-wider text-on-grad-fg2 uppercase'
 
 /**
- * The reminder page (/r/:id) for a loaded reminder: its state on the state's gradient, a
- * countdown, how often it nags, and the actions: Done (the main one), edit ("Adjust the trap"),
- * delete (asks first). No "Remind later" here: that's only on the Android notification.
+ * The funny line at the bottom, above the button: big, and it comes in when the page opens. From
+ * push 4 (and overdue) it also wiggles a few times, to draw the eye (Inventory → Motion "Funny
+ * line"). Reduced motion: it just shows.
+ */
+const funnyLine = cva(
+  'mb-2 text-center text-xl font-bold text-balance motion-reduce:animate-none',
+  {
+    variants: {
+      level: {
+        waiting: 'animate-line-in',
+        'nag-low': 'animate-line-in',
+        'nag-mid': 'animate-line-in-nudge',
+        'nag-high': 'animate-line-in-nudge',
+        overdue: 'animate-line-in-nudge',
+        done: 'animate-line-in',
+      } satisfies Record<RowLevel, string>,
+    },
+  },
+)
+
+/**
+ * The big countdown. While a push is due ("Starting now", 00:00:00) it pulses until the push
+ * arrives and the page moves on (Inventory → Motion "Countdown pulse"); reduced motion: still.
+ */
+const countdownValue = cva('text-countdown font-bold tracking-wide tabular-nums', {
+  variants: {
+    pulse: { true: 'animate-count-pulse motion-reduce:animate-none', false: '' },
+  },
+})
+
+/**
+ * The reminder page (/r/:id) for a loaded reminder: its title and note on the state's gradient,
+ * a countdown, how often it nags, the funny line, and the actions: Done (the main one; once done,
+ * a Delete button instead), edit ("Adjust the trap"), delete (asks first). No "Remind later"
+ * here: that's only on the Android notification.
  * Design Inventory → Phone Screens → "ReminderPage /r/:id" (mockup approved 2026-10-15).
  */
 export function ReminderDetail({
@@ -88,6 +121,7 @@ export function ReminderDetail({
   const failed = markDone.isError || remove.isError
 
   const countdown = pageCountdown(reminder, now)
+  const line = pageSubLine(reminder)
   const count = (
     <>
       {reminder.nagCount}{' '}
@@ -112,7 +146,9 @@ export function ReminderDetail({
   return (
     <AppScreen tone={level} background={background[level]} tight>
       <div className={cn('flex flex-1 flex-col', stateText[level])}>
-        <div className="-mx-3.5 flex items-center">
+        {/* Back lines up with the title; Edit and Delete end where the TopBar's Settings
+            icon ends, so the right-hand icons sit in one column. */}
+        <div className="-mr-1.5 -ml-3.5 flex items-center">
           <IconLink
             to="/"
             search={listSearch}
@@ -144,19 +180,18 @@ export function ReminderDetail({
         >
           {reminder.title}
         </h1>
-        <p className="mt-1.5 flex items-start gap-1.5 text-sm">
-          {done ? (
-            <Check aria-hidden="true" size={16} strokeWidth={2} className="mt-0.5 shrink-0" />
-          ) : null}
-          {pageSubLine(reminder)}
-        </p>
+        {reminder.note ? (
+          // The note, as typed (line breaks kept), in the title's colour: the line under the
+          // title used to be the funny line, which now sits at the bottom (2026-10-26).
+          <p className="mt-1.5 text-base break-words whitespace-pre-line">{reminder.note}</p>
+        ) : null}
 
         <div className="mt-6 flex flex-col items-center gap-2 border-b border-current/20 pb-4">
           <p className={label}>{countdown ? countdown.label : 'Completed'}</p>
           {done ? (
             <Check aria-hidden="true" size={48} strokeWidth={1.75} />
-          ) : countdown?.value ? (
-            <p className="text-countdown font-bold tracking-wide tabular-nums">{countdown.value}</p>
+          ) : countdown ? (
+            <p className={countdownValue({ pulse: countdown.due })}>{countdown.value}</p>
           ) : null}
         </div>
 
@@ -176,17 +211,30 @@ export function ReminderDetail({
         </dl>
 
         <div className="mt-auto flex flex-col gap-2 pt-4">
+          {/* key: a new line (M5: one per push) plays the entrance again. */}
+          <p key={line} className={funnyLine({ level })}>
+            {done ? (
+              <Check
+                aria-hidden="true"
+                size={20}
+                strokeWidth={2.5}
+                className="mr-1.5 inline align-middle"
+              />
+            ) : null}
+            {line}
+          </p>
           {failed ? (
             <p role="alert" className="text-sm text-error-text">
               Something went wrong. Try again in a moment.
             </p>
           ) : null}
           {done ? (
-            // Not a button: a done reminder stays done (editing its time makes it active again).
-            <p className="flex h-13 items-center justify-center gap-2 rounded-md border-strong border-done-pill-ring bg-chip-on-done-row text-base font-bold text-tag-done-fg">
-              <CircleCheck aria-hidden="true" size={20} strokeWidth={2} />
-              Done
-            </p>
+            // A done reminder stays done (editing its time makes it active again), so its one
+            // action is Delete: the same confirm sheet as the trash icon. A calm card-coloured
+            // button, not red: red is for the final "Delete" in the sheet (2026-10-26).
+            <Button size="lg" variant="surface" icon={Trash2} onClick={() => setAskDelete(true)}>
+              Delete
+            </Button>
           ) : (
             <Button
               size="lg"

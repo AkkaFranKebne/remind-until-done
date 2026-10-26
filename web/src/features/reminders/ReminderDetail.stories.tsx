@@ -55,6 +55,14 @@ type Story = StoryObj<typeof meta>
 /** Before the first push: counts down to it. */
 export const Waiting: Story = {}
 
+/** The last minute before the first push: "Starting now", big and pulsing. */
+export const StartingNow: Story = {
+  args: { reminder: reminder({ dueAt: new Date(Date.now() + 40_000).toISOString() }) },
+}
+
+/** A nag going out: 00:00:00 pulses until the push arrives and the page moves on. */
+export const PushDue: Story = { args: { reminder: reminder({ ...nagging(3), nextNagAt: null }) } }
+
 /** Pushes 1–3. */
 export const NagLow: Story = { args: { reminder: reminder(nagging(2)) } }
 
@@ -84,6 +92,17 @@ export const Done: Story = {
       nagCount: 4,
       dueAt: new Date(Date.now() - 3 * hour).toISOString(),
       doneAt: new Date().toISOString(),
+    }),
+  },
+}
+
+/** With a note: under the title, line breaks kept. The funny line sits at the bottom. */
+export const WithNote: Story = {
+  args: {
+    reminder: reminder({
+      ...nagging(5),
+      title: 'Call the bank',
+      note: 'Account no. is in the blue folder.\nAsk about the transfer fee.',
     }),
   },
 }

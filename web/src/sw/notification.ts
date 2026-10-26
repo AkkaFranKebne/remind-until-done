@@ -51,8 +51,9 @@ export function toNotification(payload: unknown): ShownNotification {
       body: text(data.body) ?? text(fromConsole.body) ?? '',
       icon: '/icon-192.png',
       badge: '/badge-96.png', // Android's status bar
-      // One notification per reminder: a new nag replaces the last one and alerts again. On
-      // desktop it stays on screen until clicked or closed (decision 54; iPhone ignores it).
+      // One notification per reminder: a new nag replaces the last one and alerts again (iPhone
+      // ignores the tag, so sw/show.ts closes the older ones first). On desktop it stays on
+      // screen until clicked or closed (decision 54; iPhone ignores that too).
       ...(reminderId ? { tag: reminderId, renotify: true, requireInteraction: true } : {}),
       // When it was sent, not when it arrived: a nag delivered after the phone was off says so.
       ...timestampOf(data.sentAt),

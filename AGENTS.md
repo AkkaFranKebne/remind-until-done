@@ -114,6 +114,9 @@ Keep a skill true: a PR that changes how one of these is done updates the skill 
 - GitHub Actions are pinned to commit SHAs (a tag can be moved; a SHA can't), with the version in a comment. Dependabot (`.github/dependabot.yml`) opens a weekly PR to bump them, after a cooldown so brand-new releases wait. Review it like any PR; read the release notes of `google-github-actions/*` first, because they run with the deploy login.
 - Semgrep (CI job `semgrep`) scans Go, TypeScript/React, Dockerfiles and workflows for security mistakes. A finding is fixed, or, if checked and safe, marked on that line with `# nosemgrep: <rule>` plus the reason. Never turn a rule off for the whole repo without asking the owner.
 
+## Design agent
+- `designer` (`.claude/agents/designer.md`): proposes how a screen, state, animation or copy should look, from the Design Inventory and our tokens, with contrast and reduced motion checked. Advice and mockups only, never code. Ask it when the owner asks for the designer, or before building UI the Inventory doesn't cover; the `ui-reviewer` then checks what was built.
+
 ## Review agents
 - `ui-reviewer` (`.claude/agents/ui-reviewer.md`): checks frontend changes against the UI rules in `web/AGENTS.md` and the Design Inventory. Run it on every PR that touches `web/src/`.
 - `security-reviewer` (`.claude/agents/security-reviewer.md`): checks for secrets, IAM, deploy-pipeline, auth and dependency problems. Run it on every PR that touches `infra/`, `.github/workflows/`, `docker-compose.yml`, `scripts/`, API config/auth/database code, `web/firebase.json` or dependencies.

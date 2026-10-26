@@ -180,16 +180,7 @@ export function RemindersPage() {
             </span>
           </output>
         ) : nothingAtAll ? (
-          // Centred on the list gradient (light, or a dark violet in dark mode: index.css).
-          <section className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
-            <span className="flex size-16 items-center justify-center rounded-full bg-on-grad/10">
-              <Inbox aria-hidden="true" size={30} strokeWidth={1.75} className="text-on-grad" />
-            </span>
-            <h2 className="text-lg font-bold text-balance text-on-row">
-              Nothing to nag you about. Suspiciously productive.
-            </h2>
-            <p className="text-sm text-on-grad-fg2">Add something you&apos;ll definitely forget.</p>
-          </section>
+          <EmptyList />
         ) : (
           <>
             <StatusTiles counts={counts} value={filter} onChange={setPicked} />
@@ -205,6 +196,10 @@ export function RemindersPage() {
                 <Skeleton className="shadow-row-1" />
                 <Skeleton className="-mt-2 shadow-row-2" />
               </output>
+            ) : shown.length === 0 && filter === null ? (
+              // Nothing active, only done ones: the same warm empty state, under the tiles, so
+              // Done stays one tap away (owner, 2026-10-26).
+              <EmptyList />
             ) : shown.length === 0 ? (
               // A small card under the tiles: "nothing here" for the picked filter.
               <p className="rounded-md bg-bg2 px-4 py-3 text-center text-sm text-fg2 shadow-sm">
@@ -292,5 +287,25 @@ function ListLabel({ filter }: { filter: ReminderStatusKind | null }) {
       <Icon aria-hidden="true" size={12} strokeWidth={2.5} />
       {filter ? statusLabel[filter] : 'The full chaos'}
     </p>
+  )
+}
+
+/**
+ * The warm empty state: nothing active to nag about. On its own when there are no reminders at
+ * all; under the tiles when only done ones are left. Centred in the space left, on the list
+ * gradient (light, or a dark violet in dark mode: index.css).
+ * Design Inventory → Phone Screens → "/ — Empty list state".
+ */
+function EmptyList() {
+  return (
+    <section className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-on-grad/10">
+        <Inbox aria-hidden="true" size={30} strokeWidth={1.75} className="text-on-grad" />
+      </span>
+      <h2 className="text-lg font-bold text-balance text-on-row">
+        Nothing to nag you about. Suspiciously productive.
+      </h2>
+      <p className="text-sm text-on-grad-fg2">Add something you&apos;ll definitely forget.</p>
+    </section>
   )
 }

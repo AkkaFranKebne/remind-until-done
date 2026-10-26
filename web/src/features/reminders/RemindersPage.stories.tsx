@@ -117,7 +117,11 @@ const page = (props: { upcoming: Reminder[]; doneList: Reminder[]; loading?: boo
 /** No tile picked: all active reminders, soonest first. Tap a tile to filter. */
 export const List: Story = { render: () => page({ upcoming: active, doneList: done }) }
 
+/** No reminders at all: the warm empty state, no tiles. */
 export const Empty: Story = { render: () => page({ upcoming: [], doneList: [] }) }
+
+/** Nothing active, only done ones: the tiles stay, with the same empty state under them. */
+export const OnlyDone: Story = { render: () => page({ upcoming: [], doneList: done }) }
 
 /** Story only: while it's shown, API calls never answer, so the page stays in its first load. */
 function NeverAnswer({ children }: { children: ReactNode }) {

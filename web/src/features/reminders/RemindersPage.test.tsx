@@ -29,6 +29,23 @@ test('empty: the warm empty state, the + button, no tiles', async () => {
   expect(screen.queryByRole('group', { name: 'Filter reminders' })).not.toBeInTheDocument()
 })
 
+test('only done ones left: the tiles stay (Done one tap away), with the warm empty state', async () => {
+  mockReminders({ upcoming: [], done: [aReminder({ title: 'Paid rent', status: 'done' })] })
+  openList()
+
+  expect(
+    await screen.findByRole('heading', { name: /Suspiciously productive/ }),
+  ).toBeInTheDocument()
+  expect(screen.getByRole('group', { name: 'Filter reminders' })).toBeInTheDocument()
+  expect(screen.queryByText('Nothing here right now.')).not.toBeInTheDocument()
+  // The context line is only for no reminders at all.
+  expect(screen.queryByText('Nothing nagging you yet.')).not.toBeInTheDocument()
+
+  // Done is one tap away.
+  fireEvent.click(screen.getByRole('button', { name: /^Done/ }))
+  expect(await screen.findByRole('link', { name: /Paid rent/ })).toBeInTheDocument()
+})
+
 test('tiles count by status and filter the list; tapping the picked tile shows all again', async () => {
   mockReminders({
     upcoming: [

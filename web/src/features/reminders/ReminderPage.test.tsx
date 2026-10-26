@@ -77,6 +77,53 @@ test("nagging: counts down to the next push (the API's nextNagAt), to the second
   expect(screen.getByText(/^00:42:1\d$/)).toBeInTheDocument()
 })
 
+test('a push due now: "Starting now" as big as the countdown, pulsing until the push arrives', async () => {
+  mockReminder({ dueAt: new Date(Date.now() + 20_000).toISOString() })
+  openPage()
+
+  expect(await title()).toBeInTheDocument()
+  expect(screen.getByText('First nag')).toBeInTheDocument()
+  const value = screen.getByText('Starting now')
+  expect(value).toHaveClass('text-countdown', 'animate-count-pulse', 'motion-reduce:animate-none')
+})
+
+test('the note shows under the title, line breaks kept; the funny line sits below the stats', async () => {
+  mockReminder({ note: 'Account no. in the blue folder.\nAsk about the fee.' })
+  openPage()
+
+  const heading = await title()
+  const note = screen.getByText(/^Account no\. in the blue folder\./)
+  expect(note).toHaveTextContent('Account no. in the blue folder. Ask about the fee.', {
+    normalizeWhitespace: true,
+  })
+  expect(note).toHaveClass('whitespace-pre-line')
+  expect(heading.nextElementSibling).toBe(note)
+  const funny = screen.getByText('Waiting patiently.')
+  const stats = screen.getByText('Times bothered')
+  // Later in the page than the stats: at the bottom, above Done.
+  expect(stats.compareDocumentPosition(funny) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+test('no note: nothing between the title and the countdown', async () => {
+  mockReminder({ note: null })
+  openPage()
+
+  const heading = await title()
+  expect(heading.nextElementSibling).toHaveTextContent('Starts in')
+})
+
+test('a countdown still running doesn’t pulse', async () => {
+  mockReminder({
+    status: 'sent',
+    nagCount: 2,
+    nextNagAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+  })
+  openPage()
+
+  expect(await title()).toBeInTheDocument()
+  expect(screen.getByText(/^00:(09|10):\d\d$/)).not.toHaveClass('animate-count-pulse')
+})
+
 test('overdue: how late, counted from the due time, and the dramatic line', async () => {
   mockReminder({
     status: 'sent',
@@ -106,6 +153,25 @@ test('Done: the page turns into the done state', async () => {
   expect(screen.getByText('Nagged').nextElementSibling).toHaveTextContent('2 / 12')
   expect(screen.getByText('Took')).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+})
+
+test('done: Delete takes the place of Done and asks first, like the trash icon', async () => {
+  const sent = mockReminder({ status: 'done', nagCount: 3, doneAt: new Date().toISOString() })
+  openPage()
+
+  expect(await title()).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+  // The trash icon and the big button: the big one has visible text.
+  const deleteButton = screen
+    .getAllByRole('button', { name: 'Delete' })
+    .find((b) => b.textContent === 'Delete')
+  if (!deleteButton) throw new Error('no Delete button with text')
+  fireEvent.click(deleteButton)
+  const sheet = await screen.findByRole('alertdialog', { name: 'Delete this reminder?' })
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Delete' }))
+
+  expect(await screen.findByRole('heading', { name: 'Your reminders' })).toBeInTheDocument()
+  expect(sent).toEqual([{ method: 'delete' }])
 })
 
 test('a failed Done says so on the page', async () => {
@@ -165,7 +231,10 @@ test('delete from a picked tile goes back to that tile', async () => {
   const router = renderApp('/?show=done', new FakeAuthClient(tester))
 
   fireEvent.click(await screen.findByRole('link', { name: /Call the bank/ }))
-  fireEvent.click(await screen.findByRole('button', { name: 'Delete' }))
+  // A done reminder has two: the trash icon and the big button. Both ask first.
+  const [trash] = await screen.findAllByRole('button', { name: 'Delete' })
+  if (!trash) throw new Error('no Delete button')
+  fireEvent.click(trash)
   const sheet = await screen.findByRole('alertdialog', { name: 'Delete this reminder?' })
   fireEvent.click(within(sheet).getByRole('button', { name: 'Delete' }))
 

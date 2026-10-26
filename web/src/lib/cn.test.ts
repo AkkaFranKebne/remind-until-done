@@ -38,6 +38,8 @@ test('the sheet motions are kept next to look-alike classes', () => {
 
 test('animate-shimmer and animate-nag-pulse are animations', () => {
   expect(cn('animate-spin', 'animate-shimmer')).toBe('animate-shimmer')
+  expect(cn('animate-spin', 'animate-count-pulse')).toBe('animate-count-pulse')
+  expect(cn('animate-line-in', 'animate-line-in-nudge')).toBe('animate-line-in-nudge')
   expect(cn('animate-nag-pulse', 'motion-reduce:animate-none')).toBe(
     'animate-nag-pulse motion-reduce:animate-none',
   )

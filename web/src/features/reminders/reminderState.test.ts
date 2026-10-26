@@ -55,7 +55,7 @@ describe('the reminder page', () => {
     dueAt: '2026-10-10T19:38:00Z',
   })
 
-  test('the line under the title comes from the UX Copy (nagging: the row lines until M5)', () => {
+  test('the funny line comes from the UX Copy (nagging: the row lines until M5)', () => {
     expect(pageSubLine(reminder())).toBe('Waiting patiently.')
     expect(pageSubLine(nagging)).toBe('Still here (4/12)')
     expect(pageSubLine(overdue)).toMatch(/^We gave it everything we had/)
@@ -63,15 +63,39 @@ describe('the reminder page', () => {
   })
 
   test('countdown: to the first push, to the next push (seconds), how late; none when done', () => {
-    expect(pageCountdown(reminder(), now)).toEqual({ label: 'Starts in', value: '23:00' })
-    expect(pageCountdown(reminder({ dueAt: '2026-10-14T10:00:30Z' }), now)).toEqual({
-      label: 'Starting now',
-      value: null,
+    expect(pageCountdown(reminder(), now)).toEqual({
+      label: 'Starts in',
+      value: '23:00',
+      due: false,
     })
-    expect(pageCountdown(nagging, now)).toEqual({ label: 'Next nag in', value: '00:42:17' })
-    expect(pageCountdown({ ...nagging, nextNagAt: null }, now)?.value).toBe('00:00:00')
-    expect(pageCountdown(overdue, now)).toEqual({ label: 'Overdue by', value: '3d 14:22' })
+    expect(pageCountdown(nagging, now)).toEqual({
+      label: 'Next nag in',
+      value: '00:42:17',
+      due: false,
+    })
+    expect(pageCountdown(overdue, now)).toEqual({
+      label: 'Overdue by',
+      value: '3d 14:22',
+      due: false,
+    })
     expect(pageCountdown(reminder({ status: 'done' }), now)).toBeNull()
+  })
+
+  test('a push due now: "Starting now" or 00:00:00, marked due so it pulses', () => {
+    for (const dueAt of ['2026-10-14T10:00:30Z', '2026-10-14T09:59:00Z']) {
+      expect(pageCountdown(reminder({ dueAt }), now)).toEqual({
+        label: 'First nag',
+        value: 'Starting now',
+        due: true,
+      })
+    }
+    expect(pageCountdown({ ...nagging, nextNagAt: null }, now)).toEqual({
+      label: 'Next nag in',
+      value: '00:00:00',
+      due: true,
+    })
+    const almost = new Date(now.getTime() + 1_500).toISOString()
+    expect(pageCountdown({ ...nagging, nextNagAt: almost }, now)?.due).toBe(false) // 00:00:01
   })
 
   test('the interval reads like its chip', () => {

@@ -17,7 +17,7 @@ const twMerge = extendTailwindMerge({
         },
       ],
       'bg-image': ['bg-shimmer'],
-      shadow: [{ shadow: ['fab', 'row-1', 'row-2', 'row-3', 'row-4', 'row-5'] }],
+      shadow: [{ shadow: ['fab', 'row'] }],
     },
   },
 })

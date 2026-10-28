@@ -174,9 +174,9 @@ export function RemindersPage() {
             </span>
             <Skeleton className="h-3 w-32 rounded-sm" />
             <span className="flex flex-col">
-              <Skeleton className="shadow-row-1" />
-              <Skeleton className="-mt-2 shadow-row-2" />
-              <Skeleton className="-mt-2 shadow-row-3" />
+              <Skeleton />
+              <Skeleton className="-mt-2" />
+              <Skeleton className="-mt-2" />
             </span>
           </output>
         ) : nothingAtAll ? (
@@ -193,8 +193,8 @@ export function RemindersPage() {
                 aria-label="Loading done reminders"
                 className="flex flex-col"
               >
-                <Skeleton className="shadow-row-1" />
-                <Skeleton className="-mt-2 shadow-row-2" />
+                <Skeleton />
+                <Skeleton className="-mt-2" />
               </output>
             ) : shown.length === 0 && filter === null ? (
               // Nothing active, only done ones: the same warm empty state, under the tiles, so
@@ -220,7 +220,7 @@ export function RemindersPage() {
                       onDone={filter === 'done' ? undefined : () => markDone.mutate({ id: r.id })}
                       onDelete={() => remove.mutate({ id: r.id })}
                     >
-                      <ReminderRow reminder={r} now={now} position={i + 1} />
+                      <ReminderRow reminder={r} now={now} />
                     </SwipeableRow>
                   </li>
                 ))}

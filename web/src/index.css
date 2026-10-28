@@ -85,22 +85,14 @@
   --grad-login-icon: linear-gradient(180deg, #e2bcfc 0%, #eed7ff 100%);
   --install-fg: #341743;
   --install-fg2: #452458;
-  /* Rows: a 1px border in the row's own text colour, then a shadow that deepens down the stack (row 1 … 5). */
-  --shadow-row-1:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 26%, transparent),
-    0 1px 2px rgba(30, 24, 35, 0.05);
-  --shadow-row-2:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 26%, transparent),
-    0 1px 3px rgba(30, 24, 35, 0.06);
-  --shadow-row-3:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 26%, transparent),
-    0 2px 4px rgba(30, 24, 35, 0.07);
-  --shadow-row-4:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 26%, transparent),
-    0 2px 6px rgba(30, 24, 35, 0.08);
-  --shadow-row-5:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 26%, transparent),
-    0 3px 8px rgba(30, 24, 35, 0.09);
+  /* Rows: a 1px frame in the row's own text colour (--row-frame; the picked filter tile uses it
+     too), then a shadow that deepens down the stack (row 1 … 5). */
+  --row-frame: inset 0 0 0 1px color-mix(in srgb, currentColor 26%, transparent);
+  --shadow-row-1: var(--row-frame), 0 1px 2px rgba(30, 24, 35, 0.05);
+  --shadow-row-2: var(--row-frame), 0 1px 3px rgba(30, 24, 35, 0.06);
+  --shadow-row-3: var(--row-frame), 0 2px 4px rgba(30, 24, 35, 0.07);
+  --shadow-row-4: var(--row-frame), 0 2px 6px rgba(30, 24, 35, 0.08);
+  --shadow-row-5: var(--row-frame), 0 3px 8px rgba(30, 24, 35, 0.09);
   --shadow-sm: 0 1px 3px rgba(30, 24, 35, 0.08);
   --shadow-md: 0 4px 16px rgba(30, 24, 35, 0.12);
   /* Not part of the palette. */
@@ -187,22 +179,14 @@
     --grad-login-icon: linear-gradient(180deg, #493158 0%, #382443 100%);
     --install-fg: #f0e2fa;
     --install-fg2: #ddc1f0;
-    /* Rows: a 1px border in the row's own text colour, then a shadow that deepens down the stack (row 1 … 5). */
-    --shadow-row-1:
-      inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-      0 -2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-row-2:
-      inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-      0 -2px 10px rgba(0, 0, 0, 0.36);
-    --shadow-row-3:
-      inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-      0 -3px 10px rgba(0, 0, 0, 0.42);
-    --shadow-row-4:
-      inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-      0 -3px 12px rgba(0, 0, 0, 0.48);
-    --shadow-row-5:
-      inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-      0 -4px 14px rgba(0, 0, 0, 0.55);
+    /* Rows: a 1px frame in the row's own text colour (--row-frame; the picked filter tile uses it
+       too), then a shadow that deepens down the stack (row 1 … 5). */
+    --row-frame: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+    --shadow-row-1: var(--row-frame), 0 -2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-row-2: var(--row-frame), 0 -2px 10px rgba(0, 0, 0, 0.36);
+    --shadow-row-3: var(--row-frame), 0 -3px 10px rgba(0, 0, 0, 0.42);
+    --shadow-row-4: var(--row-frame), 0 -3px 12px rgba(0, 0, 0, 0.48);
+    --shadow-row-5: var(--row-frame), 0 -4px 14px rgba(0, 0, 0, 0.55);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
     color-scheme: dark;
@@ -280,21 +264,14 @@
   --grad-login-icon: linear-gradient(180deg, #493158 0%, #382443 100%);
   --install-fg: #f0e2fa;
   --install-fg2: #ddc1f0;
-  /* Rows: a 1px border in the row's own text colour, then a shadow that deepens down the stack (row 1 … 5). */
-  --shadow-row-1:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent), 0 -2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-row-2:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-    0 -2px 10px rgba(0, 0, 0, 0.36);
-  --shadow-row-3:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-    0 -3px 10px rgba(0, 0, 0, 0.42);
-  --shadow-row-4:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-    0 -3px 12px rgba(0, 0, 0, 0.48);
-  --shadow-row-5:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
-    0 -4px 14px rgba(0, 0, 0, 0.55);
+  /* Rows: a 1px frame in the row's own text colour (--row-frame; the picked filter tile uses it
+     too), then a shadow that deepens down the stack (row 1 … 5). */
+  --row-frame: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+  --shadow-row-1: var(--row-frame), 0 -2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-row-2: var(--row-frame), 0 -2px 10px rgba(0, 0, 0, 0.36);
+  --shadow-row-3: var(--row-frame), 0 -3px 10px rgba(0, 0, 0, 0.42);
+  --shadow-row-4: var(--row-frame), 0 -3px 12px rgba(0, 0, 0, 0.48);
+  --shadow-row-5: var(--row-frame), 0 -4px 14px rgba(0, 0, 0, 0.55);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
@@ -438,13 +415,13 @@
   );
 }
 
-/* Inventory → StatusTiles: the picked tile gets a ring drawn inside it (no layout shift), in the
-   tile's own text colour. Only the picked tile has a ring: on any other tile it would look picked
-   too (2026-10-26). Thinner and part-strength since decision 65 (owner 2026-10-28: 2px at full
-   strength looked heavy), but at least 3:1 against the tile (WCAG 1.4.11): the dimming of the
-   others is too faint to show the state alone. tokens.contrast.test.ts checks it at 65%. */
+/* Inventory → StatusTiles: the picked tile gets the same frame as a reminder row of its type
+   (owner 2026-10-28, decision 65): --row-frame, and on Overdue the ember ring (StatusTiles.tsx).
+   Only the picked tile has it: on any other tile it would look picked too (2026-10-26). This is
+   below the 3:1 WCAG 1.4.11 asks for, on purpose: the owner found every stronger cue heavy or
+   ugly; the dimmed other tiles and aria-pressed carry the state too (design doc decision 65). */
 @utility tile-ring-picked {
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 65%, transparent);
+  box-shadow: var(--row-frame);
 }
 
 /* The skeleton placeholder's background (Inventory → --grad-shimmer), twice as wide as the

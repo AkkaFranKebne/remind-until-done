@@ -79,7 +79,8 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     points), bg-shimmer + animate-shimmer (Skeleton), animate-nag-pulse (the nag dot),
     animate-count-pulse (the reminder page's countdown while a push is due), animate-line-in and
     animate-line-in-nudge (the reminder page's funny line),
-    tile-ring-picked (the picked status tile), shadow-fab (the + button's glow),
+    tile-ring-picked (the picked Waiting, Nagging and Done tile: the rows' --row-frame; the picked
+    Overdue tile uses the ember inset-ring, like its row), shadow-fab (the + button's glow),
     shadow-row-1 … shadow-row-5 (reminder rows, deeper down the stack). Spacing uses
     Tailwind's 4px scale, whole or half steps (gap-2, size-4.5); letter spacing too (tracking-tight).
     Tailwind's own text sizes and radii (text-2xl, rounded-xl) are removed. New value? Add it to

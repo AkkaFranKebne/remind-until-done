@@ -124,6 +124,7 @@ const pairs: [string, string, string, number, number?][] = [
   ['overdue row title', '--tag-overdue-fg', '--tag-overdue', TEXT],
   ['overdue row sub-line', '--tag-overdue-fg', '--tag-overdue', TEXT, 0.9],
   ['overdue row ring', '--row-overdue-ring', '--tag-overdue', LARGE],
+  ['overdue tile picked ring', '--row-overdue-ring', '--tile-overdue', LARGE],
   ['done row title', '--tag-done-fg', '--tag-done', TEXT],
   ['done row sub-line', '--tag-done-fg', '--tag-done', TEXT, 0.9],
 
@@ -141,11 +142,9 @@ const pairs: [string, string, string, number, number?][] = [
   ['nagging tile', '--tag-nagging-fg', '--tile-nagging', TEXT],
   ['overdue tile', '--tile-overdue-fg', '--tile-overdue', TEXT],
   ['done tile', '--tag-done-fg', '--tile-done', TEXT],
-  // The picked tile's ring: its text colour at 65% (index.css tile-ring-picked)
-  ['picked ring, waiting tile', '--on-grad', '--tile-waiting', LARGE, 0.65],
-  ['picked ring, nagging tile', '--tag-nagging-fg', '--tile-nagging', LARGE, 0.65],
-  ['picked ring, overdue tile', '--tile-overdue-fg', '--tile-overdue', LARGE, 0.65],
-  ['picked ring, done tile', '--tag-done-fg', '--tile-done', LARGE, 0.65],
+  // The picked Waiting, Nagging and Done tiles' frame (tile-ring-picked, --row-frame) is not here:
+  // it is the rows' faint frame, below 3:1 on purpose (owner, design doc decision 65). The picked
+  // Overdue tile's ember ring is checked above, like the overdue row's.
 
   // The list's gradients: the logo (large) and the context line and list label (small)
   ['context line and list label, all and waiting', '--on-grad-fg2', '--grad-shell-brand', TEXT],

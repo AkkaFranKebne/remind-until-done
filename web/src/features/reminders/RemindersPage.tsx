@@ -293,7 +293,7 @@ function ListLabel({ filter }: { filter: ReminderStatusKind | null }) {
 /**
  * The warm empty state: nothing active to nag about. On its own when there are no reminders at
  * all; under the tiles when only done ones are left. Centred in the space left, on the list
- * gradient (light, or a dark violet in dark mode: index.css).
+ * gradient (light mauve, or a dark plum in dark mode: index.css).
  * Design Inventory → Phone Screens → "/ — Empty list state".
  */
 function EmptyList() {

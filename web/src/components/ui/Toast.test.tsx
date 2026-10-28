@@ -39,7 +39,7 @@ test('success: green, with a check, and it goes away by itself', () => {
   jest.useRealTimers()
 })
 
-test('error: red; a new toast replaces the one before', () => {
+test('error: the error colours; a new toast replaces the one before', () => {
   renderToasts()
 
   fireEvent.click(screen.getByRole('button', { name: 'Done' }))
@@ -48,7 +48,7 @@ test('error: red; a new toast replaces the one before', () => {
   expect(
     screen
       .getByText('Something went wrong. Try again in a moment.')
-      .closest('[class*="text-tag-nagging-fg"]'),
+      .closest('[class*="text-error-text"]'),
   ).not.toBeNull()
   // One at a time: the older one is hidden (Base UI marks it data-limited).
   expect(screen.getByText('Finally. Done.').closest('[data-limited]')).not.toBeNull()

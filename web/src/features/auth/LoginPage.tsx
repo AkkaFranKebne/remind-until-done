@@ -88,7 +88,7 @@ export function LoginPage() {
         <section className="flex flex-col items-center gap-3.5" aria-labelledby="invite-only">
           <span
             aria-hidden="true"
-            className="flex size-14 items-center justify-center rounded-md bg-error-bg text-error"
+            className="flex size-14 items-center justify-center rounded-md bg-error-bg text-error-text"
           >
             <Lock size={24} strokeWidth={1.75} />
           </span>
@@ -145,7 +145,7 @@ export function LoginPage() {
           {state.error ? (
             <p
               role="alert"
-              className="flex items-start gap-2 rounded-md bg-error-bg px-3.5 py-3 text-left text-sm text-error"
+              className="flex items-start gap-2 rounded-md bg-error-bg px-3.5 py-3 text-left text-sm text-error-text"
             >
               <CircleAlert
                 aria-hidden="true"

@@ -20,7 +20,7 @@ const row = cva(
   {
     variants: {
       // The tint and text carry the urgency. Dark mode: dark tints of the same hue, light text
-      // (index.css). Overdue also gets a thin red ring there (transparent in light mode).
+      // (index.css). Overdue also gets a thin ember ring, in both themes.
       level: {
         waiting: 'bg-waiting-row-bg text-on-grad',
         'nag-low': 'bg-nag-low text-nag-low-fg',
@@ -35,7 +35,7 @@ const row = cva(
 
 /**
  * One reminder in the list, as the Inventory's phone mockup: the background and text colour
- * carry the urgency (waiting violet → amber → coral → deep red → overdue dark red; done green),
+ * carry the urgency (waiting mauve → gold → amber → orange → overdue ember; done green),
  * a status chip on every row, from the 4th push a pulsing dot. The whole row is a link to /r/:id.
  * Design Inventory → Phone Screens → "/ — Reminders list", Components → "ReminderRow",
  * Motion 3 "Nag pulse dot".
@@ -75,8 +75,8 @@ export function ReminderRow({
         >
           {reminder.title}
         </span>
-        {/* 90%: the mockup's 75% is below 4.5:1 for small text. The coral (nag-mid) row is at
-            4.5:1 exactly: any further fade or tint change makes it fail. */}
+        {/* 90%: the mockup's 75% is below 4.5:1 for small text. tokens.contrast.test.ts checks
+            the sub-line at this opacity on every row colour. */}
         <span className="mt-0.5 flex items-center gap-1.5 text-xs opacity-90">
           {rowSubLine(reminder, now)}
           {pulse ? (

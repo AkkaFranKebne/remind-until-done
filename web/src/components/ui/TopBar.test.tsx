@@ -36,7 +36,7 @@ test.each([
   ['waiting', 'text-on-grad'],
   ['nag-low', 'text-nag-low-fg'],
   ['nag-mid', 'text-nag-mid-fg'],
-  ['nag-high', 'text-tile-overdue-fg'],
+  ['nag-high', 'text-nag-high-fg'],
   ['overdue', 'text-tile-overdue-fg'],
   ['done', 'text-tag-done-fg'],
 ] as const)('tone %s colours the Settings icon with %s', async (tone, colourClass) => {

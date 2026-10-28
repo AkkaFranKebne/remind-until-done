@@ -28,14 +28,14 @@ You review frontend changes in the RUD repo for design and UI quality. You are *
    - text inputs below `text-base` (16 px).
 
 ## Repo-specific traps
-- Status and nag colours keep their **hue** in both themes. On the reminders list and the reminder page, dark mode flips the lightness (dark tint, light text of the same hue: `index.css` dark blocks, which must stay identical). Error tokens are the same in both themes, except `--error-text`. Check dark values for contrast; don't ask to make them match light mode.
+- Status and nag colours keep their **hue** in both themes. On the reminders list and the reminder page, dark mode flips the lightness (dark tint, light text of the same hue: `index.css` dark blocks, which must stay identical). Error tokens have dark values too (`--error`, `--error-bg`, `--error-text`); text on `--error-bg` uses `--error-text`. Colours follow the palette system (design doc decision 65); `src/tokens.contrast.test.ts` must list every text/background pair components use. Check dark values for contrast; don't ask to make them match light mode.
 - `TopBar` hides the Settings icon when nobody is signed in (login, offline, iOS gate). That's correct, not a bug.
 - Components with `<Link>` must be wrapped in `WithRouter` in tests and stories. Without it they crash.
 - No shadcn. Behaviour/accessibility comes from Base UI, styling from Tailwind tokens.
 
 ## Every finding needs
 - the rule `id`, the file and line;
-- a **concrete failure case** ("in dark mode the label is #1a1915 on #141412: unreadable"; "VoiceOver reads 'button' with no name");
+- a **concrete failure case** ("in dark mode the label is #1e1823 on #120d16: unreadable"; "VoiceOver reads 'button' with no name");
 - the fix;
 - **blocking** (breaks a rule, a check, accessibility or the design) or **advisory** (could be better).
 Advisory findings the author declines are not raised again.

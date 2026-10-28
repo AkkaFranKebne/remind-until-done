@@ -9,14 +9,14 @@ import { FindRud, MacMutedTip, PreviewsTip, StepsCard } from './StepsCard'
 import { useNotifications, type NotificationState } from './useNotifications'
 
 /**
- * The bell's tile: green when on, red when blocked, amber when pushes go nowhere or elsewhere.
- * Status tokens with dark values (the mockup's --tag-pending and --error-bg have none).
+ * The bell's tile: green when on, the error colour when blocked, gold when pushes go nowhere or
+ * elsewhere (decision 65: errors are ember, nagging is amber).
  */
 const bellTile = cva('flex size-8.5 shrink-0 items-center justify-center rounded-md', {
   variants: {
     look: {
       on: 'bg-tag-done text-tag-done-fg',
-      blocked: 'bg-tag-nagging text-tag-nagging-fg',
+      blocked: 'bg-error-bg text-error-text',
       warn: 'bg-nag-low text-nag-low-fg',
       plain: 'bg-bg3 text-fg2',
     },
@@ -25,7 +25,7 @@ const bellTile = cva('flex size-8.5 shrink-0 items-center justify-center rounded
 
 const badge = cva('shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold', {
   variants: {
-    on: { true: 'bg-tag-done text-tag-done-fg', false: 'bg-tag-nagging text-tag-nagging-fg' },
+    on: { true: 'bg-tag-done text-tag-done-fg', false: 'bg-error-bg text-error-text' },
   },
 })
 

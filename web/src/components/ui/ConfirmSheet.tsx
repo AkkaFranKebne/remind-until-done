@@ -54,7 +54,7 @@ export function ConfirmSheet({
     >
       <span
         aria-hidden="true"
-        className="mt-2 flex size-11 items-center justify-center rounded-md bg-error-bg text-error"
+        className="mt-2 flex size-11 items-center justify-center rounded-md bg-error-bg text-error-text"
       >
         <Icon size={22} strokeWidth={1.75} />
       </span>

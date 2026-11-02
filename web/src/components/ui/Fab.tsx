@@ -3,8 +3,8 @@ import type { LucideIcon } from 'lucide-react'
 import { cn } from '../../lib/cn'
 
 /**
- * The round "add" button, bottom-right above the home bar: 50px (44px+ tap target), violet (--fab: the primary
- * violet; a lighter one in dark mode, so it stands out from the dark page), with a glow (shadow-fab). Icon only, so it needs a label for screen readers ("Add reminder").
+ * The round "add" button, bottom-right above the home bar: 50px (44px+ tap target), mauve-violet (--fab: the
+ * same as filled buttons; a lighter one in dark mode, so it stands out from the dark page), with a glow (shadow-fab). Icon only, so it needs a label for screen readers ("Add reminder").
  * The list hides it at the 5-reminder limit (hidden, not disabled).
  * Design Inventory → Components → "TopBar · FAB".
  */

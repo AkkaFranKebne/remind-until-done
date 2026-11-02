@@ -8,7 +8,7 @@ import { IconLink } from './IconButton'
  * Which background the bar sits on. The Settings icon (and its focus ring) takes the
  * matching colour from the Design Inventory's phone screens.
  * - plain: the normal page background (settings, login, 404)
- * - brand: the violet list gradient
+ * - brand: the mauve list gradient
  * - waiting … done: the reminder page's gradient for that state; the icon takes the state's
  *   text colour (the same token as the page's title and countdown, light and dark).
  */
@@ -23,7 +23,7 @@ const iconTone = cva('-mr-2', {
       waiting: 'text-on-grad',
       'nag-low': 'text-nag-low-fg',
       'nag-mid': 'text-nag-mid-fg',
-      'nag-high': 'text-tile-overdue-fg',
+      'nag-high': 'text-nag-high-fg',
       overdue: 'text-tile-overdue-fg',
       done: 'text-tag-done-fg',
     } satisfies Record<TopBarTone, string>,
@@ -38,8 +38,8 @@ type TopBarProps = {
   contextLine?: string
 }
 
-/** The logo and context line: violet on every gradient (on-grad: light violet in dark mode, where
- * the gradients are dark too). On the plain page the logo uses the accent, the line fg2. */
+/** The logo and context line: the brand mauve-violet on every gradient (on-grad: a light mauve in
+ * dark mode, where the gradients are dark too). On the plain page the logo uses the accent, the line fg2. */
 const brandText = cva('', {
   variants: {
     tone: {

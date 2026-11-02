@@ -19,9 +19,8 @@ const toastTone = cva(
     variants: {
       tone: {
         success: 'bg-tag-done text-tag-done-fg',
-        // --tag-nagging is see-through in dark mode: lay it over the solid card colour so the
-        // toast stays readable on top of the list (light mode: the same colour as the Inventory).
-        error: 'bg-bg2 bg-linear-to-r from-tag-nagging to-tag-nagging text-tag-nagging-fg',
+        // Errors are ember, not the nagging amber (decision 65); --error-bg is solid in both themes.
+        error: 'bg-error-bg text-error-text',
       } satisfies Record<ToastTone, string>,
     },
   },

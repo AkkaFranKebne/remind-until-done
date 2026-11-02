@@ -39,3 +39,13 @@ export const NaggingPicked: Story = {
 export const WaitingPicked: Story = {
   render: (args) => <Controlled initial="waiting" counts={args.counts} />,
 }
+
+/** The picked Overdue tile gets the ember ring, like an overdue row (decision 65). */
+export const OverduePicked: Story = {
+  render: (args) => <Controlled initial="overdue" counts={{ ...args.counts, overdue: 2 }} />,
+}
+
+/** Done picked: the rows' frame in green. */
+export const DonePicked: Story = {
+  render: (args) => <Controlled initial="done" counts={args.counts} />,
+}

@@ -37,7 +37,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Same violet in both themes: white text on the lighter dark-mode accent is unreadable.
+        // accent-solid, not accent: white text on the light dark-mode accent is unreadable. Dark mode
+        // uses a lighter solid than light mode (decision 65), so it shows on the dark page.
         primary: 'bg-accent-solid text-on-solid',
         ghost: 'border-strong border-accent bg-transparent text-accent',
         // Quiet second choice next to a primary one (Cancel in a confirm sheet).

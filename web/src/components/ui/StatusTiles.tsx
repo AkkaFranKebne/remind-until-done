@@ -24,7 +24,7 @@ const tile = cva(
         nagging:
           'bg-tile-nagging text-tag-nagging-fg data-pressed:tile-ring-picked data-dimmed:bg-tile-nagging/40',
         overdue:
-          'bg-tile-overdue text-tile-overdue-fg data-pressed:tile-ring-picked data-dimmed:bg-tile-overdue/40',
+          'bg-tile-overdue text-tile-overdue-fg data-pressed:inset-ring data-pressed:inset-ring-row-overdue-ring data-dimmed:bg-tile-overdue/40',
         done: 'bg-tile-done text-tag-done-fg data-pressed:tile-ring-picked data-dimmed:bg-tile-done/40',
       } satisfies Record<ReminderStatusKind, string>,
     },

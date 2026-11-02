@@ -8,10 +8,10 @@ test('shows the status label; the icon is decoration', () => {
   expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
 })
 
-test('overdue chips are purple, on a nag-high row the chip is a white pill', () => {
+test('overdue chips use the overdue colours; on a nag-high row the chip has its own tint', () => {
   const { rerender } = render(<StatusChip status="overdue" />)
   expect(screen.getByText('Overdue')).toHaveClass('bg-tag-overdue-chip')
 
   rerender(<StatusChip status="nagging" onNagHigh />)
-  expect(screen.getByText('Nagging')).toHaveClass('bg-chip-on-nag-high', 'text-nag-high')
+  expect(screen.getByText('Nagging')).toHaveClass('bg-chip-on-nag-high', 'text-chip-on-nag-high-fg')
 })

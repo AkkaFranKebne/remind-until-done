@@ -68,3 +68,7 @@ test('text-title is a font size, not a colour', () => {
   expect(cn('text-title', 'text-on-grad')).toBe('text-title text-on-grad')
   expect(cn('text-xl', 'text-title')).toBe('text-title')
 })
+
+test('shadow-row is a shadow (replaces shadow-md), not a shadow colour', () => {
+  expect(cn('shadow-md', 'shadow-row')).toBe('shadow-row')
+})

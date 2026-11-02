@@ -174,9 +174,9 @@ export function RemindersPage() {
             </span>
             <Skeleton className="h-3 w-32 rounded-sm" />
             <span className="flex flex-col">
-              <Skeleton className="shadow-row-1" />
-              <Skeleton className="-mt-2 shadow-row-2" />
-              <Skeleton className="-mt-2 shadow-row-3" />
+              <Skeleton />
+              <Skeleton className="-mt-2" />
+              <Skeleton className="-mt-2" />
             </span>
           </output>
         ) : nothingAtAll ? (
@@ -193,8 +193,8 @@ export function RemindersPage() {
                 aria-label="Loading done reminders"
                 className="flex flex-col"
               >
-                <Skeleton className="shadow-row-1" />
-                <Skeleton className="-mt-2 shadow-row-2" />
+                <Skeleton />
+                <Skeleton className="-mt-2" />
               </output>
             ) : shown.length === 0 && filter === null ? (
               // Nothing active, only done ones: the same warm empty state, under the tiles, so
@@ -220,7 +220,7 @@ export function RemindersPage() {
                       onDone={filter === 'done' ? undefined : () => markDone.mutate({ id: r.id })}
                       onDelete={() => remove.mutate({ id: r.id })}
                     >
-                      <ReminderRow reminder={r} now={now} position={i + 1} />
+                      <ReminderRow reminder={r} now={now} />
                     </SwipeableRow>
                   </li>
                 ))}
@@ -293,7 +293,7 @@ function ListLabel({ filter }: { filter: ReminderStatusKind | null }) {
 /**
  * The warm empty state: nothing active to nag about. On its own when there are no reminders at
  * all; under the tiles when only done ones are left. Centred in the space left, on the list
- * gradient (light, or a dark violet in dark mode: index.css).
+ * gradient (light mauve, or a dark plum in dark mode: index.css).
  * Design Inventory → Phone Screens → "/ — Empty list state".
  */
 function EmptyList() {

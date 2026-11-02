@@ -7,20 +7,18 @@ import { cn } from '../../lib/cn'
 import { rowLevel, rowSubLine, statusKind, type RowLevel } from './reminderState'
 import { fromList } from './useListSearch'
 
-/** Shadows deepen down the stack (Inventory → ReminderRow): row 1 … 5 and below. */
-const depthShadow = ['shadow-row-1', 'shadow-row-2', 'shadow-row-3', 'shadow-row-4', 'shadow-row-5']
-
 const row = cva(
   [
     // relative + z-10 on focus: the next card overlaps by 8px and would cover the focus ring.
-    'relative flex min-h-18 items-center gap-2.5 rounded-md px-3',
+    // shadow-row: the 1px frame in the row's own text colour (--row-frame), flat.
+    'relative flex min-h-18 items-center gap-2.5 rounded-md px-3 shadow-row',
     'transition-colors duration-(--duration-fast) motion-reduce:transition-none',
     'focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-grad',
   ],
   {
     variants: {
       // The tint and text carry the urgency. Dark mode: dark tints of the same hue, light text
-      // (index.css). Overdue also gets a thin red ring there (transparent in light mode).
+      // (index.css). Overdue also gets a thin ember ring, in both themes.
       level: {
         waiting: 'bg-waiting-row-bg text-on-grad',
         'nag-low': 'bg-nag-low text-nag-low-fg',
@@ -35,7 +33,7 @@ const row = cva(
 
 /**
  * One reminder in the list, as the Inventory's phone mockup: the background and text colour
- * carry the urgency (waiting violet → amber → coral → deep red → overdue dark red; done green),
+ * carry the urgency (waiting mauve → gold → amber → orange → overdue ember; done green),
  * a status chip on every row, from the 4th push a pulsing dot. The whole row is a link to /r/:id.
  * Design Inventory → Phone Screens → "/ — Reminders list", Components → "ReminderRow",
  * Motion 3 "Nag pulse dot".
@@ -43,19 +41,15 @@ const row = cva(
 export function ReminderRow({
   reminder,
   now,
-  position = 1,
   className,
 }: {
   reminder: Reminder
   now?: Date
-  /** Place in the list (1 = top): later rows get a deeper shadow. */
-  position?: number
   className?: string
 }) {
   const level = rowLevel(reminder)
   const kind = statusKind(reminder)
   const pulse = level === 'nag-mid' || level === 'nag-high'
-  const shadow = depthShadow[Math.min(Math.max(position, 1), 5) - 1]
   // The picked tile goes along, so the reminder page's Back returns to it (useListSearch).
   const { show } = useSearch({ strict: false })
 
@@ -64,7 +58,7 @@ export function ReminderRow({
       to="/r/$id"
       params={{ id: reminder.id }}
       state={fromList(show)}
-      className={cn(row({ level }), shadow, className)}
+      className={cn(row({ level }), className)}
     >
       <span className="min-w-0 flex-1 py-3">
         <span
@@ -75,8 +69,8 @@ export function ReminderRow({
         >
           {reminder.title}
         </span>
-        {/* 90%: the mockup's 75% is below 4.5:1 for small text. The coral (nag-mid) row is at
-            4.5:1 exactly: any further fade or tint change makes it fail. */}
+        {/* 90%: the mockup's 75% is below 4.5:1 for small text. tokens.contrast.test.ts checks
+            the sub-line at this opacity on every row colour. */}
         <span className="mt-0.5 flex items-center gap-1.5 text-xs opacity-90">
           {rowSubLine(reminder, now)}
           {pulse ? (

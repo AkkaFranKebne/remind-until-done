@@ -1,105 +1,97 @@
 /* Design tokens and global styles.
    Source: the RUD Design Inventory → Tokens
-   (https://claude.ai/artifact/Lyv8dnTRRDg6hwa3jxP2ws). Change values there first, then here. */
+   (https://claude.ai/artifact/Lyv8dnTRRDg6hwa3jxP2ws). Change values there first, then here.
+
+   Colours: Figma's "Golden hour" palette (#FFBF00 amber, #CFB53B gold, #E0B0FF mauve, #EDEDC8
+   cream), plus ember for overdue and a green for done (design doc decision 65, 2026-10-28).
+   One hue per state, used the same way everywhere: waiting mauve, nagging gold → amber → orange,
+   overdue ember, done green; the brand is a deeper mauve-violet. Every role has a fixed OKLCH
+   lightness in every hue (Inventory → Tokens → "Palette system"), so a new colour follows the
+   rule instead of being picked by hand. src/tokens.contrast.test.ts checks the text pairs. */
 
 @import 'tailwindcss';
 @import '@fontsource-variable/inter';
 
 /* ── Light theme (default) ── */
 :root {
-  --bg: #f8f7f5;
-  --bg2: #ffffff;
-  --bg3: #f0efe9;
-  --fg: #1a1915;
-  --fg2: #5a5850;
-  --fg3: #8a8778;
-  --accent: #6d28d9;
-  --accent2: #8b5cf6;
-  --accent-bg: #ede9fe;
-  --border: #e2e0d8;
-
-  /* Fixed in both themes (Inventory, decided 2026-10-09, for contrast). */
-  --accent-solid: #6d28d9; /* filled primary buttons */
-  --on-solid: #ffffff; /* text and icons on accent-solid */
+  /* Page, text and lines. */
+  --bg: #f9f9dd;
+  --bg2: #fefef3;
+  --bg3: #eeefd9;
+  --fg: #1e1823;
+  --fg2: #595260;
+  --fg3: #837e88;
+  --border: #d5d6c5;
+  /* Brand: mauve-violet. Logo, links, focus, filled buttons and the + button. */
+  --accent: #67298e;
+  --accent-bg: #f1ddff;
+  --accent-solid: #67298e;
+  --on-solid: #ffffff;
+  --fab: #67298e;
+  --shadow-fab: 0 4px 14px rgba(103, 41, 142, 0.35);
+  --on-grad: #67298e;
+  --on-grad-fg2: #595260;
+  --on-row: #1e1823;
+  /* Waiting: mauve. */
+  --waiting-row-bg: #f6ebfe;
+  --tag-pending: #eacbff;
+  --tag-pending-fg: #67298e;
+  --tile-waiting: #efd9ff;
+  --chip-on-waiting-row: #ecd0ff;
+  /* Nagging: gold (1–3 pushes), amber (4–8), orange (9–11). "Nagging" as a status is amber. */
+  --nag-low: #feefaf;
+  --nag-low-fg: #372d00;
+  --nag-mid: #ffe7b7;
+  --nag-mid-fg: #3c2b00;
+  --nag-high: #ffd6ab;
+  --nag-high-fg: #432600;
+  --chip-on-nag-high: #f9a85a;
+  --chip-on-nag-high-fg: #432600;
+  --tag-nagging: #ffd277;
+  --tag-nagging-fg: #3c2b00;
+  --tile-nagging: #ffdfa0;
+  /* Overdue: ember, the amber pushed to red-orange. Errors use the same hue. */
+  --tag-overdue: #fecab8;
+  --tag-overdue-fg: #531600;
+  --row-overdue-ring: #c4470f;
+  --tag-overdue-chip: #ffad91;
+  --tag-overdue-chip-fg: #531600;
+  --tile-overdue: #fedace;
+  --tile-overdue-fg: #531600;
+  --error: #aa3700;
+  --error-text: #aa3700;
+  --error-bg: #fee5dd;
+  /* Done: green. */
+  --tag-done: #e1f7cd;
+  --tag-done-fg: #203500;
+  --tile-done: #d3edba;
+  --chip-on-done-row: #cbe5b2;
+  /* Tiles: the icon circle. */
+  --tile-icon-bg: rgba(255, 255, 255, 0.6);
+  /* The list (grad-shell-*) and the reminder page (grad-detail-*): the state's hue at the top, fading into the page. */
+  --grad-shell-brand: linear-gradient(180deg, #f3e2fe 0%, #f8edff 30%, var(--bg) 60%);
+  --grad-shell-nagging: linear-gradient(180deg, #ffe7b7 0%, #fff0d3 30%, var(--bg) 60%);
+  --grad-shell-overdue: linear-gradient(180deg, #fee3da 0%, #feeee8 30%, var(--bg) 60%);
+  --grad-shell-done: linear-gradient(180deg, #dbf3c4 0%, #e7f9d7 30%, var(--bg) 60%);
+  --grad-detail-waiting: linear-gradient(180deg, #e9c9fe 0%, #f5e7ff 26%, var(--bg) 66%);
+  --grad-detail-nag-low: linear-gradient(180deg, #ebd886 0%, #faeeb8 26%, var(--bg) 66%);
+  --grad-detail-nag-mid: linear-gradient(180deg, #ffd06f 0%, #ffeac3 26%, var(--bg) 66%);
+  --grad-detail-nag-high: linear-gradient(180deg, #ffcd98 0%, #ffe9d2 26%, var(--bg) 66%);
+  --grad-detail-overdue: linear-gradient(180deg, #fecab8 0%, #fee7df 26%, var(--bg) 66%);
+  --grad-detail-done: linear-gradient(180deg, #c4e4a4 0%, #e0f6cb 26%, var(--bg) 66%);
+  --grad-shimmer: linear-gradient(90deg, #eeefd9 25%, #d5d6c5 50%, #eeefd9 75%);
+  /* The install card and the iOS gate's icon tile, with their text. */
+  --grad-install-card: linear-gradient(180deg, #e2bcfc 0%, #eed7ff 60%, #f6e9fe 100%);
+  --grad-login-icon: linear-gradient(180deg, #e2bcfc 0%, #eed7ff 100%);
+  --install-fg: #341743;
+  --install-fg2: #452458;
+  /* Rows: a 1px frame in the row's own text colour (--row-frame; the picked filter tile uses it
+     too). Flat, no drop shadow, like the rest of the app (owner 2026-10-28, decision 65). */
+  --row-frame: inset 0 0 0 1px color-mix(in srgb, currentColor 26%, transparent);
+  --shadow-sm: 0 1px 3px rgba(30, 24, 35, 0.08);
+  --shadow-md: 0 4px 16px rgba(30, 24, 35, 0.12);
+  /* Not part of the palette. */
   --scrim: rgba(0, 0, 0, 0.45); /* behind sheets and dialogs (a grey one would lighten dark mode) */
-
-  /* The reminders list. Dark mode keeps each status's hue but flips its lightness: dark tints of
-     the same hue with light text in that hue (decided 2026-10-15, owner's iPhone check pending). */
-  --on-grad: #6d28d9; /* logo, icons and violet text on the list gradient */
-  --on-grad-fg2: #5a5850; /* secondary text on the list gradient */
-  --on-row: #1a1915; /* the empty state's heading */
-  --fab: #6d28d9; /* the + button (dark mode: lighter, to stand out from the dark page) */
-  --row-overdue-ring: transparent; /* dark mode: a thin red ring on overdue rows */
-
-  /* Status, error and nag tints: the hue carries meaning in both themes (list: dark tints in dark mode). */
-  --tag-pending: #fff3cd;
-  --tag-pending-fg: #7d5c00;
-  --tag-nagging: #fce8e6;
-  --tag-nagging-fg: #b03027;
-  --tag-done: #e6f4ea;
-  --tag-done-fg: #1e6b38;
-  --tag-overdue: #7f1d1d;
-  --tag-overdue-fg: #fef2f2; /* overdue row (dark red) */
-  --tag-overdue-chip: #f3e8ff; /* overdue chip and tile (purple) */
-  --tag-overdue-chip-fg: #6b21a8;
-  /* Inventory → StatusTiles (as the phone mockup): slightly see-through tiles on the list gradient. */
-  --tile-icon-bg: rgba(255, 255, 255, 0.55);
-  --tile-waiting: rgba(237, 233, 254, 0.82);
-  --tile-nagging: rgba(254, 226, 226, 0.82);
-  --tile-overdue: rgba(220, 38, 38, 0.25);
-  --tile-overdue-fg: #7f1d1d; /* #991b1b of the mockup was 3.9–4.2:1 on the see-through tile */
-  --tile-done: rgba(209, 250, 229, 0.82);
-  /* Inventory → ReminderRow: chips on the waiting and done rows (on their own tint). */
-  --chip-on-waiting-row: rgba(109, 40, 217, 0.12);
-  --chip-on-done-row: rgba(5, 150, 105, 0.12);
-  /* Inventory → ReminderRow: shadows deepen down the stack (row 1 … 5). */
-  --shadow-row-1: 0 1px 4px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-row-2: 0 2px 6px rgba(0, 0, 0, 0.09), 0 4px 12px rgba(0, 0, 0, 0.07);
-  --shadow-row-3: 0 3px 8px rgba(0, 0, 0, 0.11), 0 6px 16px rgba(0, 0, 0, 0.08);
-  --shadow-row-4: 0 4px 12px rgba(0, 0, 0, 0.14), 0 8px 20px rgba(0, 0, 0, 0.1);
-  --shadow-row-5: 0 4px 16px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.12);
-  /* Inventory → ReminderRow: the chip on a dark red (nag-high) row is a white pill (dark mode: soft pink). */
-  --chip-on-nag-high: rgba(255, 255, 255, 0.88);
-  --tag-shared: #e8f0fe;
-  --tag-shared-fg: #1a56c4;
-  --waiting-row-bg: #ede9fe;
-  --error: #c0392b;
-  --error-text: #c0392b; /* form error messages and invalid borders; lighter in dark mode */
-  --error-bg: #fdecea;
-  --nag-low: #fde8c8;
-  --nag-low-fg: #7a4a10;
-  --nag-mid: #f9bfb8;
-  --nag-mid-fg: #8b2a22;
-  --nag-high: #b02820;
-  --nag-high-fg: #fff5f5;
-
-  /* Gradients: screen backgrounds by filter/status, and UI elements. The list's (grad-shell-*),
-     the reminder page's (grad-detail-*) and the skeleton's have dark versions; the rest are the
-     same in both themes. */
-  --grad-shell-brand: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 28%, var(--bg3) 60%);
-  --grad-shell-nagging: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
-  /* Overdue and Done list filters: pastel tops, so the violet logo and the grey context line
-     keep at least 4.5:1 (decided 2026-10-14). The detail screens keep their vivid versions. */
-  --grad-shell-overdue: linear-gradient(180deg, #fecaca 0%, #fee2e2 40%, var(--bg3) 74%);
-  --grad-shell-done: linear-gradient(180deg, #bbf7d0 0%, #dcfce7 38%, var(--bg3) 70%);
-  /* The reminder page: a strong top that fades quickly, so the logo, icons and text keep their
-     contrast at the height they sit (decided 2026-10-15; dark values below). */
-  --grad-detail-waiting: linear-gradient(180deg, #b9a5fc 0%, #ddd6fe 18%, var(--bg3) 68%);
-  --grad-detail-nag-low: linear-gradient(180deg, #fbbf24 0%, #fde8c8 38%, var(--bg3) 68%);
-  --grad-detail-nag-mid: linear-gradient(180deg, #f9bfb8 0%, #fde8c8 38%, var(--bg3) 72%);
-  --grad-detail-nag-high: linear-gradient(180deg, #fb923c 0%, #fecaca 20%, var(--bg3) 70%);
-  --grad-detail-overdue: linear-gradient(180deg, #fca5a5 0%, #fecaca 26%, var(--bg3) 74%);
-  --grad-detail-done: linear-gradient(180deg, #34d399 0%, #bbf7d0 20%, var(--bg3) 70%);
-  --grad-shimmer: linear-gradient(90deg, #f0efe9 25%, #e2e0d8 50%, #f0efe9 75%);
-  --grad-install-card: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 60%, #ede9fe 100%);
-  --grad-login-icon: linear-gradient(180deg, #a78bfa 0%, #ddd6fe 100%);
-  /* Text and icons on those two (title, iOS gate icon; steps). Dark: same hue, flipped. */
-  --install-fg: #3b0764;
-  --install-fg2: #4c1d95;
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-fab: 0 4px 16px rgba(109, 40, 217, 0.4); /* the FAB's violet glow (visible on the violet gradient) */
   --duration-fast: 120ms;
   --duration-base: 220ms;
   --easing-std: cubic-bezier(0.4, 0, 0.2, 1);
@@ -107,149 +99,166 @@
   color-scheme: light;
 }
 
-/* ── Dark theme: follows the phone, or data-theme="dark" (Storybook toggle) ── */
+/* ── Dark theme: follows the phone, or data-theme="dark" (Storybook toggle). The same hues with
+   flipped lightness; text is a tinted off-white, never #fff. Both blocks stay identical. ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #141412;
-    --bg2: #1e1d1a;
-    --bg3: #252420;
-    --fg: #f0ede6;
-    --fg2: #a8a498;
-    --fg3: #6e6a60;
-    --accent: #a78bfa;
-    --accent2: #c4b5fd;
-    --accent-bg: #2e1f5e;
-    --border: #2e2d28;
-    --error-text: #f87171; /* #c0392b is only 3.3:1 on the dark sheet */
+    /* Page, text and lines. */
+    --bg: #120d16;
+    --bg2: #1b161f;
+    --bg3: #241f29;
+    --fg: #eae6ef;
+    --fg2: #b5aebb;
+    --fg3: #7d7882;
+    --border: #39323f;
+    /* Brand: mauve-violet. Logo, links, focus, filled buttons and the + button. */
+    --accent: #d6a6fd;
+    --accent-bg: #382443;
+    --accent-solid: #8753ae;
+    --on-solid: #ffffff;
+    --fab: #8753ae;
+    --shadow-fab: 0 4px 14px rgba(0, 0, 0, 0.5);
+    --on-grad: #d6a6fd;
+    --on-grad-fg2: #b5aebb;
+    --on-row: #eae6ef;
+    /* Waiting: mauve. */
+    --waiting-row-bg: #2b1b35;
+    --tag-pending: #483356;
+    --tag-pending-fg: #d6a6fd;
+    --tile-waiting: #382443;
+    --chip-on-waiting-row: #422c4f;
+    /* Nagging: gold (1–3 pushes), amber (4–8), orange (9–11). "Nagging" as a status is amber. */
+    --nag-low: #2c2400;
+    --nag-low-fg: #e3d8a9;
+    --nag-mid: #332400;
+    --nag-mid-fg: #f0d49d;
+    --nag-high: #3e2300;
+    --nag-high-fg: #f8cfa5;
+    --chip-on-nag-high: #6e4300;
+    --chip-on-nag-high-fg: #f8cfa5;
+    --tag-nagging: #4f3900;
+    --tag-nagging-fg: #f1cc80;
+    --tile-nagging: #3c2b00;
+    /* Overdue: ember, the amber pushed to red-orange. Errors use the same hue. */
+    --tag-overdue: #491b0b;
+    --tag-overdue-fg: #fecab8;
+    --row-overdue-ring: #e2693f;
+    --tag-overdue-chip: #672b15;
+    --tag-overdue-chip-fg: #fecab8;
+    --tile-overdue: #511904;
+    --tile-overdue-fg: #ffc0ab;
+    --error: #c54201;
+    --error-text: #fe9976;
+    --error-bg: #3c0c00;
+    /* Done: green. */
+    --tag-done: #1a2809;
+    --tag-done-fg: #c2dba9;
+    --tile-done: #243410;
+    --chip-on-done-row: #2b3d15;
+    /* Tiles: the icon circle. */
+    --tile-icon-bg: rgba(255, 255, 255, 0.07);
+    /* The list (grad-shell-*) and the reminder page (grad-detail-*): the state's hue at the top, fading into the page. */
+    --grad-shell-brand: linear-gradient(180deg, #2a1934 0%, #1c1024 30%, var(--bg) 60%);
+    --grad-shell-nagging: linear-gradient(180deg, #2e1f00 0%, #1f1400 30%, var(--bg) 60%);
+    --grad-shell-overdue: linear-gradient(180deg, #400f00 0%, #2c0800 30%, var(--bg) 60%);
+    --grad-shell-done: linear-gradient(180deg, #192708 0%, #101a04 30%, var(--bg) 60%);
+    --grad-detail-waiting: linear-gradient(180deg, #3a2745 0%, #23122c 26%, var(--bg) 66%);
+    --grad-detail-nag-low: linear-gradient(180deg, #3a3000 0%, #211a00 26%, var(--bg) 66%);
+    --grad-detail-nag-mid: linear-gradient(180deg, #402d00 0%, #251800 26%, var(--bg) 66%);
+    --grad-detail-nag-high: linear-gradient(180deg, #472800 0%, #291500 26%, var(--bg) 66%);
+    --grad-detail-overdue: linear-gradient(180deg, #531d09 0%, #350900 26%, var(--bg) 66%);
+    --grad-detail-done: linear-gradient(180deg, #273614 0%, #121f02 26%, var(--bg) 66%);
+    --grad-shimmer: linear-gradient(90deg, #241f29 25%, #39323f 50%, #241f29 75%);
+    /* The install card and the iOS gate's icon tile, with their text. */
+    --grad-install-card: linear-gradient(180deg, #493158 0%, #382443 60%, #2c1c37 100%);
+    --grad-login-icon: linear-gradient(180deg, #493158 0%, #382443 100%);
+    --install-fg: #f0e2fa;
+    --install-fg2: #ddc1f0;
+    /* Rows: a 1px frame in the row's own text colour (--row-frame; the picked filter tile uses it
+       too). Flat, no drop shadow, like the rest of the app (owner 2026-10-28, decision 65). */
+    --row-frame: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    /* The reminders list, dark: same hue, flipped lightness (see the light theme). */
-    --on-grad: #c4b5fd;
-    --on-grad-fg2: #a8a498;
-    --on-row: #f0ede6;
-    --fab: #7c3aed; /* #6d28d9 is only 2.6:1 against the dark page */
-    --shadow-fab: 0 4px 14px rgba(0, 0, 0, 0.5);
-    --grad-shell-brand: linear-gradient(180deg, #221a38 0%, #1a1726 35%, var(--bg) 70%);
-    --grad-shell-nagging: linear-gradient(180deg, #2f1a1b 0%, #1f1716 35%, var(--bg) 70%);
-    --grad-shell-overdue: linear-gradient(180deg, #321619 0%, #1f1415 35%, var(--bg) 70%);
-    --grad-shell-done: linear-gradient(180deg, #142a20 0%, #161f1a 35%, var(--bg) 70%);
-    --grad-shimmer: linear-gradient(90deg, #1e1d1a 25%, #2a2924 50%, #1e1d1a 75%);
-    /* The install card and the iOS gate's icon tile, dark: dark violet, light violet text. */
-    --grad-install-card: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 60%, #251a45 100%);
-    --grad-login-icon: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 100%);
-    --install-fg: #ede9fe;
-    --install-fg2: #c4b5fd;
-    --tile-icon-bg: rgba(255, 255, 255, 0.08);
-    --tile-waiting: rgba(139, 92, 246, 0.18);
-    --tile-nagging: rgba(248, 113, 113, 0.15);
-    --tile-overdue: rgba(220, 38, 38, 0.22);
-    --tile-overdue-fg: #fecaca;
-    --tile-done: rgba(52, 211, 153, 0.14);
-    --waiting-row-bg: #2a2145;
-    --nag-low: #33260f;
-    --nag-low-fg: #f8d49b;
-    --nag-mid: #45201b;
-    --nag-mid-fg: #fbb4ac;
-    --nag-high: #7a1f18;
-    --nag-high-fg: #fff5f5;
-    --tag-overdue: #4a0e1a;
-    --tag-overdue-fg: #fef2f2;
-    --row-overdue-ring: rgba(248, 113, 113, 0.6);
-    --tag-done: #16291e;
-    --tag-done-fg: #86efac;
-    --tag-nagging: rgba(248, 113, 113, 0.16);
-    --tag-nagging-fg: #fca5a5;
-    --tag-overdue-chip: rgba(216, 180, 254, 0.18);
-    --tag-overdue-chip-fg: #f3e8ff;
-    --chip-on-waiting-row: rgba(167, 139, 250, 0.2);
-    --chip-on-done-row: rgba(74, 222, 128, 0.16);
-    /* The reminder page, dark: same hue, flipped lightness, one step stronger than the list. */
-    --grad-detail-waiting: linear-gradient(180deg, #30245e 0%, #1e1932 38%, var(--bg) 68%);
-    --grad-detail-nag-low: linear-gradient(180deg, #45300c 0%, #261e10 38%, var(--bg) 68%);
-    --grad-detail-nag-mid: linear-gradient(180deg, #3d1e1b 0%, #241917 38%, var(--bg) 72%);
-    --grad-detail-nag-high: linear-gradient(180deg, #52230f 0%, #2c1915 38%, var(--bg) 70%);
-    --grad-detail-overdue: linear-gradient(180deg, #4a1519 0%, #291518 38%, var(--bg) 74%);
-    --grad-detail-done: linear-gradient(180deg, #12422c 0%, #16241c 38%, var(--bg) 70%);
-    --chip-on-nag-high: rgba(254, 202, 202, 0.85);
-    /* Rows cast their shadow up onto the row above (a downward one doesn't show on dark), plus a
-       faint highlight on the top edge; deeper down the stack, as in light mode. */
-    --shadow-row-1: 0 -2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    --shadow-row-2: 0 -2px 10px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    --shadow-row-3: 0 -3px 10px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    --shadow-row-4: 0 -3px 12px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    --shadow-row-5: 0 -4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
     color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
-  --bg: #141412;
-  --bg2: #1e1d1a;
-  --bg3: #252420;
-  --fg: #f0ede6;
-  --fg2: #a8a498;
-  --fg3: #6e6a60;
-  --accent: #a78bfa;
-  --accent2: #c4b5fd;
-  --accent-bg: #2e1f5e;
-  --border: #2e2d28;
-  --error-text: #f87171;
+  /* Page, text and lines. */
+  --bg: #120d16;
+  --bg2: #1b161f;
+  --bg3: #241f29;
+  --fg: #eae6ef;
+  --fg2: #b5aebb;
+  --fg3: #7d7882;
+  --border: #39323f;
+  /* Brand: mauve-violet. Logo, links, focus, filled buttons and the + button. */
+  --accent: #d6a6fd;
+  --accent-bg: #382443;
+  --accent-solid: #8753ae;
+  --on-solid: #ffffff;
+  --fab: #8753ae;
+  --shadow-fab: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --on-grad: #d6a6fd;
+  --on-grad-fg2: #b5aebb;
+  --on-row: #eae6ef;
+  /* Waiting: mauve. */
+  --waiting-row-bg: #2b1b35;
+  --tag-pending: #483356;
+  --tag-pending-fg: #d6a6fd;
+  --tile-waiting: #382443;
+  --chip-on-waiting-row: #422c4f;
+  /* Nagging: gold (1–3 pushes), amber (4–8), orange (9–11). "Nagging" as a status is amber. */
+  --nag-low: #2c2400;
+  --nag-low-fg: #e3d8a9;
+  --nag-mid: #332400;
+  --nag-mid-fg: #f0d49d;
+  --nag-high: #3e2300;
+  --nag-high-fg: #f8cfa5;
+  --chip-on-nag-high: #6e4300;
+  --chip-on-nag-high-fg: #f8cfa5;
+  --tag-nagging: #4f3900;
+  --tag-nagging-fg: #f1cc80;
+  --tile-nagging: #3c2b00;
+  /* Overdue: ember, the amber pushed to red-orange. Errors use the same hue. */
+  --tag-overdue: #491b0b;
+  --tag-overdue-fg: #fecab8;
+  --row-overdue-ring: #e2693f;
+  --tag-overdue-chip: #672b15;
+  --tag-overdue-chip-fg: #fecab8;
+  --tile-overdue: #511904;
+  --tile-overdue-fg: #ffc0ab;
+  --error: #c54201;
+  --error-text: #fe9976;
+  --error-bg: #3c0c00;
+  /* Done: green. */
+  --tag-done: #1a2809;
+  --tag-done-fg: #c2dba9;
+  --tile-done: #243410;
+  --chip-on-done-row: #2b3d15;
+  /* Tiles: the icon circle. */
+  --tile-icon-bg: rgba(255, 255, 255, 0.07);
+  /* The list (grad-shell-*) and the reminder page (grad-detail-*): the state's hue at the top, fading into the page. */
+  --grad-shell-brand: linear-gradient(180deg, #2a1934 0%, #1c1024 30%, var(--bg) 60%);
+  --grad-shell-nagging: linear-gradient(180deg, #2e1f00 0%, #1f1400 30%, var(--bg) 60%);
+  --grad-shell-overdue: linear-gradient(180deg, #400f00 0%, #2c0800 30%, var(--bg) 60%);
+  --grad-shell-done: linear-gradient(180deg, #192708 0%, #101a04 30%, var(--bg) 60%);
+  --grad-detail-waiting: linear-gradient(180deg, #3a2745 0%, #23122c 26%, var(--bg) 66%);
+  --grad-detail-nag-low: linear-gradient(180deg, #3a3000 0%, #211a00 26%, var(--bg) 66%);
+  --grad-detail-nag-mid: linear-gradient(180deg, #402d00 0%, #251800 26%, var(--bg) 66%);
+  --grad-detail-nag-high: linear-gradient(180deg, #472800 0%, #291500 26%, var(--bg) 66%);
+  --grad-detail-overdue: linear-gradient(180deg, #531d09 0%, #350900 26%, var(--bg) 66%);
+  --grad-detail-done: linear-gradient(180deg, #273614 0%, #121f02 26%, var(--bg) 66%);
+  --grad-shimmer: linear-gradient(90deg, #241f29 25%, #39323f 50%, #241f29 75%);
+  /* The install card and the iOS gate's icon tile, with their text. */
+  --grad-install-card: linear-gradient(180deg, #493158 0%, #382443 60%, #2c1c37 100%);
+  --grad-login-icon: linear-gradient(180deg, #493158 0%, #382443 100%);
+  --install-fg: #f0e2fa;
+  --install-fg2: #ddc1f0;
+  /* Rows: a 1px frame in the row's own text colour (--row-frame; the picked filter tile uses it
+     too). Flat, no drop shadow, like the rest of the app (owner 2026-10-28, decision 65). */
+  --row-frame: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  /* The reminders list, dark: same hue, flipped lightness (see the light theme). */
-  --on-grad: #c4b5fd;
-  --on-grad-fg2: #a8a498;
-  --on-row: #f0ede6;
-  --fab: #7c3aed; /* #6d28d9 is only 2.6:1 against the dark page */
-  --shadow-fab: 0 4px 14px rgba(0, 0, 0, 0.5);
-  --grad-shell-brand: linear-gradient(180deg, #221a38 0%, #1a1726 35%, var(--bg) 70%);
-  --grad-shell-nagging: linear-gradient(180deg, #2f1a1b 0%, #1f1716 35%, var(--bg) 70%);
-  --grad-shell-overdue: linear-gradient(180deg, #321619 0%, #1f1415 35%, var(--bg) 70%);
-  --grad-shell-done: linear-gradient(180deg, #142a20 0%, #161f1a 35%, var(--bg) 70%);
-  --grad-shimmer: linear-gradient(90deg, #1e1d1a 25%, #2a2924 50%, #1e1d1a 75%);
-  /* The install card and the iOS gate's icon tile, dark: dark violet, light violet text. */
-  --grad-install-card: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 60%, #251a45 100%);
-  --grad-login-icon: linear-gradient(180deg, #3b1d7a 0%, #2e1a5c 100%);
-  --install-fg: #ede9fe;
-  --install-fg2: #c4b5fd;
-  --tile-icon-bg: rgba(255, 255, 255, 0.08);
-  --tile-waiting: rgba(139, 92, 246, 0.18);
-  --tile-nagging: rgba(248, 113, 113, 0.15);
-  --tile-overdue: rgba(220, 38, 38, 0.22);
-  --tile-overdue-fg: #fecaca;
-  --tile-done: rgba(52, 211, 153, 0.14);
-  --waiting-row-bg: #2a2145;
-  --nag-low: #33260f;
-  --nag-low-fg: #f8d49b;
-  --nag-mid: #45201b;
-  --nag-mid-fg: #fbb4ac;
-  --nag-high: #7a1f18;
-  --nag-high-fg: #fff5f5;
-  --tag-overdue: #4a0e1a;
-  --tag-overdue-fg: #fef2f2;
-  --row-overdue-ring: rgba(248, 113, 113, 0.6);
-  --tag-done: #16291e;
-  --tag-done-fg: #86efac;
-  --tag-nagging: rgba(248, 113, 113, 0.16);
-  --tag-nagging-fg: #fca5a5;
-  --tag-overdue-chip: rgba(216, 180, 254, 0.18);
-  --tag-overdue-chip-fg: #f3e8ff;
-  --chip-on-waiting-row: rgba(167, 139, 250, 0.2);
-  --chip-on-done-row: rgba(74, 222, 128, 0.16);
-  /* The reminder page, dark: same hue, flipped lightness, one step stronger than the list. */
-  --grad-detail-waiting: linear-gradient(180deg, #30245e 0%, #1e1932 38%, var(--bg) 68%);
-  --grad-detail-nag-low: linear-gradient(180deg, #45300c 0%, #261e10 38%, var(--bg) 68%);
-  --grad-detail-nag-mid: linear-gradient(180deg, #3d1e1b 0%, #241917 38%, var(--bg) 72%);
-  --grad-detail-nag-high: linear-gradient(180deg, #52230f 0%, #2c1915 38%, var(--bg) 70%);
-  --grad-detail-overdue: linear-gradient(180deg, #4a1519 0%, #291518 38%, var(--bg) 74%);
-  --grad-detail-done: linear-gradient(180deg, #12422c 0%, #16241c 38%, var(--bg) 70%);
-  --chip-on-nag-high: rgba(254, 202, 202, 0.85);
-  /* Rows cast their shadow up onto the row above (a downward one doesn't show on dark), plus a
-     faint highlight on the top edge; deeper down the stack, as in light mode. */
-  --shadow-row-1: 0 -2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --shadow-row-2: 0 -2px 10px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --shadow-row-3: 0 -3px 10px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --shadow-row-4: 0 -3px 12px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --shadow-row-5: 0 -4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   color-scheme: dark;
 }
 
@@ -391,12 +400,13 @@
   );
 }
 
-/* Inventory → StatusTiles: the picked tile gets a 2px ring drawn inside it (no layout shift), in
-   the tile's own text colour (3:1 or more against the tile, so the state is visible without the
-   dimming of the others). Only the picked tile has a ring: on any other tile it would look
-   picked too (2026-10-26). */
+/* Inventory → StatusTiles: the picked tile gets the same frame as a reminder row of its type
+   (owner 2026-10-28, decision 65): --row-frame, and on Overdue the ember ring (StatusTiles.tsx).
+   Only the picked tile has it: on any other tile it would look picked too (2026-10-26). This is
+   below the 3:1 WCAG 1.4.11 asks for, on purpose: the owner found every stronger cue heavy or
+   ugly; the dimmed other tiles and aria-pressed carry the state too (design doc decision 65). */
 @utility tile-ring-picked {
-  box-shadow: inset 0 0 0 2px currentColor;
+  box-shadow: var(--row-frame);
 }
 
 /* The skeleton placeholder's background (Inventory → --grad-shimmer), twice as wide as the
@@ -431,7 +441,6 @@
   --color-fg2: var(--fg2);
   --color-fg3: var(--fg3);
   --color-accent: var(--accent);
-  --color-accent2: var(--accent2);
   --color-accent-bg: var(--accent-bg);
   --color-border: var(--border);
   --color-accent-solid: var(--accent-solid);
@@ -445,8 +454,6 @@
   --color-row-overdue-ring: var(--row-overdue-ring);
   --color-scrim: var(--scrim);
   --color-waiting-row-bg: var(--waiting-row-bg);
-  --color-tag-shared: var(--tag-shared);
-  --color-tag-shared-fg: var(--tag-shared-fg);
   --color-error: var(--error);
   --color-error-text: var(--error-text);
   --color-error-bg: var(--error-bg);
@@ -469,6 +476,7 @@
   --color-chip-on-waiting-row: var(--chip-on-waiting-row);
   --color-chip-on-done-row: var(--chip-on-done-row);
   --color-chip-on-nag-high: var(--chip-on-nag-high);
+  --color-chip-on-nag-high-fg: var(--chip-on-nag-high-fg);
   --color-nag-low: var(--nag-low);
   --color-nag-low-fg: var(--nag-low-fg);
   --color-nag-mid: var(--nag-mid);
@@ -479,11 +487,7 @@
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-fab: var(--shadow-fab);
-  --shadow-row-1: var(--shadow-row-1);
-  --shadow-row-2: var(--shadow-row-2);
-  --shadow-row-3: var(--shadow-row-3);
-  --shadow-row-4: var(--shadow-row-4);
-  --shadow-row-5: var(--shadow-row-5);
+  --shadow-row: var(--row-frame);
   --ease-std: var(--easing-std);
 }
 

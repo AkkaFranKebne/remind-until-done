@@ -40,7 +40,7 @@ const stateText = {
   waiting: 'text-on-grad',
   'nag-low': 'text-nag-low-fg',
   'nag-mid': 'text-nag-mid-fg',
-  'nag-high': 'text-tile-overdue-fg',
+  'nag-high': 'text-nag-high-fg',
   overdue: 'text-tile-overdue-fg',
   done: 'text-tag-done-fg',
 } satisfies Record<RowLevel, string>

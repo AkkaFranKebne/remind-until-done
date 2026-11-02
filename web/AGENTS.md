@@ -79,8 +79,9 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
     points), bg-shimmer + animate-shimmer (Skeleton), animate-nag-pulse (the nag dot),
     animate-count-pulse (the reminder page's countdown while a push is due), animate-line-in and
     animate-line-in-nudge (the reminder page's funny line),
-    tile-ring-picked (the picked status tile), shadow-fab (the + button's glow),
-    shadow-row-1 … shadow-row-5 (reminder rows, deeper down the stack). Spacing uses
+    tile-ring-picked (the picked Waiting, Nagging and Done tile: the rows' --row-frame; the picked
+    Overdue tile uses the ember inset-ring, like its row), shadow-fab (the + button's glow),
+    shadow-row (reminder rows: their flat 1px frame, --row-frame). Spacing uses
     Tailwind's 4px scale, whole or half steps (gap-2, size-4.5); letter spacing too (tracking-tight).
     Tailwind's own text sizes and radii (text-2xl, rounded-xl) are removed. New value? Add it to
     the Inventory first, then to src/index.css."
@@ -148,17 +149,18 @@ Each rule has an `id`. `enforced` rules fail `npm run lint` (`scripts/check-ui-r
   status: advisory
   applies_to: 'src/**/*.tsx'
   check: 'Small text (text-xs, text-sm) uses text-fg2 or stronger. text-fg3 only for large or
-    non-essential text: it is about 3.4:1 on bg, below WCAG AA 4.5:1 (Inventory → Tokens).'
+    non-essential text: it is below WCAG AA 4.5:1 on bg (Inventory → Tokens).'
 
 - id: ui-both-themes
   status: advisory
   applies_to: 'src/**/*.{tsx,css}'
   check:
-    "Everything works in light and dark (check the Storybook theme toggle). Status and nag colours
-    keep their hue in both themes (hue carries meaning). On the reminders list and the reminder page, dark mode flips the
-    lightness: dark tints of the same hue with light text in that hue (index.css, dark blocks).
-    Filled primary buttons use accent-solid + on-solid (same in both themes: white on the dark-mode
-    accent is unreadable); the + button uses fab. Text on the list gradient uses on-grad /
+    "Everything works in light and dark (check the Storybook theme toggle). Colours follow the
+    palette system (index.css header, Inventory → Tokens → Palette system, design doc decision 65):
+    one hue per state used the same way everywhere, a fixed lightness per role; dark mode keeps the
+    hue and flips the lightness, with tinted off-white text, never #fff. A new or changed colour
+    token gets its pairs in src/tokens.contrast.test.ts. Filled primary buttons use accent-solid +
+    on-solid, not accent (white on the light dark-mode accent is unreadable); the + button uses fab. Text on the list gradient uses on-grad /
     on-grad-fg2 (they have dark values, like the gradient). TopBar has no background of its own; pass
     the screen's tone (plain, brand, or the reminder's state: waiting … done) to colour its icon,
     never a raw colour."

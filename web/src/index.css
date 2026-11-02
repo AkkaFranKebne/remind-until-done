@@ -306,7 +306,7 @@
   }
 
   /* Inventory → Motion "Countdown pulse": the reminder page's big countdown while a push is due
-     ("Starting now", 00:00:00). Opacity stays at .75 or more: the large text keeps 3:1 at its
+     ("Starting now", 00:00). Opacity stays at .75 or more: the large text keeps 3:1 at its
      faintest on every light gradient (worst: nag-low, about 3.3:1). Pair with
      motion-reduce:animate-none. */
   --animate-count-pulse: count-pulse 1.2s var(--easing-std) infinite;

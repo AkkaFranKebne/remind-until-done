@@ -41,7 +41,7 @@ test('the counter counts characters like the API (ä and emoji are 1 each)', () 
     />,
   )
 
-  expect(screen.getByRole('textbox', { name: 'Note (optional)' })).toHaveAccessibleDescription(
+  expect(screen.getByRole('textbox', { name: 'Note · optional' })).toHaveAccessibleDescription(
     '3 / 200',
   )
 })

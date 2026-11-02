@@ -114,7 +114,7 @@ const page = (props: { upcoming: Reminder[]; doneList: Reminder[]; loading?: boo
   </WithRouter>
 )
 
-/** No tile picked: all active reminders, soonest first. Tap a tile to filter. */
+/** No tile picked: all active reminders, overdue, then nagging, then waiting. Tap a tile to filter. */
 export const List: Story = { render: () => page({ upcoming: active, doneList: done }) }
 
 /** No reminders at all: the warm empty state, no tiles. */

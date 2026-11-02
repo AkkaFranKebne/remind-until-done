@@ -1,6 +1,7 @@
 import type { Reminder } from '../../lib/api/generated/model'
 import {
   intervalLabel,
+  listOrder,
   pageCountdown,
   pageSubLine,
   pollAfterCountdown,
@@ -27,11 +28,11 @@ function reminder(over: Partial<Reminder> = {}): Reminder {
 }
 
 test.each([
-  [{}, 'waiting', 'waiting', 'Starts in 23:00'],
-  [{ status: 'sending' as const }, 'waiting', 'waiting', 'Starts in 23:00'],
-  [{ status: 'sent' as const, nagCount: 2 }, 'nag-low', 'nagging', 'Gently nagging (2/12)'],
-  [{ status: 'sent' as const, nagCount: 5 }, 'nag-mid', 'nagging', 'Still here (5/12)'],
-  [{ status: 'sent' as const, nagCount: 10 }, 'nag-high', 'nagging', 'Getting desperate (10/12)'],
+  [{}, 'waiting', 'waiting', 'Starts in 23 h'],
+  [{ status: 'sending' as const }, 'waiting', 'waiting', 'Starts in 23 h'],
+  [{ status: 'sent' as const, nagCount: 2 }, 'nag-low', 'nagging', 'Gently nagging'],
+  [{ status: 'sent' as const, nagCount: 5 }, 'nag-mid', 'nagging', 'Still here'],
+  [{ status: 'sent' as const, nagCount: 10 }, 'nag-high', 'nagging', 'Getting desperate'],
   [
     { status: 'sent' as const, nagCount: 12, nagsExhausted: true },
     'overdue',
@@ -57,7 +58,7 @@ describe('the reminder page', () => {
 
   test('the funny line comes from the UX Copy (nagging: the row lines until M5)', () => {
     expect(pageSubLine(reminder())).toBe('Waiting patiently.')
-    expect(pageSubLine(nagging)).toBe('Still here (4/12)')
+    expect(pageSubLine(nagging)).toBe('Still here')
     expect(pageSubLine(overdue)).toMatch(/^We gave it everything we had/)
     expect(pageSubLine(reminder({ status: 'done' }))).toBe('Done. We knew you had it in you.')
   })
@@ -65,23 +66,23 @@ describe('the reminder page', () => {
   test('countdown: to the first push, to the next push (seconds), how late; none when done', () => {
     expect(pageCountdown(reminder(), now)).toEqual({
       label: 'Starts in',
-      value: '23:00',
+      value: '23 h',
       due: false,
     })
     expect(pageCountdown(nagging, now)).toEqual({
       label: 'Next nag in',
-      value: '00:42:17',
+      value: '42:17',
       due: false,
     })
     expect(pageCountdown(overdue, now)).toEqual({
       label: 'Overdue by',
-      value: '3d 14:22',
+      value: '3 d 14 h',
       due: false,
     })
     expect(pageCountdown(reminder({ status: 'done' }), now)).toBeNull()
   })
 
-  test('a push due now: "Starting now" or 00:00:00, marked due so it pulses', () => {
+  test('a push due now: "Starting now" or 00:00, marked due so it pulses', () => {
     for (const dueAt of ['2026-10-14T10:00:30Z', '2026-10-14T09:59:00Z']) {
       expect(pageCountdown(reminder({ dueAt }), now)).toEqual({
         label: 'First nag',
@@ -91,11 +92,11 @@ describe('the reminder page', () => {
     }
     expect(pageCountdown({ ...nagging, nextNagAt: null }, now)).toEqual({
       label: 'Next nag in',
-      value: '00:00:00',
+      value: '00:00',
       due: true,
     })
     const almost = new Date(now.getTime() + 1_500).toISOString()
-    expect(pageCountdown({ ...nagging, nextNagAt: almost }, now)?.due).toBe(false) // 00:00:01
+    expect(pageCountdown({ ...nagging, nextNagAt: almost }, now)?.due).toBe(false) // 00:01
   })
 
   test('the interval reads like its chip', () => {
@@ -113,4 +114,46 @@ test('right after a countdown reaches 0 the page asks the server again (every 15
   const nagging = { status: 'sent' as const, nagCount: 3 }
   expect(pollAfterCountdown(reminder({ ...nagging, nextNagAt: at(-5_000) }), t)).toBe(15_000)
   expect(pollAfterCountdown(reminder({ status: 'done' }), t)).toBe(false)
+})
+
+describe('listOrder', () => {
+  const at = (h: number) => `2026-10-14T${String(h).padStart(2, '0')}:00:00Z`
+  const overdue = (id: string, dueH: number) =>
+    reminder({ id, status: 'sent', nagCount: 12, nagsExhausted: true, dueAt: at(dueH) })
+  const nagging = (id: string, count: number, nextH: number | null) =>
+    reminder({
+      id,
+      status: 'sent',
+      nagCount: count,
+      dueAt: at(1),
+      nextNagAt: nextH === null ? null : at(nextH),
+    })
+  const waiting = (id: string, dueH: number) => reminder({ id, dueAt: at(dueH) })
+
+  test('overdue, then nagging, then waiting, each in its own order', () => {
+    const list = [
+      waiting('w-later', 20),
+      nagging('n2-later', 2, 12),
+      overdue('o-newer', 5),
+      waiting('w-sooner', 15),
+      nagging('n2-sending', 2, null),
+      nagging('n9', 9, 13),
+      nagging('n2-sooner', 2, 11),
+      nagging('n1', 1, 10),
+      overdue('o-older', 2),
+      reminder({ id: 'w-sending', status: 'sending', dueAt: at(9) }),
+    ]
+    expect(list.sort(listOrder).map((r) => r.id)).toEqual([
+      'o-older', // the longest overdue first
+      'o-newer',
+      'n9', // the most pushes sent first
+      'n2-sooner', // same count: the soonest next nag first
+      'n2-later',
+      'n2-sending', // no next time yet: last of the same count
+      'n1', // fewer pushes: after, even with a sooner next nag
+      'w-sending', // sending its first push: still waiting
+      'w-sooner',
+      'w-later',
+    ])
+  })
 })

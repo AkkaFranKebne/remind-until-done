@@ -89,6 +89,44 @@ test('tiles count by status and filter the list; tapping the picked tile shows a
   ).toHaveLength(3)
 })
 
+test('the list puts overdue first, then nagging, then waiting (decision 64)', async () => {
+  // The API sends the soonest due first; the screen sorts by what needs you most.
+  mockReminders({
+    upcoming: [
+      aReminder({ title: 'Book a plumber' }),
+      aReminder({ title: 'Call dentist', status: 'sent', nagCount: 2 }),
+      aReminder({ title: 'Reply to landlord', status: 'sent', nagCount: 5 }),
+      aReminder({ title: 'Renew passport', status: 'sent', nagCount: 12, nagsExhausted: true }),
+    ],
+  })
+  openList()
+
+  const list = await screen.findByRole('list', { name: 'Active reminders' })
+  expect(
+    within(list)
+      .getAllByRole('link')
+      .map((l) => l.textContent),
+  ).toEqual([
+    expect.stringContaining('Renew passport'),
+    expect.stringContaining('Reply to landlord'),
+    expect.stringContaining('Call dentist'),
+    expect.stringContaining('Book a plumber'),
+  ])
+
+  // A picked tile keeps the order: the most pushes first.
+  fireEvent.click(screen.getByRole('button', { name: 'Nagging 2' }))
+  await waitFor(() =>
+    expect(
+      within(screen.getByRole('list'))
+        .getAllByRole('link')
+        .map((l) => l.textContent),
+    ).toEqual([
+      expect.stringContaining('Reply to landlord'),
+      expect.stringContaining('Call dentist'),
+    ]),
+  )
+})
+
 test('the picked tile is in the address: Back from a reminder keeps it', async () => {
   mockReminders({
     upcoming: [

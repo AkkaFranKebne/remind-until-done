@@ -462,6 +462,33 @@ func TestALineThatCantBeSavedStillCountsThePush(t *testing.T) {
 	}
 }
 
+func TestALockedUserRowStillCountsThePush(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	// A save holds the user's row. Saving the seen line waits for it, then gives up.
+	tx, err := w.pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := tx.Exec(ctx, `SELECT 1 FROM users WHERE id = $1 FOR UPDATE`, w.user); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := w.fire.Fire(ctx, task); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Rollback(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if r := w.get(t, task.ReminderID); r.Status != reminders.StatusSent || r.NagCount != 1 {
+		t.Errorf("after the push = %+v, want sent, 1 nag", r)
+	}
+	if got := w.seenCount(t); got != 0 {
+		t.Errorf("%d lines seen, want 0: the save should have given up", got)
+	}
+}
+
 func TestAnEmptyMessageTableStillPushes(t *testing.T) {
 	w := setup(t)
 	task := w.newReminder(t)

@@ -23,14 +23,14 @@ Deploys migrate first, then start the new API; for a while the **old** API runs 
 - **Rename or remove:** add the new one, copy the data, switch the code; drop the old one in a later release, after no live code reads it. Never drop something the running release uses.
 - **New table or index:** safe. Tables are tiny (5 active reminders per user), so plain `CREATE INDEX` is fine.
 - **New enum value** (`ALTER TYPE ... ADD VALUE`): only after the code that reads it can handle it.
-- **Data the app needs (rows, not schema):** say so in the PR; seeds (`api/db/seed/`, M5) are not migrations.
+- **Data the app needs (rows, not schema):** say so in the PR. The nag lines are the exception with their own path: edit `api/db/seed/messages.csv`, then `make messages` in `api/`; never a `V` file (`api/AGENTS.md`).
 
 ## 3. Try it locally (repo root, Docker running)
 - `make db-up migrate`: applies the new file to your local Postgres. `make db-info` lists what's applied. `make psql` opens a SQL prompt to look.
 - Try it from scratch too: `make db-reset` (deletes the local data) runs every migration in order.
 
 ## 4. Tests
-- Go database tests (`dbtest.Start(t)`) apply every `V*.sql` to a fresh Postgres, so `make fmt vet test` in `api/` runs your migration.
+- Go database tests (`dbtest.Start(t)`) apply every `V*.sql`, then `R__*.sql`, to a fresh Postgres, so `make fmt vet test` in `api/` runs your migration.
 - **At V10:** `applyMigrations` in `api/internal/dbtest/dbtest.go` sorts file names as text (`V10` before `V2`). Make it sort by the number before adding `V10`.
 - Add or update service tests for the new column or table (`internal/<feature>/service_test.go`).
 - CI also runs the real Flyway (`migrate` + `validate`) against a fresh database.

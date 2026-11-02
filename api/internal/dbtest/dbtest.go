@@ -48,7 +48,7 @@ func Start(t *testing.T) *pgxpool.Pool {
 	return pool
 }
 
-// applyMigrations runs api/db/migrations/V*.sql in order, like Flyway does.
+// applyMigrations runs api/db/migrations/V*.sql in order and then R__*.sql, like Flyway does.
 // (CI also runs the real Flyway against these files.)
 func applyMigrations(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
@@ -58,7 +58,13 @@ func applyMigrations(t *testing.T, pool *pgxpool.Pool) {
 		t.Fatalf("no migrations found: %v", err)
 	}
 	slices.Sort(files) // fine while there are fewer than 10; Flyway sorts by version number
-	for _, f := range files {
+	// Repeatable migrations run after all the versioned ones.
+	repeatable, err := filepath.Glob(filepath.Join(filepath.Dir(here), "..", "..", "db", "migrations", "R__*.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	slices.Sort(repeatable)
+	for _, f := range append(files, repeatable...) {
 		sql, err := os.ReadFile(f)
 		if err != nil {
 			t.Fatal(err)

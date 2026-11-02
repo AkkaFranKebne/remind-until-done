@@ -11,6 +11,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 | Run on :8080 | `make run` (uses the local database) |
 | Fire a push by hand, like Cloud Tasks | `make fire ID=<reminder id> V=<version> N=<push number>` (the API log prints the exact command for every booked task) |
 | Run the daily sweep by hand, like Cloud Scheduler | `make sweep` |
+| After editing `db/seed/messages.csv` | `make messages` (checks the rules, regenerates `db/migrations/R__nag_messages.sql`) |
 | Format check / vet / tests | `make fmt vet test` (Docker must be running) |
 | Docker image | `make docker` (Docker Desktop must be running) |
 | Known vulnerabilities | `go run golang.org/x/vuln/cmd/govulncheck@latest ./...` |
@@ -29,7 +30,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 - Logs: structured JSON through the logger from `internal/logging` (Cloud Logging reads `severity` and `message`).
 - Settings come from env vars in `internal/config`. Terraform sets them on Cloud Run (`infra/cloud_run.tf`).
 - Database: one pgx pool (`internal/db`), created in `cmd/api/main.go` and passed down. Packages take a small interface (like `httpapi.Pinger`), so tests can pass a fake.
-- Schema changes are Flyway files in `db/migrations/` named `V<n>__<what>.sql`. They must work with the previous release too (design doc 6.5): add a nullable column, backfill, tighten later.
+- Schema changes are Flyway files in `db/migrations/` named `V<n>__<what>.sql` (`R__nag_messages.sql` is generated, and is the only repeatable one). They must work with the previous release too (design doc 6.5): add a nullable column, backfill, tighten later.
 - Database tests use testcontainers (`dbtest.Start(t)`: a throwaway Postgres per test, same image as `docker-compose.yml`). Unit tests use fakes.
 - Every reminder query filters by the signed-in `user_id`. Another user's row returns 404, not 403.
 - Reminders (`internal/reminders`): creating one, or moving a done one to a new time, locks the user's row first (`lockUser`, `SELECT ... FOR UPDATE`), then counts active reminders. Always lock in the same order (user, then reminder), or two requests can wait for each other forever. `TestCreateWaitsForTheUsersLock` proves the lock is there.
@@ -40,10 +41,11 @@ Run in `api/`. Needs Go (version in `go.mod`).
 - The sweep (`internal/dispatch/sweep.go`, design doc 3.4): `POST /internal/sweep`, daily from Cloud Scheduler. M4 has step (b) only: book push 0 for pending reminders whose `enqueued_version` isn't their `schedule_version` and that are due within `scheduling.Horizon` (past ones too: they fire at once). It uses the current version (never handed out twice, so its task name is free) and marks it booked only if the row is still that version and pending, so an edit meanwhile wins. Batches of 200 with keyset paging, one failure doesn't stop it, and it stops after 2 minutes (Scheduler's deadline is 3); the next day does the rest. It answers 204 unless the database can't be read, and logs `sweep_repaired` with the counts (ERROR if anything failed or it didn't finish). Steps (a), (c), (d) and retention come in M6.
 - Locally `make run` sets `PUSH=log` and `SCHEDULER=log`; config refuses both in dev and prod. Config also refuses a `GCP_PROJECT` that isn't `rud-<env>-...`: sign-in, Cloud Tasks and FCM all use it, and a wrong one would make every push fail as "token gone" and delete every device.
 - A new schedule version always comes from `nextval('reminder_schedule_version_seq')`, never `+ 1` (decision 52): a rolled-back attempt may have booked its task, and a reused version would reuse its task name.
+- Nag lines (`internal/messages`, design doc 3.8, decisions 67 and 68): people edit `db/seed/messages.csv`; `make messages` generates the repeatable Flyway file `db/migrations/R__nag_messages.sql`, which Flyway runs again whenever its text changes, in every environment. Never edit the SQL by hand: a test fails if it doesn't match the CSV. Ids run without gaps and are permanent: to retire a line set `active` to false (a line deleted from the end is retired too, but its id could then be reused by mistake). `messages.Check` holds the rules. No program of ours loads the lines in a deploy, because only Flyway and firebase-tools may run after the Google login.
 - A public route that touches the database must not let anonymous callers wake or flood it: check once at startup (like `CheckDatabase` for `/healthz`) or require sign-in.
 
 ## Never
-- Never build SQL by string concatenation. Use query parameters.
+- Never build SQL by string concatenation. Use query parameters. The one exception is `messages.RenderSQL`: it runs on a computer, from the reviewed CSV, never on user input.
 - Never log secrets, ID tokens, emails or full connection strings (log the Firebase uid instead). Errors that could quote `DATABASE_URL` aren't wrapped (see `db.Open`).
 - Never add an `/internal/*` route outside `internalRoutes()`, and never turn the OIDC check off outside `ENV=local`.
 - Never edit an applied migration. Add a new one (design doc 6.5).

@@ -155,12 +155,16 @@ func TestTheSQLLoadsAndUpdates(t *testing.T) {
 	}
 
 	// A quote survives: the SQL doubles it.
+	i := slices.IndexFunc(lines, func(l messages.Line) bool { return strings.Contains(l.Text, "'") })
+	if i < 0 {
+		t.Fatal("no line with a quote")
+	}
 	var text string
-	if err := pool.QueryRow(ctx, `SELECT text FROM nag_messages WHERE id = 1253`).Scan(&text); err != nil {
+	if err := pool.QueryRow(ctx, `SELECT text FROM nag_messages WHERE id = $1`, lines[i].ID).Scan(&text); err != nil {
 		t.Fatal(err)
 	}
-	if text != lines[1252].Text {
-		t.Errorf("id 1253: got %q, want %q", text, lines[1252].Text)
+	if text != lines[i].Text {
+		t.Errorf("id %d: got %q, want %q", lines[i].ID, text, lines[i].Text)
 	}
 
 	// Running it again changes no row: the row version stays the same.

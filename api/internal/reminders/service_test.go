@@ -535,6 +535,115 @@ func TestUpdateBooksTheNewVersion(t *testing.T) {
 	}
 }
 
+// nagging pretends push 0 went out minutesAgo with a 24 h interval: Times bothered 1/12.
+func nagging(t *testing.T, pool *pgxpool.Pool, id string, minutesAgo int) {
+	t.Helper()
+	if _, err := pool.Exec(ctx,
+		`UPDATE reminders SET status = 'sent', nag_count = 1, nag_interval_min = 1440,
+		   sent_at = now() - make_interval(mins => $2), next_nag_at = now() - make_interval(mins => $2) + interval '24 hours'
+		 WHERE id = $1`, id, minutesAgo); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func near(a, b time.Time) bool { return a.Sub(b).Abs() < 5*time.Second }
+
+func TestNewIntervalMovesTheNextNag(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	r := create(t, s, user, "Sing", in(1)) // then pretend it's nagging
+	nagging(t, pool, r.ID, 5)
+
+	// 24 h -> 15 min, 5 minutes after the last push: the next nag comes 10 minutes from now.
+	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{NagIntervalMin: ptr(15)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := time.Now().Add(10 * time.Minute)
+	if u.NextNagAt == nil || !near(*u.NextNagAt, want) {
+		t.Fatalf("nextNagAt = %v, want about %v", u.NextNagAt, want)
+	}
+	if u.NagCount != 1 || u.Status != reminders.StatusSent || u.ScheduleVersion <= r.ScheduleVersion {
+		t.Errorf("after the edit = %+v, want the count kept (1, sent) and a new version", u)
+	}
+	got := tasks.Tasks()
+	last := got[len(got)-1]
+	if len(got) != 2 || last.Version != u.ScheduleVersion || last.N != 1 || !last.At.Equal(*u.NextNagAt) {
+		t.Errorf("tasks = %+v, want push 1 of v%d at %v", got, u.ScheduleVersion, *u.NextNagAt)
+	}
+
+	// The same interval again changes nothing.
+	again, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{NagIntervalMin: ptr(15)})
+	if err != nil || again.ScheduleVersion != u.ScheduleVersion || len(tasks.Tasks()) != 2 {
+		t.Errorf("same interval: %v, version %d (want %d), %d tasks (want 2)", err, again.ScheduleVersion, u.ScheduleVersion, len(tasks.Tasks()))
+	}
+}
+
+func TestNewIntervalAlreadyPastWaitsTheNewInterval(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	r := create(t, s, user, "Sing", in(1))
+	nagging(t, pool, r.ID, 55) // last push 55 minutes ago: 15 min after it has passed
+
+	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{NagIntervalMin: ptr(15)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Never right after the save: 15 minutes from now.
+	if want := time.Now().Add(15 * time.Minute); u.NextNagAt == nil || !near(*u.NextNagAt, want) {
+		t.Errorf("nextNagAt = %v, want about %v: last push + 15 min has passed", u.NextNagAt, want)
+	}
+	if got := tasks.Tasks(); len(got) != 2 || got[1].N != 1 {
+		t.Errorf("tasks = %+v, want push 1 booked", got)
+	}
+}
+
+func TestNewIntervalLeavesOtherStatesAlone(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	waiting := create(t, s, user, "Waiting", in(1))
+	overdue := create(t, s, user, "Overdue", in(1))
+	sending := create(t, s, user, "Sending", in(1))
+	if _, err := pool.Exec(ctx, `UPDATE reminders SET status = 'sent', nag_count = 12, next_nag_at = NULL, sent_at = now() WHERE id = $1`, overdue.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, `UPDATE reminders SET status = 'sending', nag_count = 1, claimed_at = now(), sent_at = now(), next_nag_at = now() WHERE id = $1`, sending.ID); err != nil {
+		t.Fatal(err)
+	}
+	booked := len(tasks.Tasks())
+
+	for _, r := range []reminders.Reminder{waiting, overdue, sending} {
+		before, _ := s.Get(ctx, user, r.ID)
+		u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{NagIntervalMin: ptr(15)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if u.NagIntervalMin != 15 || u.ScheduleVersion != before.ScheduleVersion || !sameTime(u.NextNagAt, before.NextNagAt) {
+			t.Errorf("%s: %+v, want only the interval changed", r.Title, u)
+		}
+	}
+	if n := len(tasks.Tasks()); n != booked {
+		t.Errorf("%d new tasks, want none", n-booked)
+	}
+}
+
+func TestNewIntervalSavesNothingWhenSchedulingFails(t *testing.T) {
+	s, tasks, pool, user := setupWithTasks(t)
+	r := create(t, s, user, "Sing", in(1))
+	nagging(t, pool, r.ID, 5)
+	before, _ := s.Get(ctx, user, r.ID)
+
+	tasks.Fail(errors.New("deadline exceeded"))
+	if _, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{NagIntervalMin: ptr(15)}); !errors.Is(err, reminders.ErrScheduleFailed) {
+		t.Fatalf("err = %v, want ErrScheduleFailed", err)
+	}
+	got, _ := s.Get(ctx, user, r.ID)
+	if got.NagIntervalMin != 1440 || got.ScheduleVersion != before.ScheduleVersion || !sameTime(got.NextNagAt, before.NextNagAt) {
+		t.Errorf("after a failed edit = %+v, want it unchanged", got)
+	}
+}
+
+func sameTime(a, b *time.Time) bool {
+	return (a == nil && b == nil) || (a != nil && b != nil && a.Equal(*b))
+}
+
 func TestUpdateFarAheadLeavesTheOldTaskBehind(t *testing.T) {
 	s, tasks, pool, user := setupWithTasks(t)
 	r := create(t, s, user, "Renew passport", in(2))

@@ -30,14 +30,14 @@ test('the whole row is a link to the reminder page; a waiting row counts down, w
 
   const link = await screen.findByRole('link', { name: /Call dentist/ })
   expect(link).toHaveAttribute('href', '/r/abc')
-  expect(link).toHaveTextContent('Starts in 23:00')
+  expect(link).toHaveTextContent('Starts in 23 h')
   expect(screen.getByText('Waiting')).toHaveClass('bg-chip-on-waiting-row')
 })
 
 test('a nagging row shows the push count and a chip; the dot pulses from push 4', async () => {
   const { container } = renderRow({ status: 'sent', nagCount: 5 })
 
-  expect(await screen.findByText('Still here (5/12)')).toBeInTheDocument()
+  expect(await screen.findByText('Still here')).toBeInTheDocument()
   expect(screen.getByText('Nagging')).toBeInTheDocument()
   expect(container.querySelector('.animate-nag-pulse')).toHaveClass('motion-reduce:animate-none')
 })

@@ -796,7 +796,8 @@
           "nagIntervalMin": {
             "type": "integer",
             "minimum": 15,
-            "maximum": 1440
+            "maximum": 1440,
+            "description": "A new interval on a nagging reminder moves its next nag: last push plus the new interval, or, if that has passed, the new interval from now. The count goes on"
           }
         }
       },

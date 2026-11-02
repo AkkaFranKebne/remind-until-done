@@ -33,7 +33,7 @@ export const intervalOptions: ChipOption<string>[] = [
 
 /** Inventory → UX Copy → "Create form — title placeholder": examples, one at a time. */
 export const titleExamples = [
-  "Water the plant (it's not dead yet)",
+  "Water the plant. It's not dead yet.",
   'Reply to that email from March',
   'Call mum back. For real this time',
   'Return the library book. Yes, that one',

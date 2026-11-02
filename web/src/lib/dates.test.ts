@@ -1,6 +1,6 @@
 import {
   farFutureHint,
-  formatClock,
+  formatCountdown,
   formatSpan,
   formatStartsIn,
   formatTook,
@@ -65,25 +65,33 @@ test('far-future hints by distance (Inventory tiers), none within a month', () =
   expect(farFutureHint(inDays(400), now)).toBeNull() // the form shows the error instead
 })
 
-test('formatStartsIn: days and hh:mm, under a day only hh:mm, then "Starting now"', () => {
+test('formatStartsIn: in units, then "Starting now"', () => {
   const later = (ms: number) => new Date(now.getTime() + ms)
   const h = 3_600_000
-  expect(formatStartsIn(later(2 * 24 * h + 4 * h), now)).toBe('Starts in 2d 04:00')
-  expect(formatStartsIn(later(4 * h + 12 * 60_000), now)).toBe('Starts in 04:12')
+  expect(formatStartsIn(later(2 * 24 * h + 4 * h), now)).toBe('Starts in 2 d 4 h')
+  expect(formatStartsIn(later(4 * h + 12 * 60_000), now)).toBe('Starts in 4 h 12 min')
   expect(formatStartsIn(later(30_000), now)).toBe('Starting now')
   expect(formatStartsIn(later(-h), now)).toBe('Starting now')
 })
 
-test('formatSpan: days and hh:mm, under a day hh:mm, never negative', () => {
-  expect(formatSpan(2 * 86_400_000 + 4 * 3_600_000)).toBe('2d 04:00')
-  expect(formatSpan(4 * 3_600_000 + 12 * 60_000 + 59_000)).toBe('04:12')
-  expect(formatSpan(-5000)).toBe('00:00')
+test('formatSpan: units, never "10:30" (it reads like a time of day), never negative', () => {
+  const min = 60_000
+  const h = 60 * min
+  expect(formatSpan(2 * 24 * h + 4 * h + 12 * min)).toBe('2 d 4 h') // minutes drop once there are days
+  expect(formatSpan(12 * 24 * h)).toBe('12 d')
+  expect(formatSpan(10 * h + 30 * min + 59_000)).toBe('10 h 30 min')
+  expect(formatSpan(10 * h)).toBe('10 h')
+  expect(formatSpan(45 * min)).toBe('45 min')
+  expect(formatSpan(30_000)).toBe('0 min')
+  expect(formatSpan(-5000)).toBe('0 min')
 })
 
-test('formatClock ticks to the second (hours can pass 24), never negative', () => {
-  expect(formatClock(42 * 60_000 + 17_000)).toBe('00:42:17')
-  expect(formatClock(25 * 3_600_000)).toBe('25:00:00')
-  expect(formatClock(-1)).toBe('00:00:00')
+test('formatCountdown: units from an hour, then mm:ss ticking to the second, never negative', () => {
+  expect(formatCountdown(22 * 3_600_000 + 39 * 60_000 + 40_000)).toBe('22 h 39 min')
+  expect(formatCountdown(3_600_000)).toBe('1 h')
+  expect(formatCountdown(3_600_000 - 1)).toBe('59:59')
+  expect(formatCountdown(42 * 60_000 + 17_000)).toBe('42:17')
+  expect(formatCountdown(-1)).toBe('00:00')
 })
 
 test('formatTook: minutes, hours, days', () => {

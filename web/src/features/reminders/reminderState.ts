@@ -1,6 +1,6 @@
 import type { ReminderStatusKind } from '../../components/ui/status'
 import type { Reminder } from '../../lib/api/generated/model'
-import { formatClock, formatDoneAgo, formatSpan, formatStartsIn } from '../../lib/dates'
+import { formatCountdown, formatDoneAgo, formatSpan, formatStartsIn } from '../../lib/dates'
 import { intervalOptions } from './addReminderForm'
 
 /** Pushes per cycle before a reminder counts as overdue (the API's MaxPushes). */
@@ -30,17 +30,16 @@ export function statusKind(r: Reminder): ReminderStatusKind {
 
 /** The row's second line (Inventory → UX Copy → row sub-lines). */
 export function rowSubLine(r: Reminder, now: Date = new Date()): string {
-  const level = rowLevel(r)
-  const count = `(${r.nagCount}/${MAX_PUSHES})`
-  switch (level) {
+  // No "(5/12)": the reminder page shows Times bothered (decision 63).
+  switch (rowLevel(r)) {
     case 'waiting':
       return formatStartsIn(new Date(r.dueAt), now)
     case 'nag-low':
-      return `Gently nagging ${count}`
+      return 'Gently nagging'
     case 'nag-mid':
-      return `Still here ${count}`
+      return 'Still here'
     case 'nag-high':
-      return `Getting desperate ${count}`
+      return 'Getting desperate'
     case 'overdue':
       return "We gave up. You didn't."
     case 'done':
@@ -89,10 +88,10 @@ export function pageCountdown(r: Reminder, now: Date): Countdown | null {
     case 'overdue':
       return { label: 'Overdue by', value: formatSpan(now.getTime() - due), due: false }
     default: {
-      // While a push is going out there's no next time yet: 00:00:00.
+      // While a push is going out there's no next time yet: 00:00.
       const next = r.nextNagAt ? new Date(r.nextNagAt).getTime() : now.getTime()
-      const value = formatClock(next - now.getTime())
-      return { label: 'Next nag in', value, due: value === formatClock(0) }
+      const value = formatCountdown(next - now.getTime())
+      return { label: 'Next nag in', value, due: value === formatCountdown(0) }
     }
   }
 }

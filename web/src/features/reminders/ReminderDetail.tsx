@@ -69,7 +69,7 @@ const funnyLine = cva(
 )
 
 /**
- * The big countdown. While a push is due ("Starting now", 00:00:00) it pulses until the push
+ * The big countdown. While a push is due ("Starting now", 00:00) it pulses until the push
  * arrives and the page moves on (Inventory → Motion "Countdown pulse"); reduced motion: still.
  */
 const countdownValue = cva('text-countdown font-bold tracking-wide tabular-nums', {

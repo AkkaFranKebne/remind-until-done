@@ -42,18 +42,29 @@ export function formatDue(due: Date, now: Date = new Date()): string {
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
-/** A span of time to the minute: "2d 04:00", under a day "04:12". Negative counts as 0. */
+/**
+ * A span of time to the minute, in units (decision 63): "2 d 4 h", "10 h 30 min", "45 min".
+ * Never "10:30", which reads like a time of day. Minutes drop once there are days. Negative counts as 0.
+ */
 export function formatSpan(ms: number): string {
   const left = Math.max(0, ms)
   const days = Math.floor(left / DAY)
-  const hhmm = `${pad2(Math.floor((left % DAY) / HOUR))}:${pad2(Math.floor((left % HOUR) / MINUTE))}`
-  return days > 0 ? `${days}d ${hhmm}` : hhmm
+  const hours = Math.floor((left % DAY) / HOUR)
+  const minutes = Math.floor((left % HOUR) / MINUTE)
+  if (days > 0) return hours > 0 ? `${days} d ${hours} h` : `${days} d`
+  if (hours > 0) return minutes > 0 ? `${hours} h ${minutes} min` : `${hours} h`
+  return `${minutes} min`
 }
 
-/** A ticking clock to the second: "00:42:17" (hours can pass 24). Negative counts as 0. */
-export function formatClock(ms: number): string {
+/**
+ * The next nag's countdown (decision 63): from an hour, units like formatSpan ("22 h 39 min");
+ * in the last hour a clock ticking to the second ("42:17"), so a close nag feels close.
+ * Negative counts as 0 ("00:00").
+ */
+export function formatCountdown(ms: number): string {
+  if (ms >= HOUR) return formatSpan(ms)
   const left = Math.max(0, Math.floor(ms / 1000))
-  return `${pad2(Math.floor(left / 3600))}:${pad2(Math.floor((left % 3600) / 60))}:${pad2(left % 60)}`
+  return `${pad2(Math.floor(left / 60))}:${pad2(left % 60)}`
 }
 
 /** How long something took, roughly: "45 min", "3 h", "2 d". Negative counts as 0. */
@@ -64,7 +75,7 @@ export function formatTook(ms: number): string {
   return `${Math.floor(took / DAY)} d`
 }
 
-/** Countdown to the first push: "Starts in 2d 04:00", under a day "Starts in 04:12", or "Starting now". */
+/** Countdown to the first push: "Starts in 2 d 4 h", "Starts in 10 h 30 min", "Starts in 45 min", or "Starting now". */
 export function formatStartsIn(due: Date, now: Date = new Date()): string {
   const left = due.getTime() - now.getTime()
   if (left < MINUTE) return 'Starting now'

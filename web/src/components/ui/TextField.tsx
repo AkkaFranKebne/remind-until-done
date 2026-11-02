@@ -28,7 +28,7 @@ export function TextField({
   ref?: Ref<HTMLInputElement & HTMLTextAreaElement>
   name: string
   label: string
-  /** Shows "(optional)" after the label. */
+  /** Shows "· optional" after the label (no brackets in copy). */
   optional?: boolean
   value: string
   onChange: (value: string) => void
@@ -61,7 +61,7 @@ export function TextField({
     >
       <Field.Label className="text-sm font-semibold text-fg">
         {label}
-        {optional ? <span className="font-normal text-fg2"> (optional)</span> : null}
+        {optional ? <span className="font-normal text-fg2"> · optional</span> : null}
       </Field.Label>
       {multiline ? (
         <Field.Control

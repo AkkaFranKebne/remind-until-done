@@ -53,7 +53,7 @@ test('waiting: the countdown to the first push, the interval and 0 / 12, and Don
   expect(await title()).toBeInTheDocument()
   expect(screen.getByText('Waiting patiently.')).toBeInTheDocument()
   expect(screen.getByText('Starts in')).toBeInTheDocument()
-  expect(screen.getByText('2d 04:00')).toBeInTheDocument()
+  expect(screen.getByText('2 d 4 h')).toBeInTheDocument()
   expect(screen.getByText('Nagging every').nextElementSibling).toHaveTextContent('1 h')
   expect(screen.getByText('Times bothered').nextElementSibling).toHaveTextContent('0 / 12')
   expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
@@ -72,9 +72,9 @@ test("nagging: counts down to the next push (the API's nextNagAt), to the second
   openPage()
 
   expect(await title()).toBeInTheDocument()
-  expect(screen.getByText('Still here (4/12)')).toBeInTheDocument()
+  expect(screen.getByText('Still here')).toBeInTheDocument()
   expect(screen.getByText('Next nag in')).toBeInTheDocument()
-  expect(screen.getByText(/^00:42:1\d$/)).toBeInTheDocument()
+  expect(screen.getByText(/^42:1\d$/)).toBeInTheDocument()
 })
 
 test('a push due now: "Starting now" as big as the countdown, pulsing until the push arrives', async () => {
@@ -121,7 +121,7 @@ test('a countdown still running doesn’t pulse', async () => {
   openPage()
 
   expect(await title()).toBeInTheDocument()
-  expect(screen.getByText(/^00:(09|10):\d\d$/)).not.toHaveClass('animate-count-pulse')
+  expect(screen.getByText(/^(09|10):\d\d$/)).not.toHaveClass('animate-count-pulse')
 })
 
 test('overdue: how late, counted from the due time, and the dramatic line', async () => {
@@ -138,7 +138,7 @@ test('overdue: how late, counted from the due time, and the dramatic line', asyn
   expect(await title()).toBeInTheDocument()
   expect(screen.getByText(/^We gave it everything we had\./)).toBeInTheDocument()
   expect(screen.getByText('Overdue by')).toBeInTheDocument()
-  expect(screen.getByText('3d 14:22')).toBeInTheDocument()
+  expect(screen.getByText('3 d 14 h')).toBeInTheDocument()
 })
 
 test('Done: the page turns into the done state', async () => {

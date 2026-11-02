@@ -19,7 +19,7 @@ import { devDevicesHandlers, resetDevDevices } from './devDevicesApi'
  * done is final until moved to a new time, unknown ids are 404.
  * It starts with one reminder in each state, so nagging and overdue screens can be built before
  * M4 (the real API can't produce them yet). Nothing sends pushes here: a nagging countdown stops
- * at 00:00:00 (reload to reset the clocks). Dev only: never imported by the production build.
+ * at 00:00 (reload to reset the clocks). Dev only: never imported by the production build.
  */
 
 const MAX_ACTIVE = 5

@@ -27,7 +27,7 @@ import { AddReminderSheet } from './AddReminderSheet'
 import { ReminderRow } from './ReminderRow'
 import { SwipeableRow } from './SwipeableRow'
 import { toastText } from './toastText'
-import { statusKind } from './reminderState'
+import { listOrder, statusKind } from './reminderState'
 import { useReminderChanged } from './useReminderChanged'
 
 /** The reminder ids of the still-running mutations with this key (their `{ id }` input). */
@@ -55,7 +55,7 @@ const shell: Record<ReminderStatusKind | 'all', string> = {
 
 /**
  * / — your reminders. The tiles are the filter (no tabs): none picked = all active reminders,
- * soonest first; Done shows finished ones, newest first. The + button opens "Set the trap"
+ * overdue, then nagging, then waiting (`listOrder`); Done shows finished ones, newest first. The + button opens "Set the trap"
  * and hides at 5 active. Data: TanStack Query; after a change the lists reload by themselves.
  * Design Inventory → Phone Screens → "/ — Reminders list", "/ — Empty list state", Reminders List states.
  */
@@ -114,7 +114,7 @@ export function RemindersPage() {
     enabled: picked === 'done',
   })
 
-  const active = (upcoming.data?.items ?? []).filter((r) => !leaving.has(r.id))
+  const active = (upcoming.data?.items ?? []).filter((r) => !leaving.has(r.id)).sort(listOrder)
   const doneItems = (done.data?.pages.flatMap((p) => p.items) ?? []).filter(
     (r) => !leaving.has(r.id),
   )

@@ -1,6 +1,7 @@
 import type { Reminder } from '../../lib/api/generated/model'
 import {
   intervalLabel,
+  listOrder,
   pageCountdown,
   pageSubLine,
   pollAfterCountdown,
@@ -113,4 +114,46 @@ test('right after a countdown reaches 0 the page asks the server again (every 15
   const nagging = { status: 'sent' as const, nagCount: 3 }
   expect(pollAfterCountdown(reminder({ ...nagging, nextNagAt: at(-5_000) }), t)).toBe(15_000)
   expect(pollAfterCountdown(reminder({ status: 'done' }), t)).toBe(false)
+})
+
+describe('listOrder', () => {
+  const at = (h: number) => `2026-10-14T${String(h).padStart(2, '0')}:00:00Z`
+  const overdue = (id: string, dueH: number) =>
+    reminder({ id, status: 'sent', nagCount: 12, nagsExhausted: true, dueAt: at(dueH) })
+  const nagging = (id: string, count: number, nextH: number | null) =>
+    reminder({
+      id,
+      status: 'sent',
+      nagCount: count,
+      dueAt: at(1),
+      nextNagAt: nextH === null ? null : at(nextH),
+    })
+  const waiting = (id: string, dueH: number) => reminder({ id, dueAt: at(dueH) })
+
+  test('overdue, then nagging, then waiting, each in its own order', () => {
+    const list = [
+      waiting('w-later', 20),
+      nagging('n2-later', 2, 12),
+      overdue('o-newer', 5),
+      waiting('w-sooner', 15),
+      nagging('n2-sending', 2, null),
+      nagging('n9', 9, 13),
+      nagging('n2-sooner', 2, 11),
+      nagging('n1', 1, 10),
+      overdue('o-older', 2),
+      reminder({ id: 'w-sending', status: 'sending', dueAt: at(9) }),
+    ]
+    expect(list.sort(listOrder).map((r) => r.id)).toEqual([
+      'o-older', // the longest overdue first
+      'o-newer',
+      'n9', // the most pushes sent first
+      'n2-sooner', // same count: the soonest next nag first
+      'n2-later',
+      'n2-sending', // no next time yet: last of the same count
+      'n1', // fewer pushes: after, even with a sooner next nag
+      'w-sending', // sending its first push: still waiting
+      'w-sooner',
+      'w-later',
+    ])
+  })
 })

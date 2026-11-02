@@ -1,5 +1,8 @@
 # Checks on every pull request (design doc 6.3).
 # deploy.yml also calls this workflow, so main is checked before every deploy.
+#
+# A pull request runs only the jobs its changed files need (scripts/ci_changes.py), to stay
+# inside GitHub Free's monthly Actions minutes. A deploy always runs every job.
 name: ci
 
 on:
@@ -15,15 +18,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Always runs. It also decides which other jobs run: it already has the whole history,
+  # and every job costs at least one minute, so a separate job for that would cost one more.
   secrets:
     runs-on: ubuntu-latest
     env:
       GITLEAKS_VERSION: 8.30.1
+    outputs:
+      web: ${{ steps.changes.outputs.web }}
+      api: ${{ steps.changes.outputs.api }}
+      infra: ${{ steps.changes.outputs.infra }}
+      semgrep: ${{ steps.changes.outputs.semgrep }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # the whole history, not only the last commit
           persist-credentials: false
+      # A PR's checkout is a test merge into main: its first parent is main, so the diff
+      # against it is exactly what the PR changes. Called by deploy.yml: run everything.
+      # Renames count as a delete plus an add, and names come unquoted (scripts/ci_changes.py).
+      - name: Which jobs this change needs
+        id: changes
+        shell: bash # -eo pipefail: if git or the script fails, the step fails
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          python3 scripts/test_ci_changes.py
+          if [ "$EVENT" = pull_request ]; then
+            git -c core.quotePath=false diff --no-renames -z --name-only HEAD^1 HEAD | python3 scripts/ci_changes.py | tee -a "$GITHUB_OUTPUT"
+          else
+            printf '%s\n' web=true api=true infra=true semgrep=true | tee -a "$GITHUB_OUTPUT"
+          fi
       - name: Install gitleaks
         run: |
           curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz gitleaks
@@ -35,6 +60,8 @@ jobs:
   # Rules come from Semgrep's public registry; no account, no token, no metrics sent.
   # A line that was checked and is safe gets a "nosemgrep: <rule>" comment with the reason.
   semgrep:
+    needs: secrets
+    if: needs.secrets.outputs.semgrep != 'false' # a missing answer runs the job
     runs-on: ubuntu-latest
     timeout-minutes: 15 # the rules download from semgrep.dev; don't let a hang block deploys
     container:
@@ -51,6 +78,8 @@ jobs:
           --config p/dockerfile --config p/github-actions
 
   web:
+    needs: secrets
+    if: needs.secrets.outputs.web != 'false' # a missing answer runs the job
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -96,6 +125,8 @@ jobs:
         run: npm run build-storybook
 
   api:
+    needs: secrets
+    if: needs.secrets.outputs.api != 'false' # a missing answer runs the job
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -128,6 +159,8 @@ jobs:
         run: docker build -t rud-api:ci .
 
   infra:
+    needs: secrets
+    if: needs.secrets.outputs.infra != 'false' # a missing answer runs the job
     runs-on: ubuntu-latest
     defaults:
       run:

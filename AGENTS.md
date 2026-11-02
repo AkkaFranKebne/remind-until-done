@@ -86,7 +86,7 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 - M7 (hardening): database TLS with certificate check (`sslmode=verify-full`) for the API and Flyway. Today `require` encrypts but doesn't verify the server.
 - M7 (hardening): a separate Neon role for the app that can only read and write rows; Flyway keeps the owner role for schema changes.
 - M7 (e2e tests): Firebase Auth emulator, only if Playwright needs it (Google blocks automated logins; design doc decision 32).
-- Any time: `npm audit` in `web/` reports 31 findings, all inside `firebase-tools` (the deploy CLI, a dev tool; none in app code). Check for a `firebase-tools` release that fixes them.
+- Any time: `npm audit` in `web/` also reports findings in dev tools (mostly inside `firebase-tools`, the deploy CLI; also `jest`, `orval`, `vite-plugin-pwa`). None ship in the app; `npm audit --omit=dev` shows only what does. Check for releases that fix them.
 - Any time: a lint rule so app code can't import test-only code (`msw`, `@faker-js/faker`, `*.msw.ts`). The built bundle is already checked (`npm run check:bundle` in CI); a lint rule would catch it earlier, in the editor.
 - Any time: MSW 3 (ES modules only). Under Jest it needs an experimental Node flag plus patches; MSW's docs suggest Vitest. Upgrade together with a Jest → Vitest decision (ask the owner).
 - Any time: remove Editor from the default compute service account.

@@ -33,6 +33,9 @@ The owner is a frontend developer learning fullstack.
   - Check before opening: `python3 scripts/check_pr_body.py <file>`. CI runs the same script (`pr-check.yml`).
   - In Claude Code: `/create-pr` does all of this.
 - Run the checks below before pushing. The Git hooks run some of them; CI runs all of them.
+  - A PR runs only the CI jobs its files need, to save Actions minutes (GitHub Free gives a private repo a monthly allowance). `scripts/ci_changes.py` holds the rules; a docs-only PR runs only the secrets scan and the description check. Deploys run every job, and a docs-only merge doesn't deploy.
+  - New top-level folder or file that a job checks? Add it to `JOBS` in `scripts/ci_changes.py`, with a test case.
+  - Markdown counts as docs: changing it runs no code job and doesn't deploy. If the app ever reads a `.md` file (an import, `go:embed`, `web/public/`), change the docs rule in the script and in `deploy.yml`'s `paths-ignore`.
 
 ## Commands
 Run from the folder named.
@@ -46,6 +49,7 @@ Run from the folder named.
 | repo root | secret scan | `gitleaks git --redact` |
 | repo root | security scan | the `semgrep` job in `.github/workflows/ci.yml`: run its image (`docker run --rm -v "$PWD:/src" -w /src <image>`) with its `semgrep scan ...` command |
 | repo root | PR description | `python3 scripts/check_pr_body.py <file>` (tests: `python3 scripts/test_check_pr_body.py`) |
+| repo root | which CI jobs a change runs | `git diff --no-renames --name-only main \| python3 scripts/ci_changes.py` (tests: `python3 scripts/test_ci_changes.py`) |
 
 ## Never
 - Never commit secrets: keys, tokens, connection strings, `.env` files. Secret values live in Google Secret Manager only (`infra/secrets.tf` holds the names).
@@ -116,6 +120,7 @@ Keep a skill true: a PR that changes how one of these is done updates the skill 
 
 ## Design agent
 - `designer` (`.claude/agents/designer.md`): proposes how a screen, state, animation or copy should look, from the Design Inventory and our tokens, with contrast and reduced motion checked. Advice and mockups only, never code. Ask it when the owner asks for the designer, or before building UI the Inventory doesn't cover; the `ui-reviewer` then checks what was built.
+- Anthropic's **Design plugin** (installed from claude.ai → Settings → Skills, synced to Claude Code) adds design skills: `design-critique`, `accessibility-review`, `ux-copy`, `design-system`, `design-handoff`, and research ones. Use them directly with `/design:<skill>`. The `designer` agent loads `accessibility-review` and `ux-copy` by itself (`skills:` in its front matter). Our Inventory and UI rules win where they differ. To give an agent another skill, add its name to that agent's `skills:` list: plugin skills are written `plugin:skill`.
 
 ## Review agents
 - `ui-reviewer` (`.claude/agents/ui-reviewer.md`): checks frontend changes against the UI rules in `web/AGENTS.md` and the Design Inventory. Run it on every PR that touches `web/src/`.

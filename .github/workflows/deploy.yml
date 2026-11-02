@@ -1,5 +1,5 @@
 # Deploys the API (Cloud Run) and the web app (Firebase Hosting) (design doc 6.4).
-# - Merge to main -> dev, automatically.
+# - Merge to main -> dev, automatically (not when the merge only changes docs).
 # - Manual run ("Run workflow" in the Actions tab, on main, type "prod") -> prod.
 #
 # Security: only the "deploy" job logs in to Google Cloud. All building (npm, Vite,
@@ -11,6 +11,12 @@ name: deploy
 on:
   push:
     branches: [main]
+    # A merge that only changes docs would deploy the same app again (and use Actions
+    # minutes): skip it. Same doc rule as scripts/ci_changes.py.
+    paths-ignore:
+      - '**.md'
+      - '.claude/**'
+      - '.zed/**'
   workflow_dispatch:
     inputs:
       confirm:

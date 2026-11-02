@@ -15,6 +15,7 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dispatch"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/messages"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/push"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
@@ -91,6 +92,25 @@ func (w *world) events(t *testing.T, id string) []string {
 	return out
 }
 
+// levelOf finds which level a sent line belongs to.
+func (w *world) levelOf(t *testing.T, text string) int {
+	t.Helper()
+	var level int
+	if err := w.pool.QueryRow(ctx, `SELECT level FROM nag_messages WHERE active AND text = $1`, text).Scan(&level); err != nil {
+		t.Fatalf("line %q: %v", text, err)
+	}
+	return level
+}
+
+func (w *world) seenCount(t *testing.T) int {
+	t.Helper()
+	var n int
+	if err := w.pool.QueryRow(ctx, `SELECT count(*) FROM user_seen_messages WHERE user_id = $1`, w.user).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	return n
+}
+
 func TestFirstPush(t *testing.T) {
 	w := setup(t)
 	task := w.newReminder(t)
@@ -105,7 +125,7 @@ func TestFirstPush(t *testing.T) {
 		t.Fatalf("%d pushes, want 1", len(sent))
 	}
 	m := sent[0].Message
-	if sent[0].Token != phoneToken || m.Title != "Pay rent" || m.Body != dispatch.FallbackLine ||
+	if sent[0].Token != phoneToken || m.Title != "Pay rent" || w.levelOf(t, m.Body) != 1 ||
 		m.URL != "/r/"+task.ReminderID || m.Attempt != 1 || m.MaxAttempts != 12 || m.SentAt.Before(before) {
 		t.Errorf("push = %+v", sent[0])
 	}
@@ -340,5 +360,153 @@ func TestANagThatCantBeBookedIsStillSent(t *testing.T) {
 	}
 	if ev := w.events(t, task.ReminderID); strings.Join(ev, ",") != "created,sent,nag_schedule_failed" {
 		t.Errorf("events = %v", ev)
+	}
+}
+
+func TestEachPushGetsALineOfItsLevelAndNoneRepeats(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	for n := range 12 {
+		task.N = n
+		if err := w.fire.Fire(ctx, task); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	sent := w.pushes.Sent()
+	if len(sent) != 12 {
+		t.Fatalf("%d pushes, want 12", len(sent))
+	}
+	want := []int{1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4}
+	seen := map[string]bool{}
+	for i, s := range sent {
+		if got := w.levelOf(t, s.Message.Body); got != want[i] {
+			t.Errorf("push %d: level %d, want %d", i+1, got, want[i])
+		}
+		if seen[s.Message.Body] {
+			t.Errorf("push %d repeats %q", i+1, s.Message.Body)
+		}
+		seen[s.Message.Body] = true
+	}
+	if got := w.seenCount(t); got != 12 {
+		t.Errorf("%d lines marked as seen, want 12", got)
+	}
+}
+
+func TestALineIsSeenOnlyOnceAPushIsAccepted(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	w.pushes.Answer(push.TryLater)
+
+	if err := w.fire.Fire(ctx, task); !errors.Is(err, dispatch.ErrTryLater) {
+		t.Fatalf("err = %v, want ErrTryLater", err)
+	}
+	if got := w.seenCount(t); got != 0 {
+		t.Errorf("%d lines seen after a failed send, want 0", got)
+	}
+}
+
+// duringSend runs something while the push is on its way.
+type duringSend struct {
+	push.Sender
+	do func()
+}
+
+func (s duringSend) Send(ctx context.Context, token string, m push.Message) (push.Outcome, error) {
+	s.do()
+	return s.Sender.Send(ctx, token, m)
+}
+
+func TestALineSentWhileTappingDoneIsStillSeen(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	sender := duringSend{Sender: w.pushes, do: func() {
+		if _, err := w.reminders.MarkDone(ctx, w.user, task.ReminderID); err != nil {
+			t.Error(err)
+		}
+	}}
+
+	if err := dispatch.New(w.pool, sender, w.nags, logging.New(w.logs)).Fire(ctx, task); err != nil {
+		t.Fatal(err)
+	}
+	if got := w.seenCount(t); got != 1 {
+		t.Errorf("%d lines seen, want 1", got)
+	}
+	if r := w.get(t, task.ReminderID); r.Status != reminders.StatusDone {
+		t.Errorf("status = %s, want done", r.Status)
+	}
+}
+
+func TestALineThatCantBeSavedStillCountsThePush(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	// With the line gone, saving it as seen fails on the foreign key.
+	sender := duringSend{Sender: w.pushes, do: func() {
+		if _, err := w.pool.Exec(ctx, `DELETE FROM nag_messages`); err != nil {
+			t.Error(err)
+		}
+	}}
+
+	if err := dispatch.New(w.pool, sender, w.nags, logging.New(w.logs)).Fire(ctx, task); err != nil {
+		t.Fatal(err)
+	}
+	r := w.get(t, task.ReminderID)
+	if r.Status != reminders.StatusSent || r.NagCount != 1 {
+		t.Errorf("after the push = %+v, want sent, 1 nag", r)
+	}
+	if len(w.nags.Tasks()) != 1 {
+		t.Errorf("next nag not booked: %+v", w.nags.Tasks())
+	}
+	if !strings.Contains(w.logs.String(), "line not marked as seen") {
+		t.Errorf("no log line: %s", w.logs.String())
+	}
+}
+
+func TestALockedUserRowStillCountsThePush(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	// A save holds the user's row. Saving the seen line waits for it, then gives up.
+	tx, err := w.pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := tx.Exec(ctx, `SELECT 1 FROM users WHERE id = $1 FOR UPDATE`, w.user); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := w.fire.Fire(ctx, task); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Rollback(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if r := w.get(t, task.ReminderID); r.Status != reminders.StatusSent || r.NagCount != 1 {
+		t.Errorf("after the push = %+v, want sent, 1 nag", r)
+	}
+	if got := w.seenCount(t); got != 0 {
+		t.Errorf("%d lines seen, want 0: the save should have given up", got)
+	}
+}
+
+func TestAnEmptyMessageTableStillPushes(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	if _, err := w.pool.Exec(ctx, `DELETE FROM nag_messages`); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := w.fire.Fire(ctx, task); err != nil {
+		t.Fatal(err)
+	}
+	sent := w.pushes.Sent()
+	if len(sent) != 1 || sent[0].Message.Body != messages.FallbackLine {
+		t.Fatalf("pushes = %+v, want the fallback line", sent)
+	}
+	if got := w.seenCount(t); got != 0 {
+		t.Errorf("%d lines seen, want 0", got)
+	}
+	if r := w.get(t, task.ReminderID); r.Status != reminders.StatusSent {
+		t.Errorf("status = %s, want sent", r.Status)
 	}
 }

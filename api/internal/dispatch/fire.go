@@ -18,31 +18,34 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/messages"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/push"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 )
 
-// FallbackLine is every push's text until M5 brings the nag messages (decision 51, design doc 3.8).
-const FallbackLine = "Still waiting for you."
-
 // ErrTryLater: FCM couldn't take the push. Nothing changed; the API answers 503 so Cloud
 // Tasks tries again (up to 5 times, design doc 3.1).
 var ErrTryLater = errors.New("push not sent, try later")
 
-// recordTimeout bounds the database work after a send.
-const recordTimeout = 10 * time.Second
+// recordTimeout bounds the database work after a send. seenTimeout is the short part of it for
+// saving the line: a user's row can be locked for seconds by a save, and counting the push matters more.
+const (
+	recordTimeout = 10 * time.Second
+	seenTimeout   = 2 * time.Second
+)
 
 type Dispatcher struct {
 	pool  *pgxpool.Pool
 	push  push.Sender
 	sched scheduling.Scheduler
+	lines *messages.Picker
 	log   *slog.Logger
 	now   func() time.Time
 }
 
 func New(pool *pgxpool.Pool, sender push.Sender, sched scheduling.Scheduler, log *slog.Logger) *Dispatcher {
-	return &Dispatcher{pool: pool, push: sender, sched: sched, log: log, now: time.Now}
+	return &Dispatcher{pool: pool, push: sender, sched: sched, lines: messages.NewPicker(pool), log: log, now: time.Now}
 }
 
 // claimed is what Fire needs from the reminder it claimed.
@@ -69,12 +72,18 @@ func (d *Dispatcher) Fire(ctx context.Context, t scheduling.Body) error {
 		return d.release(ctx, t, err)
 	}
 
+	attempt := t.N + 1
+	line, err := d.lines.Pick(ctx, c.userID, messages.LevelFor(attempt))
+	if err != nil {
+		return d.release(ctx, t, err)
+	}
+
 	outcome, sendErr := d.push.Send(ctx, token, push.Message{
 		ReminderID:  t.ReminderID,
 		Title:       c.title,
-		Body:        FallbackLine,
+		Body:        line.Text,
 		URL:         "/r/" + t.ReminderID,
-		Attempt:     t.N + 1,
+		Attempt:     attempt,
 		MaxAttempts: reminders.MaxPushes,
 		SentAt:      d.now(),
 	})
@@ -84,7 +93,7 @@ func (d *Dispatcher) Fire(ctx context.Context, t scheduling.Body) error {
 	defer cancel()
 	switch outcome {
 	case push.Accepted:
-		return d.recordSent(ctx, t)
+		return d.recordSent(ctx, t, c.userID, line)
 	case push.TokenGone:
 		// Warn: one is normal (an app removed), many at once mean a wrong Firebase setting.
 		d.log.WarnContext(ctx, "push token gone, device deleted",
@@ -127,8 +136,17 @@ func (d *Dispatcher) claim(ctx context.Context, t scheduling.Body) (claimed, boo
 // reminder while the push was in flight, the update finds nothing and changes nothing.
 const ours = `id = $1 AND schedule_version = $2 AND nag_count = $3 AND status = 'sending'`
 
-// recordSent counts the push and books the next one, up to MaxPushes (design doc 3.3, step 4).
-func (d *Dispatcher) recordSent(ctx context.Context, t scheduling.Body) error {
+// recordSent marks the line as seen, counts the push and books the next one, up to MaxPushes
+// (design doc 3.3, step 4). The push already went out, so the line comes first and on its own: if
+// saving it fails or waits too long the user may see that line again one day, but the nags go on
+// (decision 69). It's saved even if the user tapped Done during the send.
+func (d *Dispatcher) recordSent(ctx context.Context, t scheduling.Body, userID string, line messages.Picked) error {
+	seenCtx, cancel := context.WithTimeout(ctx, seenTimeout)
+	defer cancel()
+	if err := messages.MarkSeen(seenCtx, d.pool, userID, line); err != nil {
+		d.log.ErrorContext(ctx, "line not marked as seen", "reminder_id", t.ReminderID, "message_id", line.ID, "err", err)
+	}
+
 	tx, err := d.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -148,7 +166,7 @@ func (d *Dispatcher) recordSent(ctx context.Context, t scheduling.Body) error {
 	if err != nil {
 		return fmt.Errorf("record sent: %w", err)
 	}
-	if err := addEvent(ctx, tx, t.ReminderID, "sent", map[string]any{"n": t.N}); err != nil {
+	if err := addEvent(ctx, tx, t.ReminderID, "sent", map[string]any{"n": t.N, "message_id": line.ID}); err != nil {
 		return err
 	}
 	if err := tx.Commit(ctx); err != nil {
@@ -196,6 +214,9 @@ func (d *Dispatcher) stop(ctx context.Context, t scheduling.Body, reason string)
 // release gives the claim back after a failed send: pending if no push went out yet, sent
 // otherwise. cause (if not nil) is a database error to return after releasing.
 func (d *Dispatcher) release(ctx context.Context, t scheduling.Body, cause error) error {
+	// Even if Cloud Tasks hung up: otherwise the claim would stay held.
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), recordTimeout)
+	defer cancel()
 	_, err := d.pool.Exec(ctx,
 		`UPDATE reminders SET claimed_at = NULL, updated_at = now(),
 		   status = CASE WHEN nag_count = 0 THEN 'pending'::reminder_status ELSE 'sent'::reminder_status END

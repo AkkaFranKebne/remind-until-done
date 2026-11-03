@@ -83,6 +83,16 @@ export const NagLongInterval: Story = {
 /** Pushes 9–11. */
 export const NagHigh: Story = { args: { reminder: reminder(nagging(10)) } }
 
+/** The latest push's line from the API, about as long as the longest in the file today. */
+export const WithPushLine: Story = {
+  args: {
+    reminder: reminder({
+      ...nagging(5),
+      line: 'Your future self sent a message. It says this is still waiting, and to please do it now.',
+    }),
+  },
+}
+
 /** All 12 pushes sent without a Done: how late, from the due time. */
 export const Overdue: Story = {
   args: {

@@ -47,6 +47,7 @@ type Reminder struct {
 	NagCount        int
 	NextNagAt       *time.Time
 	ScheduleVersion int
+	Line            *string // the page's funny line: the latest push's, or the done line (decision 70)
 	SentAt          *time.Time
 	DoneAt          *time.Time
 	CreatedAt       time.Time

@@ -739,6 +739,12 @@
           "nagsExhausted": {
             "type": "boolean",
             "description": "True when the maximum number of pushes was sent without a Done; the app shows it as Overdue"
+          },
+          "line": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 140,
+            "description": "The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet"
           }
         }
       },

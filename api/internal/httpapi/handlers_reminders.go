@@ -27,6 +27,7 @@ type reminderJSON struct {
 	NagIntervalMin int        `json:"nagIntervalMin"`
 	NagCount       int        `json:"nagCount"`
 	NagsExhausted  bool       `json:"nagsExhausted"`
+	Line           *string    `json:"line"`
 }
 
 // reminderListJSON is the ReminderList schema in swagger.json.
@@ -47,7 +48,7 @@ func toReminderJSON(r reminders.Reminder) reminderJSON {
 	return reminderJSON{
 		ID: r.ID, Title: r.Title, Note: r.Note, DueAt: r.DueAt.UTC(), Status: string(r.Status),
 		SentAt: utc(r.SentAt), NextNagAt: utc(r.NextNagAt), DoneAt: utc(r.DoneAt), CreatedAt: r.CreatedAt.UTC(), UpdatedAt: r.UpdatedAt.UTC(),
-		NagIntervalMin: r.NagIntervalMin, NagCount: r.NagCount, NagsExhausted: r.NagsExhausted(),
+		NagIntervalMin: r.NagIntervalMin, NagCount: r.NagCount, NagsExhausted: r.NagsExhausted(), Line: r.Line,
 	}
 }
 

@@ -41,6 +41,8 @@ export const listRemindersResponseItemsItemNoteMax = 200
 export const listRemindersResponseItemsItemNagIntervalMinMin = 15
 export const listRemindersResponseItemsItemNagIntervalMinMax = 1440
 
+export const listRemindersResponseItemsItemLineMax = 140
+
 export const ListRemindersResponse = /*#__PURE__*/ zod.object({
   items: /*#__PURE__*/ zod.array(
     /*#__PURE__*/ zod.object({
@@ -82,6 +84,17 @@ export const ListRemindersResponse = /*#__PURE__*/ zod.object({
         .check(
           /*#__PURE__*/ zod.describe(
             'True when the maximum number of pushes was sent without a Done; the app shows it as Overdue',
+          ),
+        ),
+      line: /*#__PURE__*/ zod
+        .nullish(
+          /*#__PURE__*/ zod
+            .string()
+            .check(/*#__PURE__*/ zod.maxLength(listRemindersResponseItemsItemLineMax)),
+        )
+        .check(
+          /*#__PURE__*/ zod.describe(
+            "The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet",
           ),
         ),
     }),
@@ -134,6 +147,8 @@ export const createReminderResponseNoteMax = 200
 export const createReminderResponseNagIntervalMinMin = 15
 export const createReminderResponseNagIntervalMinMax = 1440
 
+export const createReminderResponseLineMax = 140
+
 export const CreateReminderResponse = /*#__PURE__*/ zod.object({
   id: /*#__PURE__*/ zod.uuid(),
   title: /*#__PURE__*/ zod
@@ -173,6 +188,15 @@ export const CreateReminderResponse = /*#__PURE__*/ zod.object({
         'True when the maximum number of pushes was sent without a Done; the app shows it as Overdue',
       ),
     ),
+  line: /*#__PURE__*/ zod
+    .nullish(
+      /*#__PURE__*/ zod.string().check(/*#__PURE__*/ zod.maxLength(createReminderResponseLineMax)),
+    )
+    .check(
+      /*#__PURE__*/ zod.describe(
+        "The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet",
+      ),
+    ),
 })
 
 /**
@@ -188,6 +212,8 @@ export const getReminderResponseNoteMax = 200
 
 export const getReminderResponseNagIntervalMinMin = 15
 export const getReminderResponseNagIntervalMinMax = 1440
+
+export const getReminderResponseLineMax = 140
 
 export const GetReminderResponse = /*#__PURE__*/ zod.object({
   id: /*#__PURE__*/ zod.uuid(),
@@ -226,6 +252,15 @@ export const GetReminderResponse = /*#__PURE__*/ zod.object({
     .check(
       /*#__PURE__*/ zod.describe(
         'True when the maximum number of pushes was sent without a Done; the app shows it as Overdue',
+      ),
+    ),
+  line: /*#__PURE__*/ zod
+    .nullish(
+      /*#__PURE__*/ zod.string().check(/*#__PURE__*/ zod.maxLength(getReminderResponseLineMax)),
+    )
+    .check(
+      /*#__PURE__*/ zod.describe(
+        "The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet",
       ),
     ),
 })
@@ -282,6 +317,8 @@ export const updateReminderResponseNoteMax = 200
 export const updateReminderResponseNagIntervalMinMin = 15
 export const updateReminderResponseNagIntervalMinMax = 1440
 
+export const updateReminderResponseLineMax = 140
+
 export const UpdateReminderResponse = /*#__PURE__*/ zod.object({
   id: /*#__PURE__*/ zod.uuid(),
   title: /*#__PURE__*/ zod
@@ -321,6 +358,15 @@ export const UpdateReminderResponse = /*#__PURE__*/ zod.object({
         'True when the maximum number of pushes was sent without a Done; the app shows it as Overdue',
       ),
     ),
+  line: /*#__PURE__*/ zod
+    .nullish(
+      /*#__PURE__*/ zod.string().check(/*#__PURE__*/ zod.maxLength(updateReminderResponseLineMax)),
+    )
+    .check(
+      /*#__PURE__*/ zod.describe(
+        "The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet",
+      ),
+    ),
 })
 
 /**
@@ -345,6 +391,8 @@ export const markReminderDoneResponseNoteMax = 200
 
 export const markReminderDoneResponseNagIntervalMinMin = 15
 export const markReminderDoneResponseNagIntervalMinMax = 1440
+
+export const markReminderDoneResponseLineMax = 140
 
 export const MarkReminderDoneResponse = /*#__PURE__*/ zod.object({
   id: /*#__PURE__*/ zod.uuid(),
@@ -383,6 +431,17 @@ export const MarkReminderDoneResponse = /*#__PURE__*/ zod.object({
     .check(
       /*#__PURE__*/ zod.describe(
         'True when the maximum number of pushes was sent without a Done; the app shows it as Overdue',
+      ),
+    ),
+  line: /*#__PURE__*/ zod
+    .nullish(
+      /*#__PURE__*/ zod
+        .string()
+        .check(/*#__PURE__*/ zod.maxLength(markReminderDoneResponseLineMax)),
+    )
+    .check(
+      /*#__PURE__*/ zod.describe(
+        "The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet",
       ),
     ),
 })

@@ -77,7 +77,7 @@ export function RemindersPage() {
   const markDone = useMarkReminderDone({
     mutation: {
       onSuccess: (updated, { id }) => {
-        toast.success(toastText.done)
+        toast.success(updated.line ?? toastText.done)
         return changed(id, updated)
       },
       onError: () => toast.error(toastText.failed),

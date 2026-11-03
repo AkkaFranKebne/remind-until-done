@@ -262,6 +262,15 @@
   color-scheme: dark;
 }
 
+/* How far the toast sits above the home bar. On the list it clears the + button, which ends 4.625rem
+   up (Fab.tsx), so the two never overlap and + stays tappable (design doc decision 71). */
+:root {
+  --toast-bottom: 1rem;
+}
+:root:has([data-toast-above-fab]) {
+  --toast-bottom: 5.25rem;
+}
+
 /* ── Type scale and radii (Inventory → Tokens → "Type scale", "Radius"). In rem, so text follows
    the phone's text-size setting. Tailwind's own sizes are removed: only these exist. ── */
 @theme {

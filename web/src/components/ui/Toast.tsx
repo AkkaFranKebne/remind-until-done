@@ -43,7 +43,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <Toast.Viewport
           // Base UI names it "Notifications"; that's also Settings' section about pushes.
           aria-label="Messages"
-          className="pointer-events-none fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-4"
+          className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--toast-bottom)+env(safe-area-inset-bottom))] z-50 flex justify-center px-4"
         >
           <ToastList />
         </Toast.Viewport>

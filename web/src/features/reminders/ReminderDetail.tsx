@@ -110,9 +110,10 @@ export function ReminderDetail({
   const remove = useDeleteReminder({
     mutation: {
       onSuccess: async () => {
-        // Same as a swipe-delete on the list: back there (the same tile), with the toast.
-        toast.success(toastText.deleted)
+        // Same as a swipe-delete on the list: back there (the same tile), with the toast. Toast
+        // after the move, so it doesn't jump up when the list arrives.
         await navigate({ to: '/', search: listSearch })
+        toast.success(toastText.deleted)
         await changed(reminder.id)
       },
       onError: () => setAskDelete(false),

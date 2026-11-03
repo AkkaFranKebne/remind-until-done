@@ -24,6 +24,14 @@ function swipe(row: HTMLElement, dx: number, pointerType: 'touch' | 'mouse' = 't
   fireEvent.pointerUp(row, { ...at, clientX: 150 + dx })
 }
 
+test('the list lifts toasts above the + button', async () => {
+  mockReminders({ upcoming: [aReminder({ title: 'Call dentist' })] })
+  openList()
+
+  await screen.findByRole('link', { name: /Call dentist/ })
+  expect(document.querySelector('[data-toast-above-fab]')).not.toBeNull()
+})
+
 test('swipe right past 40%: Done is sent, the row leaves, and a toast says so', async () => {
   const dentist = aReminder({ title: 'Call dentist', status: 'sent', nagCount: 2 })
   mockReminders({ upcoming: [dentist, aReminder({ title: 'Book a plumber' })] })

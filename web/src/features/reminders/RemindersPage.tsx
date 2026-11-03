@@ -147,7 +147,8 @@ export function RemindersPage() {
       tight={!nothingAtAll}
     >
       <h1 className="sr-only">Your reminders</h1>
-      <div className="flex flex-1 flex-col gap-4 pb-24">
+      {/* data-toast-above-fab: toasts sit above the + button on this page (index.css). */}
+      <div data-toast-above-fab className="flex flex-1 flex-col gap-4 pb-24">
         {/* One at a time: InstallBanner only in a tab, NotifBanner only in the installed app. */}
         <InstallBanner />
         <NotifBanner />

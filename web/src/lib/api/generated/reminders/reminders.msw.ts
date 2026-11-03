@@ -33,6 +33,7 @@ export const getListRemindersResponseMock = (
     nagIntervalMin: faker.number.int({ min: 15, max: 1440 }),
     nagCount: faker.number.int(),
     nagsExhausted: faker.datatype.boolean(),
+    line: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 140 } }), null]),
   })),
   nextCursor: faker.helpers.arrayElement([
     faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -57,6 +58,7 @@ export const getCreateReminderResponseMock = (
   nagIntervalMin: faker.number.int({ min: 15, max: 1440 }),
   nagCount: faker.number.int(),
   nagsExhausted: faker.datatype.boolean(),
+  line: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 140 } }), null]),
   ...overrideResponse,
 })
 
@@ -76,6 +78,7 @@ export const getGetReminderResponseMock = (
   nagIntervalMin: faker.number.int({ min: 15, max: 1440 }),
   nagCount: faker.number.int(),
   nagsExhausted: faker.datatype.boolean(),
+  line: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 140 } }), null]),
   ...overrideResponse,
 })
 
@@ -95,6 +98,7 @@ export const getUpdateReminderResponseMock = (
   nagIntervalMin: faker.number.int({ min: 15, max: 1440 }),
   nagCount: faker.number.int(),
   nagsExhausted: faker.datatype.boolean(),
+  line: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 140 } }), null]),
   ...overrideResponse,
 })
 
@@ -114,6 +118,7 @@ export const getMarkReminderDoneResponseMock = (
   nagIntervalMin: faker.number.int({ min: 15, max: 1440 }),
   nagCount: faker.number.int(),
   nagsExhausted: faker.datatype.boolean(),
+  line: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 140 } }), null]),
   ...overrideResponse,
 })
 

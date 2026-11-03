@@ -48,7 +48,7 @@ func setup(t *testing.T) *world {
 		t.Fatal(err)
 	}
 	w := &world{pool: pool, pushes: &push.Fake{}, nags: &scheduling.Fake{}, logs: &bytes.Buffer{}, user: u.ID}
-	w.reminders = reminders.NewService(pool, &scheduling.Fake{})
+	w.reminders = reminders.NewService(pool, &scheduling.Fake{}, logging.New(w.logs))
 	w.fire = dispatch.New(pool, w.pushes, w.nags, logging.New(w.logs))
 	return w
 }
@@ -391,6 +391,10 @@ func TestEachPushGetsALineOfItsLevelAndNoneRepeats(t *testing.T) {
 	if got := w.seenCount(t); got != 12 {
 		t.Errorf("%d lines marked as seen, want 12", got)
 	}
+	r, err := w.reminders.Get(ctx, w.user, task.ReminderID)
+	if err != nil || r.Line == nil || *r.Line != sent[11].Message.Body {
+		t.Errorf("page line: %v, %v, want the last push's %q", err, r.Line, sent[11].Message.Body)
+	}
 }
 
 func TestALineIsSeenOnlyOnceAPushIsAccepted(t *testing.T) {
@@ -429,11 +433,15 @@ func TestALineSentWhileTappingDoneIsStillSeen(t *testing.T) {
 	if err := dispatch.New(w.pool, sender, w.nags, logging.New(w.logs)).Fire(ctx, task); err != nil {
 		t.Fatal(err)
 	}
-	if got := w.seenCount(t); got != 1 {
-		t.Errorf("%d lines seen, want 1", got)
+	if got := w.seenCount(t); got != 2 {
+		t.Errorf("%d lines seen, want 2: the push's and the done line", got)
 	}
-	if r := w.get(t, task.ReminderID); r.Status != reminders.StatusDone {
+	r := w.get(t, task.ReminderID)
+	if r.Status != reminders.StatusDone {
 		t.Errorf("status = %s, want done", r.Status)
+	}
+	if r.Line == nil || w.levelOf(t, *r.Line) != 5 {
+		t.Errorf("page line %v, want the done line, not the push that was in flight", r.Line)
 	}
 }
 

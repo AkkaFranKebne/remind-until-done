@@ -156,10 +156,10 @@ func (d *Dispatcher) recordSent(ctx context.Context, t scheduling.Body, userID s
 	var next *time.Time
 	err = tx.QueryRow(ctx,
 		`UPDATE reminders SET status = 'sent', sent_at = now(), claimed_at = NULL, updated_at = now(),
-		   nag_count = nag_count + 1,
+		   nag_count = nag_count + 1, line = $5,
 		   next_nag_at = CASE WHEN nag_count + 1 < $4 THEN now() + make_interval(mins => nag_interval_min) END
 		 WHERE `+ours+` RETURNING next_nag_at`,
-		t.ReminderID, t.Version, t.N, reminders.MaxPushes).Scan(&next)
+		t.ReminderID, t.Version, t.N, reminders.MaxPushes, line.Text).Scan(&next)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil // Done or moved while sending: the push went out, nothing more to do
 	}

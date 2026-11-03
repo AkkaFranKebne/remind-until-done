@@ -34,6 +34,14 @@ type Story = StoryObj<typeof meta>
 /** After swiping a row to Done. */
 export const Success: Story = { args: { tone: 'success', text: 'Finally. Done.' } }
 
+/** The longest done line in the file today: two lines on a phone. */
+export const SuccessLong: Story = {
+  args: {
+    tone: 'success',
+    text: "Done. It's a done thing now. That's what you are. A done-thing-doer.",
+  },
+}
+
 /** A swipe the API refused: the row comes back. */
 export const Error: Story = {
   args: { tone: 'error', text: 'Something went wrong. Try again in a moment.' },

@@ -56,11 +56,19 @@ describe('the reminder page', () => {
     dueAt: '2026-10-10T19:38:00Z',
   })
 
-  test('the funny line comes from the UX Copy (nagging: the row lines until M5)', () => {
+  test('the funny line: fixed text when the API has no line', () => {
     expect(pageSubLine(reminder())).toBe('Waiting patiently.')
     expect(pageSubLine(nagging)).toBe('Still here')
     expect(pageSubLine(overdue)).toMatch(/^We gave it everything we had/)
     expect(pageSubLine(reminder({ status: 'done' }))).toBe('Done. We knew you had it in you.')
+  })
+
+  test('the funny line: nagging and done show the API line; waiting and overdue stay fixed', () => {
+    const line = 'A tiny nudge from your tiny conscience.'
+    expect(pageSubLine({ ...nagging, line })).toBe(line)
+    expect(pageSubLine(reminder({ status: 'done', line }))).toBe(line)
+    expect(pageSubLine(reminder({ line }))).toBe('Waiting patiently.')
+    expect(pageSubLine({ ...overdue, line })).toMatch(/^We gave it everything we had/)
   })
 
   test('countdown: to the first push, to the next push (seconds), how late; none when done', () => {

@@ -56,7 +56,7 @@ test('counts characters like the form: 200 emoji fit; a reminder done after 12 p
   const done: unknown = await (
     await api(`/reminders/${renewPassport}/done`, { method: 'POST' })
   ).json()
-  expect(done).toMatchObject({ status: 'done', nagsExhausted: false })
+  expect(done).toMatchObject({ status: 'done', nagsExhausted: false, line: expect.any(String) })
 })
 
 test("a new interval moves a nagging reminder's next nag: last push + interval, or the interval from now (decision 62)", async () => {

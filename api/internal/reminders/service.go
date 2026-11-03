@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -12,27 +13,34 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/messages"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 )
+
+// doneLineTimeout limits each step of the done line, picking and marking it seen: Done must not
+// wait long for a joke, or fail because of one (decision 70).
+const doneLineTimeout = 2 * time.Second
 
 type Service struct {
 	pool  *pgxpool.Pool
 	sched scheduling.Scheduler
+	lines *messages.Picker
+	log   *slog.Logger
 	now   func() time.Time // tests can stop the clock
 }
 
-func NewService(pool *pgxpool.Pool, sched scheduling.Scheduler) *Service {
-	return &Service{pool: pool, sched: sched, now: time.Now}
+func NewService(pool *pgxpool.Pool, sched scheduling.Scheduler, log *slog.Logger) *Service {
+	return &Service{pool: pool, sched: sched, lines: messages.NewPicker(pool), log: log, now: time.Now}
 }
 
 const columns = `id, title, note, due_at, nag_interval_min, status::text, nag_count, next_nag_at,
-	schedule_version, sent_at, done_at, created_at, updated_at`
+	schedule_version, line, sent_at, done_at, created_at, updated_at`
 
 func scan(row pgx.Row) (Reminder, error) {
 	var r Reminder
 	var status string
 	err := row.Scan(&r.ID, &r.Title, &r.Note, &r.DueAt, &r.NagIntervalMin, &status, &r.NagCount,
-		&r.NextNagAt, &r.ScheduleVersion, &r.SentAt, &r.DoneAt, &r.CreatedAt, &r.UpdatedAt)
+		&r.NextNagAt, &r.ScheduleVersion, &r.Line, &r.SentAt, &r.DoneAt, &r.CreatedAt, &r.UpdatedAt)
 	r.Status = Status(status)
 	return r, err
 }
@@ -245,6 +253,7 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 		                           ELSE next_nag_at END,
 		   claimed_at       = CASE WHEN $8::bool THEN NULL ELSE claimed_at END,
 		   done_at          = CASE WHEN $8::bool THEN NULL ELSE done_at END,
+		   line             = CASE WHEN $8::bool THEN NULL ELSE line END,
 		   schedule_version = CASE WHEN $8::bool OR $9::bool THEN nextval('reminder_schedule_version_seq')::int ELSE schedule_version END,
 		   updated_at       = now()
 		 WHERE id = $1 AND user_id = $2
@@ -271,25 +280,37 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 	return r, nil
 }
 
-// MarkDone stops the reminder. Done twice is fine: the second call changes nothing.
+// MarkDone stops the reminder and picks its done line. Done twice is fine: the second call
+// changes nothing, so the line stays the one picked the first time.
 func (s *Service) MarkDone(ctx context.Context, userID, id string) (Reminder, error) {
-	id, err := parseID(id)
+	current, err := s.Get(ctx, userID, id)
 	if err != nil {
 		return Reminder{}, err
 	}
+	if current.Status == StatusDone {
+		return current, nil
+	}
+	id = current.ID
+	line := s.pickDoneLine(ctx, userID, id)
+
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return Reminder{}, err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
+	var text *string
+	if line.ID != 0 {
+		text = &line.Text
+	}
 	r, err := scan(tx.QueryRow(ctx,
 		`UPDATE reminders SET status = 'done', done_at = now(), next_nag_at = NULL,
-		   claimed_at = NULL, updated_at = now()
+		   claimed_at = NULL, line = $3, updated_at = now()
 		 WHERE id = $1 AND user_id = $2 AND status <> 'done'
-		 RETURNING `+columns, id, userID))
+		 RETURNING `+columns, id, userID, text))
 	if errors.Is(err, pgx.ErrNoRows) {
-		// Already done (returned as is), or not found. Same transaction: no second connection.
+		// Another Done got there first (returned as is), or it was deleted just now. Same
+		// transaction: no second connection.
 		r, err = scan(tx.QueryRow(ctx, `SELECT `+columns+` FROM reminders WHERE id = $1 AND user_id = $2`, id, userID))
 		if errors.Is(err, pgx.ErrNoRows) {
 			return Reminder{}, ErrNotFound
@@ -305,7 +326,31 @@ func (s *Service) MarkDone(ctx context.Context, userID, id string) (Reminder, er
 	if err := tx.Commit(ctx); err != nil {
 		return Reminder{}, err
 	}
+	s.markDoneLineSeen(ctx, userID, id, line)
 	return r, nil
+}
+
+// pickDoneLine returns a done line, or ID 0 if there's none: no lines loaded (the picker's
+// fallback is a nag, not a done line), or a database problem. The app then uses its own text.
+func (s *Service) pickDoneLine(ctx context.Context, userID, id string) messages.Picked {
+	ctx, cancel := context.WithTimeout(ctx, doneLineTimeout)
+	defer cancel()
+	line, err := s.lines.Pick(ctx, userID, messages.LevelForDone())
+	if err != nil {
+		s.log.ErrorContext(ctx, "done line not picked", "reminder_id", id, "err", err)
+		return messages.Picked{}
+	}
+	return line
+}
+
+// markDoneLineSeen runs after the reminder is done, so a failure is only logged: the worst case
+// is that the user sees the line again one day (like decision 69).
+func (s *Service) markDoneLineSeen(ctx context.Context, userID, id string, line messages.Picked) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), doneLineTimeout)
+	defer cancel()
+	if err := messages.MarkSeen(ctx, s.pool, userID, line); err != nil {
+		s.log.ErrorContext(ctx, "done line not marked as seen", "reminder_id", id, "message_id", line.ID, "err", err)
+	}
 }
 
 // Delete removes the reminder and its events.

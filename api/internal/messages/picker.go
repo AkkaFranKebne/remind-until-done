@@ -28,6 +28,10 @@ func LevelFor(attempt int) int {
 	}
 }
 
+// LevelForDone is the level of the line shown when a reminder is marked done. The done handler
+// picks it, not the nag scheduler (design doc 3.8).
+func LevelForDone() int { return 5 }
+
 // Picked is a line for one push. ID 0 is the fallback line, which isn't in the table.
 type Picked struct {
 	ID   int

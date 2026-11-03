@@ -42,7 +42,7 @@ func newRemindersAPIWithTasks(t *testing.T, tasks *scheduling.Fake) http.Handler
 			"token-bob":   {UID: "u-bob", Email: "bob@example.com", EmailVerified: true, SignInProvider: auth.GoogleProvider},
 		},
 		Users:     users.NewRepo(pool),
-		Reminders: reminders.NewService(pool, tasks),
+		Reminders: reminders.NewService(pool, tasks, logging.New(io.Discard)),
 		Devices:   devices.NewService(pool),
 		Invited:   auth.NewAllowlist("alice@example.com,bob@example.com"),
 	}).Router()
@@ -129,7 +129,7 @@ func TestReminderLifecycleOverHTTP(t *testing.T) {
 	}
 
 	// Done (twice: same answer).
-	if res = send(t, h, "POST", "/api/v1/reminders/"+id+"/done", alice, ""); res.status != 200 || res.body["status"] != "done" || res.body["doneAt"] == nil {
+	if res = send(t, h, "POST", "/api/v1/reminders/"+id+"/done", alice, ""); res.status != 200 || res.body["status"] != "done" || res.body["doneAt"] == nil || res.body["line"] == nil {
 		t.Errorf("done: %d %s", res.status, res.raw)
 	}
 	if again := send(t, h, "POST", "/api/v1/reminders/"+id+"/done", alice, ""); again.status != 200 || again.body["doneAt"] != res.body["doneAt"] {

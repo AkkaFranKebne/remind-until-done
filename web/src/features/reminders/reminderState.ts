@@ -49,8 +49,9 @@ export function rowSubLine(r: Reminder, now: Date = new Date()): string {
 
 /**
  * The reminder page's funny line, at the bottom above the button (Inventory → UX Copy, owner
- * decisions 2026-10-15 and 2026-10-26).
- * Nagging uses the row's lines until M5, when it shows the latest push message instead.
+ * decisions 2026-10-15 and 2026-10-26). Nagging shows the latest push's line, done the line picked
+ * when it was marked done (design doc 3.8). A reminder without one, like one that started nagging
+ * before the API saved lines, shows the fixed text.
  */
 export function pageSubLine(r: Reminder): string {
   switch (rowLevel(r)) {
@@ -59,9 +60,9 @@ export function pageSubLine(r: Reminder): string {
     case 'overdue':
       return "We gave it everything we had. 12 reminders. Zero response. You're on your own now."
     case 'done':
-      return 'Done. We knew you had it in you.'
+      return r.line ?? 'Done. We knew you had it in you.'
     default:
-      return rowSubLine(r)
+      return r.line ?? rowSubLine(r)
   }
 }
 

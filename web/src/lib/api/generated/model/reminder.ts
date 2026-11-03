@@ -43,4 +43,10 @@ export interface Reminder {
   nagCount: number
   /** True when the maximum number of pushes was sent without a Done; the app shows it as Overdue */
   nagsExhausted: boolean
+  /**
+   * The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet
+   * @maxLength 140
+   * @nullable
+   */
+  line?: string | null
 }

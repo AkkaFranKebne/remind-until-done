@@ -29,8 +29,9 @@ const toastTone = cva(
 const toneIcon = { success: Check, error: CircleAlert } satisfies Record<ToastTone, LucideIcon>
 
 /**
- * Short messages at the bottom of the screen ("Finally. Done."), built on Base UI's Toast: it
- * announces them to screen readers, pauses while hovered or focused, and F6 moves focus to them.
+ * Messages at the bottom of the screen, like the done line from the API (one or two lines on a
+ * phone, design doc 3.8), built on Base UI's Toast: it announces them to screen readers, pauses
+ * while hovered or focused, and F6 moves focus to them.
  * One at a time (a new one replaces the old), gone after 4 s. Wrap the app once; show one
  * with useToast() (useToast.ts).
  * Design Inventory → Components → "Toast · Banners · ConfirmSheet".

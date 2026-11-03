@@ -96,7 +96,7 @@ func main() {
 	}
 
 	api := httpapi.New(log, httpapi.Deps{
-		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool, sched),
+		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool, sched, log),
 		Devices: devices.NewService(pool), Invited: invited, Invoker: invoker,
 		Dispatcher: dispatch.New(pool, sender, sched, log),
 	})

@@ -1,8 +1,10 @@
 package reminders_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"strings"
 	"sync"
 	"testing"
@@ -11,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
@@ -33,7 +36,7 @@ func setupWithTasks(t *testing.T) (*reminders.Service, *scheduling.Fake, *pgxpoo
 	t.Helper()
 	pool := dbtest.Start(t)
 	tasks := &scheduling.Fake{}
-	return reminders.NewService(pool, tasks), tasks, pool, newUser(t, pool, "uid-a")
+	return reminders.NewService(pool, tasks, logging.New(io.Discard)), tasks, pool, newUser(t, pool, "uid-a")
 }
 
 func newUser(t *testing.T, pool *pgxpool.Pool, uid string) string {
@@ -311,6 +314,101 @@ func TestMarkDone(t *testing.T) {
 	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(4))})
 	if err != nil || u.Status != reminders.StatusPending || u.DoneAt != nil {
 		t.Errorf("reschedule after done: %v %+v, want pending, no doneAt", err, u)
+	}
+}
+
+func TestMarkDonePicksADoneLineOnce(t *testing.T) {
+	s, pool, user := setup(t)
+	r := create(t, s, user, "Water plants", in(1))
+	if r.Line != nil {
+		t.Errorf("a new reminder has line %q, want none", *r.Line)
+	}
+
+	done, err := s.MarkDone(ctx, user, r.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if done.Line == nil {
+		t.Fatal("no done line")
+	}
+	var level, seen int
+	if err := pool.QueryRow(ctx,
+		`SELECT m.level, count(s.message_id) FROM nag_messages m
+		 LEFT JOIN user_seen_messages s ON s.message_id = m.id AND s.user_id = $2
+		 WHERE m.text = $1 GROUP BY m.level`, *done.Line, user).Scan(&level, &seen); err != nil {
+		t.Fatal(err)
+	}
+	if level != 5 || seen != 1 {
+		t.Errorf("done line: level %d, seen %d times, want level 5, seen once", level, seen)
+	}
+
+	again, err := s.MarkDone(ctx, user, r.ID)
+	if err != nil || again.Line == nil || *again.Line != *done.Line {
+		t.Errorf("second Done: %v, line %v, want %q again", err, again.Line, *done.Line)
+	}
+	var seenLines int
+	_ = pool.QueryRow(ctx, `SELECT count(*) FROM user_seen_messages WHERE user_id = $1`, user).Scan(&seenLines)
+	if seenLines != 1 {
+		t.Errorf("%d lines seen after two Dones, want 1", seenLines)
+	}
+
+	// A new time starts over: the old line belongs to the last cycle.
+	moved, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(4))})
+	if err != nil || moved.Line != nil {
+		t.Errorf("after moving: %v, line %v, want none", err, moved.Line)
+	}
+}
+
+func TestDoneNeverRepeatsALineUntilAllAreSeen(t *testing.T) {
+	s, pool, user := setup(t)
+	if _, err := pool.Exec(ctx, `UPDATE nag_messages SET active = false WHERE level = 5 AND id NOT IN (3694, 3695)`); err != nil {
+		t.Fatal(err)
+	}
+	lines := map[string]bool{}
+	for range 2 {
+		done, err := s.MarkDone(ctx, user, create(t, s, user, "Bin day", in(1)).ID)
+		if err != nil || done.Line == nil {
+			t.Fatalf("done: %v, line %v", err, done.Line)
+		}
+		lines[*done.Line] = true
+	}
+	if len(lines) != 2 {
+		t.Errorf("got %v, want 2 different lines", lines)
+	}
+	if done, err := s.MarkDone(ctx, user, create(t, s, user, "Bin day", in(1)).ID); err != nil || done.Line == nil {
+		t.Errorf("all seen: %v, line %v, want the level to start over", err, done.Line)
+	}
+}
+
+func TestDoneWithoutLinesHasNoLine(t *testing.T) {
+	s, pool, user := setup(t)
+	if _, err := pool.Exec(ctx, `DELETE FROM nag_messages`); err != nil {
+		t.Fatal(err)
+	}
+	done, err := s.MarkDone(ctx, user, create(t, s, user, "Bin day", in(1)).ID)
+	if err != nil || done.Status != reminders.StatusDone {
+		t.Fatalf("done: %v, status %s", err, done.Status)
+	}
+	if done.Line != nil {
+		t.Errorf("line %q, want none: the fallback line is a nag, not a done line", *done.Line)
+	}
+}
+
+func TestALineProblemCantStopDone(t *testing.T) {
+	_, _, pool, user := setupWithTasks(t)
+	var logs bytes.Buffer
+	s := reminders.NewService(pool, &scheduling.Fake{}, logging.New(&logs))
+	r := create(t, s, user, "Bin day", in(1))
+	if _, err := pool.Exec(ctx, `ALTER TABLE nag_messages RENAME TO gone`); err != nil {
+		t.Fatal(err)
+	}
+
+	done, err := s.MarkDone(ctx, user, r.ID)
+	if err != nil || done.Status != reminders.StatusDone || done.Line != nil {
+		t.Fatalf("done: %v, status %s, line %v; want done, no line", err, done.Status, done.Line)
+	}
+	if !strings.Contains(logs.String(), "done line not picked") {
+		t.Errorf("not logged: %s", logs.String())
 	}
 }
 

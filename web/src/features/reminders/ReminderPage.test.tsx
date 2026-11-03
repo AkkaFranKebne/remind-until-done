@@ -141,6 +141,22 @@ test('overdue: how late, counted from the due time, and the dramatic line', asyn
   expect(screen.getByText('3 d 14 h')).toBeInTheDocument()
 })
 
+test("nagging: shows the latest push's line", async () => {
+  mockReminder({ status: 'sent', nagCount: 4, line: 'A tiny nudge from your tiny conscience.' })
+  openPage()
+
+  expect(await screen.findByText('A tiny nudge from your tiny conscience.')).toBeInTheDocument()
+  expect(screen.queryByText('Still here')).not.toBeInTheDocument()
+})
+
+test('done: shows the line the API picked when it was marked done', async () => {
+  mockReminder({ status: 'done', nagCount: 2, line: 'Look at you, finishing things.' })
+  openPage()
+
+  expect(await screen.findByText('Look at you, finishing things.')).toBeInTheDocument()
+  expect(screen.queryByText('Done. We knew you had it in you.')).not.toBeInTheDocument()
+})
+
 test('Done: the page turns into the done state', async () => {
   const sent = mockReminder({ status: 'sent', nagCount: 2 })
   openPage()

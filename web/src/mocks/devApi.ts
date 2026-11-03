@@ -55,6 +55,7 @@ function make(title: string, over: Partial<Reminder>): Reminder {
     nagIntervalMin: 60,
     nagCount: 0,
     nagsExhausted: false,
+    line: null,
     ...over,
   }
 }
@@ -71,6 +72,7 @@ function nagging(title: string, count: number, interval = 60): Reminder {
     nagIntervalMin: interval,
     nagCount: count,
     nagsExhausted: exhausted,
+    line: 'Psst. This is still waiting for you.',
   })
 }
 
@@ -236,6 +238,7 @@ export const devHandlers = [
         nagCount: 0,
         nextNagAt: null,
         doneAt: null,
+        line: null,
       } satisfies Partial<Reminder>)
     }
     r.updatedAt = iso(Date.now())
@@ -257,6 +260,7 @@ export const devHandlers = [
         status: 'done',
         doneAt: iso(Date.now()),
         nextNagAt: null,
+        line: 'Done. We knew you had it in you.',
         updatedAt: iso(Date.now()),
       } satisfies Partial<Reminder>)
     }

@@ -24,6 +24,27 @@ function swipe(row: HTMLElement, dx: number, pointerType: 'touch' | 'mouse' = 't
   fireEvent.pointerUp(row, { ...at, clientX: 150 + dx })
 }
 
+test("swipe right past 40%: the toast shows the API's done line", async () => {
+  const dentist = aReminder({ title: 'Call dentist', status: 'sent', nagCount: 2 })
+  mockReminders({ upcoming: [dentist] })
+  server.use(
+    http.post(`*/api/v1/reminders/${dentist.id}/done`, () => {
+      mockReminders({ upcoming: [] })
+      return HttpResponse.json({
+        ...dentist,
+        status: 'done',
+        line: 'Look at you, finishing things.',
+      })
+    }),
+  )
+  openList()
+
+  swipe(await screen.findByRole('link', { name: /Call dentist/ }), 200)
+
+  expect(await screen.findByText('Look at you, finishing things.')).toBeInTheDocument()
+  expect(screen.queryByText('Finally. Done.')).not.toBeInTheDocument()
+})
+
 test('swipe right past 40%: Done is sent, the row leaves, and a toast says so', async () => {
   const dentist = aReminder({ title: 'Call dentist', status: 'sent', nagCount: 2 })
   mockReminders({ upcoming: [dentist, aReminder({ title: 'Book a plumber' })] })

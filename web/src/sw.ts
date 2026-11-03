@@ -9,15 +9,16 @@
  *    /__ pages (the Google sign-in round trip) always go to the network.
  * 2. Pushes: FCM delivers through the browser's standard Push API. Every push shows a
  *    notification (iOS requires one) and tells open app pages to refresh; a tap opens or
- *    focuses the app on the reminder.
+ *    focuses the app on the reminder. Its Done button tells the API directly (sw/click.ts).
  *    No Firebase in here: the page gets the push token with Firebase (M3 PR 4).
  */
 import { clientsClaim } from 'workbox-core'
 import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import { handleClick } from './sw/click'
 import { pushArrived } from './sw/messages'
-import { toNotification, urlOf } from './sw/notification'
-import { showOnlyNewest } from './sw/show'
+import { toNotification } from './sw/notification'
+import { closeAllOf, showOnlyNewest } from './sw/show'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -80,7 +81,8 @@ self.addEventListener('push', (event) => {
 })
 
 /**
- * Open app pages refresh the reminder: a push means it changed (design doc 5.8). Best effort:
+ * Open app pages refresh the reminder: a push, or Done from a notification, means it changed
+ * (design doc 5.8). Best effort:
  * the notification matters, a page that just closed doesn't.
  */
 async function tellPages(reminderId: string | undefined) {
@@ -94,7 +96,19 @@ async function tellPages(reminderId: string | undefined) {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  event.waitUntil(openOrFocus(urlOf(event.notification.data)))
+  const { data, tag } = event.notification
+  event.waitUntil(
+    handleClick(
+      { action: event.action, data, tag },
+      {
+        open: openOrFocus,
+        show: (shown) => showOnlyNewest(self.registration, shown),
+        closeAll: (doneTag) => closeAllOf(self.registration, doneTag),
+        tellPages,
+        post: (url, init) => fetch(url, init),
+      },
+    ),
+  )
 })
 
 /** Focus an open app window and show the page there, or open a new one. */

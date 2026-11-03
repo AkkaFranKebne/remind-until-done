@@ -6,6 +6,15 @@ type Tray = {
   showNotification: (title: string, options?: NotificationOptions) => Promise<void>
 }
 
+/** Closes a reminder's notifications. Best effort: if they can't be listed, they stay. */
+export async function closeAllOf(tray: Pick<Tray, 'getNotifications'>, tag: string) {
+  try {
+    for (const shown of await tray.getNotifications()) if (shown.tag === tag) shown.close()
+  } catch {
+    // Can't list them here: the next nag or the app closes them.
+  }
+}
+
 /**
  * Shows a push's notification, and only the newest one per reminder: its older nags are closed
  * first. Chrome already replaces a notification with the same tag, but iPhone Safari keeps them
@@ -17,12 +26,6 @@ type Tray = {
  */
 export async function showOnlyNewest(tray: Tray, { title, options }: ShownNotification) {
   const { tag } = options
-  if (tag) {
-    try {
-      for (const older of await tray.getNotifications()) if (older.tag === tag) older.close()
-    } catch {
-      // Can't list them here: the new one still shows, as before.
-    }
-  }
+  if (tag) await closeAllOf(tray, tag)
   await tray.showNotification(title, options)
 }

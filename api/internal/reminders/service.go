@@ -283,12 +283,42 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 // MarkDone stops the reminder and picks its done line. Done twice is fine: the second call
 // changes nothing, so the line stays the one picked the first time.
 func (s *Service) MarkDone(ctx context.Context, userID, id string) (Reminder, error) {
+	return s.markDone(ctx, userID, id, nil)
+}
+
+// MarkDoneFromAction is Done from a notification's button: the same as MarkDone, but the signed-in
+// user is unknown, and the token only works for the schedule version it was made for, so an edit
+// stops older buttons (ErrActionStale). Done again is fine, whatever the version: it's what the
+// button asks for.
+//
+// It has no user to filter by, so id must come from a verified action token, never from a request.
+func (s *Service) MarkDoneFromAction(ctx context.Context, id string, version int) (Reminder, error) {
+	id, err := parseID(id)
+	if err != nil {
+		return Reminder{}, err
+	}
+	var userID string
+	err = s.pool.QueryRow(ctx, `SELECT user_id FROM reminders WHERE id = $1`, id).Scan(&userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Reminder{}, ErrNotFound
+	}
+	if err != nil {
+		return Reminder{}, fmt.Errorf("find reminder owner: %w", err)
+	}
+	return s.markDone(ctx, userID, id, &version)
+}
+
+// markDone: version nil means any version.
+func (s *Service) markDone(ctx context.Context, userID, id string, version *int) (Reminder, error) {
 	current, err := s.Get(ctx, userID, id)
 	if err != nil {
 		return Reminder{}, err
 	}
 	if current.Status == StatusDone {
 		return current, nil
+	}
+	if version != nil && current.ScheduleVersion != *version {
+		return Reminder{}, ErrActionStale
 	}
 	id = current.ID
 	line := s.pickDoneLine(ctx, userID, id)
@@ -306,14 +336,17 @@ func (s *Service) MarkDone(ctx context.Context, userID, id string) (Reminder, er
 	r, err := scan(tx.QueryRow(ctx,
 		`UPDATE reminders SET status = 'done', done_at = now(), next_nag_at = NULL,
 		   claimed_at = NULL, line = $3, updated_at = now()
-		 WHERE id = $1 AND user_id = $2 AND status <> 'done'
-		 RETURNING `+columns, id, userID, text))
+		 WHERE id = $1 AND user_id = $2 AND status <> 'done' AND ($4::int IS NULL OR schedule_version = $4)
+		 RETURNING `+columns, id, userID, text, version))
 	if errors.Is(err, pgx.ErrNoRows) {
-		// Another Done got there first (returned as is), or it was deleted just now. Same
-		// transaction: no second connection.
+		// Another Done got there first (returned as is), an edit just stopped this token, or it
+		// was deleted just now. Same transaction: no second connection.
 		r, err = scan(tx.QueryRow(ctx, `SELECT `+columns+` FROM reminders WHERE id = $1 AND user_id = $2`, id, userID))
 		if errors.Is(err, pgx.ErrNoRows) {
 			return Reminder{}, ErrNotFound
+		}
+		if err == nil && version != nil && r.Status != StatusDone {
+			return Reminder{}, ErrActionStale
 		}
 		return r, err
 	}

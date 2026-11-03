@@ -49,8 +49,7 @@ func TestEveryRouteIsInSwagger(t *testing.T) {
 // milestone that builds them. Building one? Remove it here: the test below fails
 // until you do, so the list stays true.
 var notBuiltYet = map[string]string{
-	"DELETE /me":            "M6 (delete account)",
-	"POST /actions/{token}": "M5",
+	"DELETE /me": "M6 (delete account)",
 }
 
 func TestEverySwaggerRouteIsServed(t *testing.T) {

@@ -13,27 +13,54 @@ import type {
   UseMutationResult,
 } from '@tanstack/react-query'
 
-import type { ApplyAction200, BadRequestResponse, Error, NotFoundResponse } from '../model'
+import type {
+  ActionRequest,
+  ApplyAction200,
+  BadRequestResponse,
+  Error,
+  NotFoundResponse,
+} from '../model'
 
 import { apiFetch } from '../../mutator'
 import type { ErrorType } from '../../mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
-export const getApplyActionUrl = (token: string) => {
-  return `/api/v1/actions/${token}`
+export const getApplyActionUrl = () => {
+  return `/api/v1/actions`
 }
 
 /**
  * @summary Apply Done from a notification button without a Firebase token (idempotent)
  */
 export const applyAction = async (
-  token: string,
+  actionRequest: ActionRequest,
   options?: Parameters<typeof apiFetch>[1],
 ): Promise<ApplyAction200> => {
-  return apiFetch<ApplyAction200>(getApplyActionUrl(token), {
+  const getHeaders = (
+    h?: NonNullable<RequestInit['headers']>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      )
+    }
+    const headers: Record<string, string | readonly string[]> = {}
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value
+    }
+    return headers
+  }
+  return apiFetch<ApplyAction200>(getApplyActionUrl(), {
     ...options,
     method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(actionRequest),
   })
 }
 
@@ -67,18 +94,18 @@ export const getApplyActionMutationOptions = <
     Awaited<ReturnType<typeof applyAction>>,
     ApplyActionMutationVariables
   > = (props) => {
-    const { token } = props ?? {}
+    const { data } = props ?? {}
 
-    return applyAction(token, requestOptions)
+    return applyAction(data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
 }
 
 export type ApplyActionMutationResult = NonNullable<Awaited<ReturnType<typeof applyAction>>>
-
+export type ApplyActionMutationBody = ActionRequest
 export type ApplyActionMutationError = ErrorType<BadRequestResponse | Error | NotFoundResponse>
-export type ApplyActionMutationVariables = { token: string }
+export type ApplyActionMutationVariables = { data: ActionRequest }
 
 /**
  * @summary Apply Done from a notification button without a Firebase token (idempotent)

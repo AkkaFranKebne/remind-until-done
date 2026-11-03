@@ -2,6 +2,40 @@ package config
 
 import "testing"
 
+const testKey = "a test key that is long enough for this"
+
+func TestLoadActionTokenKey(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
+	t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
+	t.Setenv("SERVICE_URL", "https://rud-api.run.app")
+	t.Setenv("INVOKER_SA_EMAIL", "rud-invoker-dev@rud-dev-4f7k2.iam.gserviceaccount.com")
+	t.Setenv("INTERNAL_AUTH", "")
+	t.Setenv("TASKS_LOCATION", "europe-west3")
+	t.Setenv("TASKS_QUEUE", "reminders")
+	t.Setenv("SCHEDULER", "")
+	t.Setenv("PUSH", "")
+
+	t.Setenv("ENV", "dev")
+	for _, key := range []string{"", "too short", LocalActionTokenKey} {
+		t.Setenv("ACTION_TOKEN_KEY", key)
+		if _, err := Load(); err == nil {
+			t.Errorf("dev with key %q loaded, want an error", key)
+		}
+	}
+	t.Setenv("ACTION_TOKEN_KEY", testKey)
+	cfg, err := Load()
+	if err != nil || cfg.ActionTokenKey != testKey {
+		t.Errorf("dev with a key: %v, %q", err, cfg.ActionTokenKey)
+	}
+
+	t.Setenv("ENV", "local")
+	t.Setenv("ACTION_TOKEN_KEY", "")
+	cfg, err = Load()
+	if err != nil || cfg.ActionTokenKey != LocalActionTokenKey {
+		t.Errorf("local without a key: %v, %q, want the local key", err, cfg.ActionTokenKey)
+	}
+}
+
 func TestLoadDefaults(t *testing.T) {
 	t.Setenv("ENV", "")
 	t.Setenv("PORT", "")
@@ -22,6 +56,7 @@ func TestLoadDefaults(t *testing.T) {
 
 func TestLoadFromEnv(t *testing.T) {
 	t.Setenv("ENV", "dev")
+	t.Setenv("ACTION_TOKEN_KEY", testKey)
 	t.Setenv("PORT", "9000")
 	t.Setenv("DATABASE_URL", "postgres://u:p@neon/rud")
 	t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
@@ -104,6 +139,7 @@ func setInternalAuth(t *testing.T) {
 }
 
 func TestLoadInternalAuth(t *testing.T) {
+	t.Setenv("ACTION_TOKEN_KEY", testKey)
 	tests := []struct {
 		name, env, off, url, email string
 		wantErr                    bool
@@ -140,6 +176,7 @@ func TestLoadInternalAuth(t *testing.T) {
 }
 
 func TestLoadScheduler(t *testing.T) {
+	t.Setenv("ACTION_TOKEN_KEY", testKey)
 	tests := []struct {
 		name, env, scheduler, location, queue string
 		wantErr                               bool
@@ -169,6 +206,7 @@ func TestLoadScheduler(t *testing.T) {
 }
 
 func TestLoadPushLogOnlyLocally(t *testing.T) {
+	t.Setenv("ACTION_TOKEN_KEY", testKey)
 	for _, env := range []string{"dev", "prod"} {
 		t.Run(env, func(t *testing.T) {
 			t.Setenv("ENV", env)

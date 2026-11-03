@@ -1,6 +1,6 @@
 ---
 name: new-endpoint
-description: Add or change a public API endpoint in api/ (Go) end to end — swagger.json contract, feature package rules, httpapi handler, route, tests, regenerated web client and docs. Use when building a signed-in route from swagger.json, adding a new one, or changing an endpoint's request or response shape. Not for routes with their own kind of login (/internal/*, /actions/{token}).
+description: Add or change a public API endpoint in api/ (Go) end to end — swagger.json contract, feature package rules, httpapi handler, route, tests, regenerated web client and docs. Use when building a signed-in route from swagger.json, adding a new one, or changing an endpoint's request or response shape. Not for routes with their own kind of login (/internal/*, /actions).
 ---
 
 # New API endpoint
@@ -12,7 +12,7 @@ The recipe the reminders API (PR #18) and `nextNagAt` (PR #22) followed. Rules i
 - If the doc, `swagger.json` and the code disagree, or a detail is missing (a limit, an error code, what another user's row returns): **stop and ask the owner**. Record the answer as a 9.1 decision.
 - **This recipe covers signed-in routes only** (`requireUser`). Routes with their own kind of login are out of scope; **stop and ask the owner** before building one:
   - `/internal/*` (Cloud Tasks, Scheduler): the OIDC check (M4); never add one without it.
-  - `POST /actions/{token}` (`security: []` in `swagger.json`, M5): anonymous, the one-time token is the login. It needs its own design: tokens that expire and can't be reused, are never logged, and can't be guessed to wake the database.
+  - `POST /actions` (`security: []` in `swagger.json`): anonymous, the signed token in the body is the login (decision 72). A route like it needs its own design: tokens that expire, are never logged, and can't be guessed to wake the database.
 
 ## 1. Contract first: `api/swagger.json`
 - Add or change the path, its parameters, request body, responses and schemas. This file is the single source of truth: the web client is generated from it.

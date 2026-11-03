@@ -19,6 +19,7 @@ type Message struct {
 	Attempt     int    // this push's number, 1 to MaxAttempts
 	MaxAttempts int
 	SentAt      time.Time // the notification shows this time, even if the phone was off (decision 54)
+	DoneToken   string    // for the notification's Done button; never log it
 }
 
 // data is what the service worker reads from the push. FCM data values must be strings.
@@ -31,6 +32,7 @@ func (m Message) data() map[string]string {
 		"attempt":     strconv.Itoa(m.Attempt),
 		"maxAttempts": strconv.Itoa(m.MaxAttempts),
 		"sentAt":      m.SentAt.UTC().Format(time.RFC3339),
+		"doneToken":   m.DoneToken,
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 	"time"
 	_ "time/tzdata" // time zone names (Europe/Stockholm) built into the binary, so they work in any run image
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/actiontoken"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/config"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/db"
@@ -95,10 +96,11 @@ func main() {
 		sender = fcm
 	}
 
+	actions := actiontoken.NewSigner(cfg.ActionTokenKey)
 	api := httpapi.New(log, httpapi.Deps{
 		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool, sched, log),
 		Devices: devices.NewService(pool), Invited: invited, Invoker: invoker,
-		Dispatcher: dispatch.New(pool, sender, sched, log),
+		Dispatcher: dispatch.New(pool, sender, sched, actions, log), Actions: actions,
 	})
 
 	// Check the database once, before taking requests (/healthz reports this result).

@@ -507,18 +507,7 @@
         }
       }
     },
-    "/actions/{token}": {
-      "parameters": [
-        {
-          "name": "token",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          },
-          "description": "Short-lived signed token issued in the push payload; encodes reminder and action (done)"
-        }
-      ],
+    "/actions": {
       "post": {
         "operationId": "applyAction",
         "tags": [
@@ -526,6 +515,16 @@
         ],
         "summary": "Apply Done from a notification button without a Firebase token (idempotent)",
         "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -745,6 +744,19 @@
             "nullable": true,
             "maxLength": 140,
             "description": "The funny line for the reminder page: the latest push's line, or, once done, the done line picked when it was marked done. Null when there is none yet"
+          }
+        }
+      },
+      "ActionRequest": {
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Short-lived signed token from the push; allows marking one reminder done. In the body, never the address, because request addresses are logged"
           }
         }
       },

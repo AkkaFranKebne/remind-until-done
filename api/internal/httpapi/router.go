@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/actiontoken"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dispatch"
@@ -46,6 +47,12 @@ type ReminderStore interface {
 	Update(ctx context.Context, userID, id string, in reminders.UpdateInput) (reminders.Reminder, error)
 	Delete(ctx context.Context, userID, id string) error
 	MarkDone(ctx context.Context, userID, id string) (reminders.Reminder, error)
+	MarkDoneFromAction(ctx context.Context, id string, version int) (reminders.Reminder, error)
+}
+
+// ActionVerifier checks the token behind a notification's Done button. actiontoken.Signer is the real one.
+type ActionVerifier interface {
+	Verify(token string) (actiontoken.Claims, error)
 }
 
 // DeviceStore keeps the user's push device (one per user). *devices.Service is the real one.
@@ -72,6 +79,7 @@ type Deps struct {
 	Invited    auth.Allowlist
 	Invoker    InvokerVerifier
 	Dispatcher Dispatcher
+	Actions    ActionVerifier
 }
 
 type API struct {
@@ -84,13 +92,14 @@ type API struct {
 	invited    auth.Allowlist
 	invoker    InvokerVerifier
 	dispatcher Dispatcher
+	actions    ActionVerifier
 }
 
 func New(log *slog.Logger, d Deps) *API {
 	return &API{
 		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users,
 		reminders: d.Reminders, devices: d.Devices, invited: d.Invited, invoker: d.Invoker,
-		dispatcher: d.Dispatcher,
+		dispatcher: d.Dispatcher, actions: d.Actions,
 	}
 }
 
@@ -99,7 +108,8 @@ type route struct {
 	handler      http.HandlerFunc
 }
 
-// routes lists every public route. requireUser wraps the ones that need sign-in.
+// routes lists every public route. requireUser wraps the ones that need sign-in: all but /healthz
+// and /actions.
 func (a *API) routes() []route {
 	return []route{
 		{"GET", "/healthz", a.healthz},
@@ -114,6 +124,7 @@ func (a *API) routes() []route {
 		{"GET", "/devices", a.requireUser(a.listDevices)},
 		{"POST", "/devices", a.requireUser(a.registerDevice)},
 		{"DELETE", "/devices/{id}", a.requireUser(a.deleteDevice)},
+		{"POST", "/actions", a.applyAction}, // no sign-in: the token in the body is the login
 	}
 }
 

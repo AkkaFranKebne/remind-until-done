@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/actiontoken"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/messages"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/push"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
@@ -33,19 +34,22 @@ var ErrTryLater = errors.New("push not sent, try later")
 const (
 	recordTimeout = 10 * time.Second
 	seenTimeout   = 2 * time.Second
+	// How long a notification's Done button works (design doc 2.2). Each push brings a new token.
+	doneTokenTTL = 24 * time.Hour
 )
 
 type Dispatcher struct {
-	pool  *pgxpool.Pool
-	push  push.Sender
-	sched scheduling.Scheduler
-	lines *messages.Picker
-	log   *slog.Logger
-	now   func() time.Time
+	pool   *pgxpool.Pool
+	push   push.Sender
+	sched  scheduling.Scheduler
+	lines  *messages.Picker
+	tokens actiontoken.Signer
+	log    *slog.Logger
+	now    func() time.Time
 }
 
-func New(pool *pgxpool.Pool, sender push.Sender, sched scheduling.Scheduler, log *slog.Logger) *Dispatcher {
-	return &Dispatcher{pool: pool, push: sender, sched: sched, lines: messages.NewPicker(pool), log: log, now: time.Now}
+func New(pool *pgxpool.Pool, sender push.Sender, sched scheduling.Scheduler, tokens actiontoken.Signer, log *slog.Logger) *Dispatcher {
+	return &Dispatcher{pool: pool, push: sender, sched: sched, lines: messages.NewPicker(pool), tokens: tokens, log: log, now: time.Now}
 }
 
 // claimed is what Fire needs from the reminder it claimed.
@@ -86,6 +90,7 @@ func (d *Dispatcher) Fire(ctx context.Context, t scheduling.Body) error {
 		Attempt:     attempt,
 		MaxAttempts: reminders.MaxPushes,
 		SentAt:      d.now(),
+		DoneToken:   d.tokens.Sign(t.ReminderID, t.Version, actiontoken.Done, doneTokenTTL),
 	})
 	// From here the push may be out: finish recording it even if Cloud Tasks hangs up, so a
 	// retry doesn't find a stale claim and send it again.

@@ -45,6 +45,7 @@ func newRemindersAPIWithTasks(t *testing.T, tasks *scheduling.Fake) http.Handler
 		Reminders: reminders.NewService(pool, tasks, logging.New(io.Discard)),
 		Devices:   devices.NewService(pool),
 		Invited:   auth.NewAllowlist("alice@example.com,bob@example.com"),
+		Actions:   testActions,
 	}).Router()
 }
 

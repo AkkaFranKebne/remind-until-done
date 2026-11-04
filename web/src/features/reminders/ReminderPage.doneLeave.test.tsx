@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import type { Reminder } from '../../lib/api/generated/model'
 import { server } from '../../mocks/server'
@@ -24,6 +24,9 @@ function mockReminder(over: Partial<Reminder> = {}) {
 
 const openPage = () => renderApp(`/r/${ID}`, new FakeAuthClient(tester))
 
+/** A little longer than the done pause (2 s). In act: an open sheet keeps animating meanwhile. */
+const pastThePause = () => act(() => new Promise<void>((resolve) => setTimeout(resolve, 2300)))
+
 test('Done: after a moment the page leaves for the Done list', async () => {
   mockReminder({ status: 'sent', nagCount: 2 })
   mockReminders({ done: [aReminder({ id: ID, title: 'Call the bank', status: 'done' })] })
@@ -44,7 +47,7 @@ test('Done: after a moment the page leaves for the Done list', async () => {
   expect(await screen.findByText('Completed')).toBeInTheDocument()
   expect(router.state.location.pathname).toBe(`/r/${ID}`)
   // ...then the list, on the Done tile.
-  await waitFor(() => expect(router.state.location.pathname).toBe('/'), { timeout: 3000 })
+  await waitFor(() => expect(router.state.location.pathname).toBe('/'), { timeout: 4000 })
   expect(router.state.location.search).toEqual({ show: 'done' })
   expect(startViewTransition).toHaveBeenCalled()
   Reflect.deleteProperty(document, 'startViewTransition')
@@ -58,7 +61,7 @@ test('Done: a sheet opened in that moment holds the page', async () => {
   await screen.findByText('Completed')
   fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
 
-  await new Promise((resolve) => setTimeout(resolve, 1300))
+  await pastThePause()
   expect(router.state.location.pathname).toBe(`/r/${ID}`)
 })
 
@@ -74,18 +77,18 @@ test('Done: the delete sheet holds the page too, and Keep it lets it leave', asy
   fireEvent.click(trash)
   const sheet = await screen.findByRole('alertdialog', { name: 'Delete this reminder?' })
 
-  await new Promise((resolve) => setTimeout(resolve, 1300))
+  await pastThePause()
   expect(router.state.location.pathname).toBe(`/r/${ID}`)
 
   fireEvent.click(within(sheet).getByRole('button', { name: 'Keep it' }))
-  await waitFor(() => expect(router.state.location.pathname).toBe('/'), { timeout: 3000 })
-})
+  await waitFor(() => expect(router.state.location.pathname).toBe('/'), { timeout: 4000 })
+}, 10_000)
 
 test('a done reminder opened later stays open', async () => {
   mockReminder({ status: 'done', doneAt: new Date().toISOString() })
   const router = openPage()
 
   await screen.findByText('Completed')
-  await new Promise((resolve) => setTimeout(resolve, 1300))
+  await pastThePause()
   expect(router.state.location.pathname).toBe(`/r/${ID}`)
 })

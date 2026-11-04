@@ -497,3 +497,29 @@
     @apply min-h-dvh bg-bg text-base text-fg antialiased;
   }
 }
+
+/* Inventory → Motion "Done leaves the page": after Done on the reminder page, the page slides off
+   to the right, over the Done list, like a swiped row (decision 73). It is the app's only view
+   transition (navigate with viewTransition: true). A browser without them just changes page;
+   reduced motion too. */
+::view-transition-old(root) {
+  z-index: 1;
+  mix-blend-mode: normal;
+  animation: page-out-right var(--duration-base) var(--easing-std) both;
+}
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation: none;
+}
+@keyframes page-out-right {
+  to {
+    translate: 100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* The group too: the browser's own animation on it would hold the old page for a moment. */
+  ::view-transition-group(root),
+  ::view-transition-old(root) {
+    animation: none;
+  }
+}

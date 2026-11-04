@@ -24,6 +24,23 @@ test('our data-only push: title, body, one notification per reminder, a tap open
   expect(shown.options.timestamp).toBeUndefined() // no sentAt: the browser uses "now"
 })
 
+test('a push with a done token gets the two buttons, and keeps the token for Done', () => {
+  const { options } = toNotification({ data: { reminderId: 'abc', doneToken: 'tok' } })
+
+  expect(options.actions).toEqual([
+    { action: 'done', title: 'Done' },
+    { action: 'remind-later', title: 'Remind later' },
+  ])
+  expect(options.data).toEqual({ url: '/r/abc', doneToken: 'tok' })
+})
+
+test('a push without a token has no buttons: Done could not work', () => {
+  const { options } = toNotification({ data: { reminderId: 'abc' } })
+
+  expect(options.actions).toBeUndefined()
+  expect(options.data).toEqual({ url: '/r/abc' })
+})
+
 test('the time it was sent, not the time it arrived (a phone that was off)', () => {
   const sentAt = '2026-10-24T07:40:00Z'
   expect(toNotification({ data: { reminderId: 'abc', sentAt } }).options.timestamp).toBe(
@@ -63,6 +80,8 @@ test('a tap only ever opens a page of this app', () => {
     '/\\evil.example',
     '/\t/evil.example', // the URL parser drops tabs and newlines
     '/\n/evil.example',
+    '/.//evil.example', // cleans up to //evil.example, another site next time
+    '//[', // not parseable
     'javascript:alert(1)',
     'r/abc',
     '',

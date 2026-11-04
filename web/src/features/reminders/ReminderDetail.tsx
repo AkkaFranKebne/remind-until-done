@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { cva } from 'class-variance-authority'
 import { Check, ChevronLeft, Pencil, Trash2 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { AppScreen } from '../../app/AppScreen'
 import { Button } from '../../components/ui/Button'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
@@ -44,6 +44,9 @@ const stateText = {
   overdue: 'text-tile-overdue-fg',
   done: 'text-tag-done-fg',
 } satisfies Record<RowLevel, string>
+
+/** How long the done state shows after tapping Done, before the page leaves (decision 73). */
+const DONE_PAUSE_MS = 1000
 
 const label = 'text-xs font-semibold tracking-wider text-on-grad-fg2 uppercase'
 
@@ -103,10 +106,31 @@ export function ReminderDetail({
   const now = useNow(level.startsWith('nag-') ? 1000 : 60_000)
   const [editing, setEditing] = useState(false)
   const [askDelete, setAskDelete] = useState(false)
+  // When the Done tapped here happened: it can't go stale, since a later Done has its own time.
+  const [tappedDoneAt, setTappedDoneAt] = useState<string | null>(null)
 
   const markDone = useMarkReminderDone({
-    mutation: { onSuccess: (updated) => changed(reminder.id, updated) },
+    mutation: {
+      onSuccess: (updated) => {
+        setTappedDoneAt(updated.doneAt ?? null)
+        return changed(reminder.id, updated)
+      },
+    },
   })
+
+  // Done tapped here: a moment on the done state, then the page slides off to the right, showing
+  // the Done list under it (decision 73; the slide is in index.css). Only after a tap: a done
+  // reminder opened later stays open. An open sheet holds the page: the user is doing something.
+  const leaveSoon =
+    tappedDoneAt !== null && reminder.doneAt === tappedDoneAt && !editing && !askDelete
+  useEffect(() => {
+    if (!leaveSoon) return
+    const timer = window.setTimeout(() => {
+      void navigate({ to: '/', search: { show: 'done' }, viewTransition: true })
+    }, DONE_PAUSE_MS)
+    return () => window.clearTimeout(timer)
+  }, [leaveSoon, navigate])
+
   const remove = useDeleteReminder({
     mutation: {
       onSuccess: async () => {

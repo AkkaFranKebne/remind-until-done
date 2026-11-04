@@ -127,6 +127,7 @@ describe('LoginPage', () => {
 
 describe('LoginPage: the install gate (design doc §0)', () => {
   const openLogin = () => renderApp('/login', new FakeAuthClient(null))
+  const previewsTip = 'Nags say just “rud.” when locked?'
 
   it('installed: sign-in only, no install', async () => {
     pretendInstalled()
@@ -134,6 +135,7 @@ describe('LoginPage: the install gate (design doc §0)', () => {
 
     expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Install app' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: previewsTip })).not.toBeInTheDocument()
   })
 
   it('iPhone in Safari: the Add to Home Screen steps, and no sign-in at all', async () => {
@@ -155,14 +157,16 @@ describe('LoginPage: the install gate (design doc §0)', () => {
       screen.getByText(/Already installed\? Open rud\. from your Home Screen\./),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: previewsTip })).toBeInTheDocument()
   })
 
-  it('the installed app on an iPhone: sign-in', async () => {
+  it('the installed app on an iPhone: sign-in, and the lock-screen tip', async () => {
     pretendUserAgent(IPHONE_17)
     pretendInstalled()
     openLogin()
 
     expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: previewsTip })).toBeInTheDocument()
   })
 
   it('iOS before 16.4: a hard stop with the version, nothing else', async () => {

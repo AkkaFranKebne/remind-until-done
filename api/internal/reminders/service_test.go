@@ -249,10 +249,11 @@ func TestUpdate(t *testing.T) {
 	}
 
 	// A new dueAt restarts the cycle.
-	if u, err = s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(5))}); err != nil {
+	moved := in(5)
+	if u, err = s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: &moved}); err != nil {
 		t.Fatal(err)
 	}
-	if !u.DueAt.Equal(in(5)) || u.ScheduleVersion <= r.ScheduleVersion || u.Status != reminders.StatusPending || u.NagCount != 0 {
+	if !u.DueAt.Equal(moved) || u.ScheduleVersion <= r.ScheduleVersion || u.Status != reminders.StatusPending || u.NagCount != 0 {
 		t.Errorf("after moving dueAt = %+v, want a new version, pending, 0 nags", u)
 	}
 
@@ -711,11 +712,12 @@ func TestUpdateBooksTheNewVersion(t *testing.T) {
 		t.Errorf("a title edit booked %d tasks in total, want only the first one", n)
 	}
 
-	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(5))})
+	moved := in(5)
+	u, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: &moved})
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := scheduling.Task{ReminderID: r.ID, Version: u.ScheduleVersion, N: 0, At: in(5)}
+	want := scheduling.Task{ReminderID: r.ID, Version: u.ScheduleVersion, N: 0, At: moved}
 	if got := tasks.Tasks(); len(got) != 2 || got[1] != want {
 		t.Errorf("tasks = %+v, want the second to be %+v", got, want)
 	}

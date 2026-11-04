@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/actiontoken"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/devices"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dispatch"
@@ -37,6 +38,8 @@ type world struct {
 	user      string
 }
 
+var testTokens = actiontoken.NewSigner("a test key that is long enough for this")
+
 func setup(t *testing.T) *world {
 	t.Helper()
 	pool := dbtest.Start(t)
@@ -49,7 +52,7 @@ func setup(t *testing.T) *world {
 	}
 	w := &world{pool: pool, pushes: &push.Fake{}, nags: &scheduling.Fake{}, logs: &bytes.Buffer{}, user: u.ID}
 	w.reminders = reminders.NewService(pool, &scheduling.Fake{}, logging.New(w.logs))
-	w.fire = dispatch.New(pool, w.pushes, w.nags, logging.New(w.logs))
+	w.fire = dispatch.New(pool, w.pushes, w.nags, testTokens, logging.New(w.logs))
 	return w
 }
 
@@ -421,6 +424,25 @@ func (s duringSend) Send(ctx context.Context, token string, m push.Message) (pus
 	return s.Sender.Send(ctx, token, m)
 }
 
+func TestEachPushCarriesADoneTokenForItsVersion(t *testing.T) {
+	w := setup(t)
+	task := w.newReminder(t)
+	if err := w.fire.Fire(ctx, task); err != nil {
+		t.Fatal(err)
+	}
+	claims, err := testTokens.Verify(w.pushes.Sent()[0].Message.DoneToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := actiontoken.Claims{ReminderID: task.ReminderID, Version: task.Version, Action: actiontoken.Done}
+	if claims != want {
+		t.Errorf("claims = %+v, want %+v", claims, want)
+	}
+	if token := w.pushes.Sent()[0].Message.DoneToken; strings.Contains(w.logs.String(), token) {
+		t.Error("the token is in the logs")
+	}
+}
+
 func TestALineSentWhileTappingDoneIsStillSeen(t *testing.T) {
 	w := setup(t)
 	task := w.newReminder(t)
@@ -430,7 +452,7 @@ func TestALineSentWhileTappingDoneIsStillSeen(t *testing.T) {
 		}
 	}}
 
-	if err := dispatch.New(w.pool, sender, w.nags, logging.New(w.logs)).Fire(ctx, task); err != nil {
+	if err := dispatch.New(w.pool, sender, w.nags, testTokens, logging.New(w.logs)).Fire(ctx, task); err != nil {
 		t.Fatal(err)
 	}
 	if got := w.seenCount(t); got != 2 {
@@ -455,7 +477,7 @@ func TestALineThatCantBeSavedStillCountsThePush(t *testing.T) {
 		}
 	}}
 
-	if err := dispatch.New(w.pool, sender, w.nags, logging.New(w.logs)).Fire(ctx, task); err != nil {
+	if err := dispatch.New(w.pool, sender, w.nags, testTokens, logging.New(w.logs)).Fire(ctx, task); err != nil {
 		t.Fatal(err)
 	}
 	r := w.get(t, task.ReminderID)

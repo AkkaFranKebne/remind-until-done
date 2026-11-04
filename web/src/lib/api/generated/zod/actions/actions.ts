@@ -10,12 +10,15 @@ import * as zod from 'zod/mini'
 /**
  * @summary Apply Done from a notification button without a Firebase token (idempotent)
  */
-export const ApplyActionParams = /*#__PURE__*/ zod.object({
+export const applyActionBodyTokenMax = 512
+
+export const ApplyActionBody = /*#__PURE__*/ zod.object({
   token: /*#__PURE__*/ zod
     .string()
+    .check(/*#__PURE__*/ zod.maxLength(applyActionBodyTokenMax))
     .check(
       /*#__PURE__*/ zod.describe(
-        'Short-lived signed token issued in the push payload; encodes reminder and action (done)',
+        'Short-lived signed token from the push; allows marking one reminder done. In the body, never the address, because request addresses are logged',
       ),
     ),
 })

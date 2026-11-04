@@ -412,6 +412,97 @@ func TestALineProblemCantStopDone(t *testing.T) {
 	}
 }
 
+func TestMarkDoneFromAction(t *testing.T) {
+	s, _, user := setup(t)
+	r := create(t, s, user, "Bin day", in(1))
+
+	done, err := s.MarkDoneFromAction(ctx, r.ID, r.ScheduleVersion)
+	if err != nil || done.Status != reminders.StatusDone || done.Line == nil {
+		t.Fatalf("done: %v, %+v", err, done)
+	}
+	again, err := s.MarkDoneFromAction(ctx, r.ID, r.ScheduleVersion)
+	if err != nil || again.Line == nil || *again.Line != *done.Line {
+		t.Errorf("second tap: %v, line %v, want %q again", err, again.Line, *done.Line)
+	}
+
+	if _, err := s.MarkDoneFromAction(ctx, "7f9c2a54-1111-4222-8333-444455556666", 1); !errors.Is(err, reminders.ErrNotFound) {
+		t.Errorf("unknown reminder: %v, want ErrNotFound", err)
+	}
+	if _, err := s.MarkDoneFromAction(ctx, "not-a-uuid", 1); !errors.Is(err, reminders.ErrNotFound) {
+		t.Errorf("bad id: %v, want ErrNotFound", err)
+	}
+}
+
+func TestActionFromBeforeAnEditIsStale(t *testing.T) {
+	s, _, user := setup(t)
+	r := create(t, s, user, "Bin day", in(1))
+	moved, err := s.Update(ctx, user, r.ID, reminders.UpdateInput{DueAt: ptr(in(4))})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := s.MarkDoneFromAction(ctx, r.ID, r.ScheduleVersion); !errors.Is(err, reminders.ErrActionStale) {
+		t.Errorf("old version: %v, want ErrActionStale", err)
+	}
+	if got, _ := s.Get(ctx, user, r.ID); got.Status == reminders.StatusDone {
+		t.Error("an old token marked it done")
+	}
+
+	// Already done in the app: the old button did what it asks for, so no error.
+	if _, err := s.MarkDoneFromAction(ctx, r.ID, moved.ScheduleVersion); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := s.MarkDoneFromAction(ctx, r.ID, r.ScheduleVersion); err != nil || got.Status != reminders.StatusDone {
+		t.Errorf("old token after done: %v, %s", err, got.Status)
+	}
+}
+
+// The edit lands after the version check but before the UPDATE: the UPDATE itself must refuse.
+func TestAnEditDuringAnActionWins(t *testing.T) {
+	s, pool, user := setup(t)
+	r := create(t, s, user, "Bin day", in(1))
+
+	edit, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = edit.Rollback(ctx) }()
+	if _, err := edit.Exec(ctx, `UPDATE reminders SET schedule_version = nextval('reminder_schedule_version_seq') WHERE id = $1`, r.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	result := make(chan error, 1)
+	go func() {
+		_, err := s.MarkDoneFromAction(ctx, r.ID, r.ScheduleVersion)
+		result <- err
+	}()
+	// Wait until it's stuck on the edit's lock: it has passed the check and reached the UPDATE.
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		var waiting int
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock'`).Scan(&waiting); err != nil {
+			t.Fatal(err)
+		}
+		if waiting > 0 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the action never waited for the edit")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	if err := edit.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := <-result; !errors.Is(err, reminders.ErrActionStale) {
+		t.Errorf("got %v, want ErrActionStale", err)
+	}
+	if got, _ := s.Get(ctx, user, r.ID); got.Status == reminders.StatusDone {
+		t.Error("the old token marked it done")
+	}
+}
+
 func TestDelete(t *testing.T) {
 	s, _, user := setup(t)
 	r := create(t, s, user, "Bin day", in(1))

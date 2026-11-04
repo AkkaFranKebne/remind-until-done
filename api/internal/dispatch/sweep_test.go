@@ -38,7 +38,7 @@ func (w *world) enqueuedVersion(t *testing.T, id string) *int {
 
 // sweeper runs Sweep with its own scheduler.
 func (w *world) sweeper(sched scheduling.Scheduler) *dispatch.Dispatcher {
-	return dispatch.New(w.pool, w.pushes, sched, logging.New(w.logs))
+	return dispatch.New(w.pool, w.pushes, sched, testTokens, logging.New(w.logs))
 }
 
 // hookScheduler books into a Fake, after running before (which may fail the call).

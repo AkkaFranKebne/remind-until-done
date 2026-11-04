@@ -65,6 +65,8 @@ var (
 	ErrLimitReached = errors.New("at most 5 active reminders, finish one") // HTTP 409 limit_reached
 	// Cloud Tasks didn't take the first push. Nothing was saved; trying again is safe.
 	ErrScheduleFailed = errors.New("could not schedule a push") // HTTP 503 unavailable
+	// A notification's Done button from before an edit: the token's version is gone. HTTP 401.
+	ErrActionStale = errors.New("action token is for an older schedule")
 )
 
 // ValidationError is a bad value from the caller (HTTP 400), not a server problem.

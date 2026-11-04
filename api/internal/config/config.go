@@ -15,12 +15,20 @@ import (
 // LocalDatabaseURL is the Postgres from docker-compose.yml (make db-up).
 const LocalDatabaseURL = "postgres://rud:rud@localhost:5432/rud?sslmode=disable"
 
+// LocalActionTokenKey signs Done-button tokens on a laptop only: it protects nothing real.
+const LocalActionTokenKey = "local-only-not-a-secret-key-for-action-tokens"
+
+// minActionTokenKey: an HMAC-SHA256 key shorter than the hash (32 bytes) is weaker than it needs to be.
+const minActionTokenKey = 32
+
 type Config struct {
 	Env           string // local, dev or prod
 	Port          string // Cloud Run injects PORT; the server must listen on it
 	DatabaseURL   string // secret: never log it
 	GCPProject    string // Firebase project whose sign-in tokens are accepted
 	AllowedEmails string // invite list, comma-separated (secret); empty = nobody
+
+	ActionTokenKey string // signs the notification Done button's tokens (secret): never log it
 
 	// /internal/* callers (Cloud Tasks, Cloud Scheduler) prove who they are with a
 	// Google ID token made for ServiceURL by InvokerEmail.
@@ -43,6 +51,8 @@ func Load() (Config, error) {
 		GCPProject:    os.Getenv("GCP_PROJECT"),
 		AllowedEmails: os.Getenv("ALLOWED_EMAILS"),
 
+		ActionTokenKey: os.Getenv("ACTION_TOKEN_KEY"),
+
 		ServiceURL:      os.Getenv("SERVICE_URL"),
 		InvokerEmail:    os.Getenv("INVOKER_SA_EMAIL"),
 		InternalAuthOff: os.Getenv("INTERNAL_AUTH") == "off",
@@ -64,6 +74,16 @@ func Load() (Config, error) {
 			return Config{}, errors.New("DATABASE_URL is required when ENV is dev or prod")
 		}
 		cfg.DatabaseURL = LocalDatabaseURL
+	}
+	if cfg.ActionTokenKey == "" && cfg.Env == "local" {
+		cfg.ActionTokenKey = LocalActionTokenKey
+	}
+	if len(cfg.ActionTokenKey) < minActionTokenKey {
+		return Config{}, fmt.Errorf("ACTION_TOKEN_KEY must be at least %d bytes (required when ENV is dev or prod)", minActionTokenKey)
+	}
+	// It's in the repo: anyone could sign tokens with it.
+	if cfg.ActionTokenKey == LocalActionTokenKey && cfg.Env != "local" {
+		return Config{}, errors.New("ACTION_TOKEN_KEY must not be the local key in dev or prod")
 	}
 	// The Firebase SDK skips the token signature check when this is set.
 	if os.Getenv("FIREBASE_AUTH_EMULATOR_HOST") != "" && cfg.Env != "local" {

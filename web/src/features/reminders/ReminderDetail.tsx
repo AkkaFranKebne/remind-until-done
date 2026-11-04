@@ -46,7 +46,7 @@ const stateText = {
 } satisfies Record<RowLevel, string>
 
 /** How long the done state shows after tapping Done, before the page leaves (decision 73). */
-const DONE_PAUSE_MS = 1000
+const DONE_PAUSE_MS = 2000
 
 const label = 'text-xs font-semibold tracking-wider text-on-grad-fg2 uppercase'
 

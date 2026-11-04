@@ -2,10 +2,11 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { Bell } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/ui/Button'
+import { StepsCard } from '../../components/ui/StepsCard'
 import { useToast } from '../../components/ui/useToast'
 import { readIos, type Ios } from '../pwa/platform'
 import { TabInstallHint } from '../pwa/TabInstallHint'
-import { FindRud, MacMutedTip, PreviewsTip, StepsCard } from './StepsCard'
+import { FindRud, MacMutedTip, PreviewsTip } from './DeviceTips'
 import { useNotifications, type NotificationState } from './useNotifications'
 
 /**

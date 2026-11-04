@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { Button } from '../../components/ui/Button'
 import { CenteredScreen } from '../../components/ui/CenteredScreen'
 import { Wordmark } from '../../components/ui/Wordmark'
+import { PreviewsTip } from '../notifications/DeviceTips'
 import { IosInstallSteps } from '../pwa/IosInstallSteps'
 import { IosVersionGate } from '../pwa/IosVersionGate'
 import { MIN_IOS } from '../pwa/platform'
@@ -35,6 +36,7 @@ const footnote = {
  * Design Inventory → Phone Screens → Login: "iOS — not installed" (steps only, no sign-in),
  * "Android / Desktop — installable" (Install app first, sign-in below), "Already installed",
  * "Sign-in error", "Not on allowlist"; Global overlays → "iOS version gate".
+ * On iPhone and iPad, the lock-screen tip sits under the steps or the sign-in (decision 74).
  * No TopBar: the big wordmark is the one "rud." on screen.
  */
 export function LoginPage() {
@@ -117,6 +119,9 @@ export function LoginPage() {
             {/* Safari can't tell whether the app is installed (decision 42). */}
             Already installed? Open rud. from your Home Screen.
           </p>
+          <div className="mt-5 w-full max-w-sm text-left">
+            <PreviewsTip heading="h2" />
+          </div>
         </>
       ) : (
         <div className="flex w-full max-w-sm flex-col gap-3.5">
@@ -168,6 +173,11 @@ export function LoginPage() {
           {state.error && install === 'installed' ? null : (
             <p className="text-sm text-fg2">{footnote[install]}</p>
           )}
+          {ios ? (
+            <div className="text-left">
+              <PreviewsTip heading="h2" />
+            </div>
+          ) : null}
         </div>
       )}
     </CenteredScreen>

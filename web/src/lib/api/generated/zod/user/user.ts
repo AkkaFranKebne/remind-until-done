@@ -71,6 +71,6 @@ export const UpdateMeResponse = /*#__PURE__*/ zod.object({
 })
 
 /**
- * @summary Delete the account: user row (cascades to reminders, devices, events) then the Firebase user. Idempotent.
+ * @summary Delete the account of whoever signed in, invited or not: user row (cascades to reminders, devices, events) and the Firebase user. Idempotent: already gone answers 204.
  */
 export const DeleteMeResponse = /*#__PURE__*/ zod.void()

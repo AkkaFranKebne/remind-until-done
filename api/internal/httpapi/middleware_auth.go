@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
@@ -21,6 +22,24 @@ func currentUser(ctx context.Context) users.User {
 	return u
 }
 
+// identity checks the request's Firebase ID token. If it's missing or bad it answers 401 itself
+// and returns false. The token itself is never logged.
+func (a *API) identity(w http.ResponseWriter, r *http.Request) (auth.Identity, bool) {
+	ctx := r.Context()
+	token, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	if !ok || token == "" {
+		writeError(w, http.StatusUnauthorized, "unauthorized", "sign in first")
+		return auth.Identity{}, false
+	}
+	id, err := a.tokens.Verify(ctx, token)
+	if err != nil {
+		a.log.InfoContext(ctx, "token rejected", "err", err)
+		writeError(w, http.StatusUnauthorized, "unauthorized", "invalid or expired sign-in, sign in again")
+		return auth.Identity{}, false
+	}
+	return id, true
+}
+
 // requireUser lets a request through only with a valid Firebase ID token from an
 // invited Google account (design doc Appendix D.8):
 //
@@ -32,15 +51,8 @@ func currentUser(ctx context.Context) users.User {
 func (a *API) requireUser(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		token, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if !ok || token == "" {
-			writeError(w, http.StatusUnauthorized, "unauthorized", "sign in first")
-			return
-		}
-		id, err := a.tokens.Verify(ctx, token)
-		if err != nil {
-			a.log.InfoContext(ctx, "token rejected", "err", err)
-			writeError(w, http.StatusUnauthorized, "unauthorized", "invalid or expired sign-in, sign in again")
+		id, ok := a.identity(w, r)
+		if !ok {
 			return
 		}
 		if !a.invited.Allows(id) {

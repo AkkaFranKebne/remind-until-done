@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
@@ -63,16 +64,39 @@ func (a *API) patchMe(w http.ResponseWriter, r *http.Request) {
 // DELETE /api/v1/me: the user's rows and the Firebase user, inside one database transaction
 // (design doc 5.7, decision 78). If it fails the answer says so and the app can try again, which
 // finishes the job. On its own context: a phone hanging up mustn't stop it halfway.
+//
+// Any valid sign-in may call it, invited or not: someone taken off the invite list can still
+// delete their data (decision 79). So no requireUser, and it never makes a row. Nobody can reach
+// anyone else's account: the token alone says whose. Already gone answers 204.
 func (a *API) deleteMe(w http.ResponseWriter, r *http.Request) {
+	id, ok := a.identity(w, r)
+	if !ok {
+		return
+	}
+	// The invite check is the only other place that looks at this: without it, a sign-in method
+	// someone switched on in the console could hand out tokens for free.
+	if id.SignInProvider != auth.GoogleProvider {
+		a.log.InfoContext(r.Context(), "delete refused: not a Google sign-in", "uid", id.UID)
+		writeError(w, http.StatusUnauthorized, "unauthorized", "invalid or expired sign-in, sign in again")
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), deleteMeTimeout)
 	defer cancel()
-	u := currentUser(r.Context())
-	err := a.users.Delete(ctx, u.ID, func(ctx context.Context) error {
+	deleteFirebaseUser := func(ctx context.Context) error {
 		// Its own, shorter limit: the commit after it must still have time.
 		ctx, cancel := context.WithTimeout(ctx, firebaseDeleteTimeout)
 		defer cancel()
-		return a.accounts.Delete(ctx, u.FirebaseUID)
-	})
+		return a.accounts.Delete(ctx, id.UID)
+	}
+
+	u, err := a.users.Find(ctx, id.UID, id.Email)
+	switch {
+	case errors.Is(err, users.ErrNotFound):
+		// No rows: never invited, or a retry after an answer that got lost.
+		err = deleteFirebaseUser(ctx)
+	case err == nil:
+		err = a.users.Delete(ctx, u.ID, deleteFirebaseUser)
+	}
 	if errors.Is(err, users.ErrNotCommitted) {
 		// The one half-done case. A retry within the token's hour finishes it; after that the row
 		// can only be removed by hand, so this log line must say which one.
@@ -81,11 +105,11 @@ func (a *API) deleteMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		a.log.ErrorContext(ctx, "account not deleted", "user_id", u.ID, "err", err)
+		a.log.ErrorContext(ctx, "account not deleted", "uid", id.UID, "err", err)
 		writeError(w, http.StatusServiceUnavailable, "unavailable", "something went wrong, try again in a moment")
 		return
 	}
-	a.log.InfoContext(ctx, "account deleted", "user_id", u.ID)
+	a.log.InfoContext(ctx, "account deleted", "uid", id.UID)
 	w.WriteHeader(http.StatusNoContent)
 }
 

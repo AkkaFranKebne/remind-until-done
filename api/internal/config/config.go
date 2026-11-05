@@ -67,6 +67,10 @@ func Load() (Config, error) {
 	default:
 		return Config{}, fmt.Errorf("ENV must be local, dev or prod, got %q", cfg.Env)
 	}
+	// Cloud Run sets K_SERVICE. A missing ENV there mustn't quietly mean local, with its stand-ins.
+	if cfg.Env == "local" && os.Getenv("K_SERVICE") != "" {
+		return Config{}, errors.New("ENV must be dev or prod on Cloud Run")
+	}
 	if cfg.DatabaseURL == "" {
 		// Only local falls back to the docker database; dev and prod must never
 		// silently talk to the wrong one.

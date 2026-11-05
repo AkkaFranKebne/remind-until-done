@@ -23,6 +23,7 @@ import type {
 
 import type {
   BadRequestResponse,
+  Error,
   NotInvitedResponse,
   UnauthorizedResponse,
   UpdateUser,
@@ -285,7 +286,7 @@ export const deleteMe = async (options?: Parameters<typeof apiFetch>[1]): Promis
 export const getDeleteMeMutationKey = () => ['deleteMe'] as const
 
 export const getDeleteMeMutationOptions = <
-  TError = ErrorType<UnauthorizedResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | Error>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>
@@ -307,12 +308,15 @@ export const getDeleteMeMutationOptions = <
 
 export type DeleteMeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMe>>>
 
-export type DeleteMeMutationError = ErrorType<UnauthorizedResponse>
+export type DeleteMeMutationError = ErrorType<UnauthorizedResponse | NotInvitedResponse | Error>
 
 /**
  * @summary Delete the account: user row (cascades to reminders, devices, events) then the Firebase user. Idempotent.
  */
-export const useDeleteMe = <TError = ErrorType<UnauthorizedResponse>, TContext = unknown>(
+export const useDeleteMe = <
+  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | Error>,
+  TContext = unknown,
+>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>
     request?: SecondParameter<typeof apiFetch>

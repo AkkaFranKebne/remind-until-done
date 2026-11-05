@@ -114,3 +114,100 @@ func TestUpdateRefusesBadValues(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteRemovesEverythingOfThatUserOnly(t *testing.T) {
+	pool := dbtest.Start(t)
+	repo := users.NewRepo(pool)
+	ctx := context.Background()
+	alice, err := repo.FindOrCreate(ctx, "uid-alice", "alice@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bob, err := repo.FindOrCreate(ctx, "uid-bob", "bob@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{alice.ID, bob.ID} {
+		if _, err := pool.Exec(ctx, `
+			WITH r AS (INSERT INTO reminders (user_id, title, due_at) VALUES ($1, 'x', now()) RETURNING id),
+			     e AS (INSERT INTO reminder_events (reminder_id, type) SELECT id, 'created' FROM r)
+			INSERT INTO push_subscriptions (user_id, fcm_token, platform) VALUES ($1, 'token-' || $1::text, 'ios')`, id); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := pool.Exec(ctx, `INSERT INTO user_seen_messages (user_id, message_id) SELECT $1, min(id) FROM nag_messages`, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	nothing := func(context.Context) error { return nil }
+	if err := repo.Delete(ctx, alice.ID, nothing); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.Delete(ctx, alice.ID, nothing); err != nil { // already gone is fine
+		t.Fatal(err)
+	}
+
+	queries := map[string]string{
+		"users":              `SELECT count(*) FROM users WHERE id = $1`,
+		"reminders":          `SELECT count(*) FROM reminders WHERE user_id = $1`,
+		"reminder_events":    `SELECT count(*) FROM reminder_events e JOIN reminders r ON r.id = e.reminder_id WHERE r.user_id = $1`,
+		"push_subscriptions": `SELECT count(*) FROM push_subscriptions WHERE user_id = $1`,
+		"user_seen_messages": `SELECT count(*) FROM user_seen_messages WHERE user_id = $1`,
+	}
+	for table, q := range queries {
+		var left, kept int
+		if err := pool.QueryRow(ctx, q, alice.ID).Scan(&left); err != nil {
+			t.Fatal(err)
+		}
+		if err := pool.QueryRow(ctx, q, bob.ID).Scan(&kept); err != nil {
+			t.Fatal(err)
+		}
+		if left != 0 || kept != 1 {
+			t.Errorf("%s: alice has %d left, bob %d; want 0 and 1", table, left, kept)
+		}
+	}
+	// Events are gone as rows too, not only unreachable through the join above.
+	var events int
+	if err := pool.QueryRow(ctx, `SELECT count(*) FROM reminder_events`).Scan(&events); err != nil {
+		t.Fatal(err)
+	}
+	if events != 1 {
+		t.Errorf("%d events in all, want bob's 1", events)
+	}
+
+	if _, err := repo.Find(ctx, "uid-alice", "alice@example.com"); !errors.Is(err, users.ErrNotFound) {
+		t.Errorf("Find after delete: %v, want ErrNotFound", err)
+	}
+}
+
+// Decision 78: while Firebase is being asked, other requests still find the row, so none can
+// decide this user is new. If Firebase says no, nothing is lost.
+func TestDeleteKeepsTheRowVisibleUntilItCommitsAndRollsBackOnFailure(t *testing.T) {
+	repo := users.NewRepo(dbtest.Start(t))
+	ctx := context.Background()
+	u, err := repo.FindOrCreate(ctx, "uid-alice", "alice@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	boom := errors.New("firebase said no")
+	err = repo.Delete(ctx, u.ID, func(ctx context.Context) error {
+		if _, err := repo.Find(ctx, "uid-alice", "alice@example.com"); err != nil {
+			t.Errorf("during the delete: %v, want the row still found", err)
+		}
+		return boom
+	})
+	if !errors.Is(err, boom) {
+		t.Errorf("delete: %v, want the failure passed on", err)
+	}
+	if _, err := repo.Find(ctx, "uid-alice", "alice@example.com"); err != nil {
+		t.Errorf("after a failed delete: %v, want the row kept", err)
+	}
+
+	if err := repo.Delete(ctx, u.ID, func(context.Context) error { return nil }); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repo.Find(ctx, "uid-alice", "alice@example.com"); !errors.Is(err, users.ErrNotFound) {
+		t.Errorf("after the delete: %v, want ErrNotFound", err)
+	}
+}

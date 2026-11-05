@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 const testKey = "a test key that is long enough for this"
 
@@ -240,5 +243,25 @@ func TestLoadRefusesAnotherEnvironmentsProject(t *testing.T) {
 				t.Error("Load() error = nil, want an error: pushes would go to the wrong project's phones")
 			}
 		})
+	}
+}
+
+func TestLocalIsRefusedOnCloudRun(t *testing.T) {
+	// A config that's fine for local...
+	t.Setenv("ENV", "")
+	t.Setenv("DATABASE_URL", "")
+	t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
+	t.Setenv("INTERNAL_AUTH", "off")
+	t.Setenv("SCHEDULER", "log")
+	t.Setenv("PUSH", "log")
+	t.Setenv("K_SERVICE", "")
+	if _, err := Load(); err != nil {
+		t.Fatalf("off Cloud Run: %v", err)
+	}
+
+	// ...is refused on Cloud Run, which sets K_SERVICE.
+	t.Setenv("K_SERVICE", "rud-api")
+	if _, err := Load(); err == nil || !strings.Contains(err.Error(), "on Cloud Run") {
+		t.Errorf("on Cloud Run: %v, want it refused", err)
 	}
 }

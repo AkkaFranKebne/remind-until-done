@@ -56,6 +56,51 @@ func (f *Firebase) Verify(ctx context.Context, idToken string) (Identity, error)
 	return Identity{UID: tok.UID, Email: email, EmailVerified: verified, SignInProvider: tok.Firebase.SignInProvider}, nil
 }
 
+// Accounts reads and deletes Firebase users, on the service account's own login (the small role
+// in infra/service_accounts.tf). A separate client from Firebase above: checking a token needs no
+// login, and shouldn't start to.
+type Accounts struct {
+	client *fbauth.Client
+}
+
+// NewAccounts uses the machine's Google login (Cloud Run's service account).
+func NewAccounts(ctx context.Context, projectID string) (*Accounts, error) {
+	app, err := firebase.NewApp(ctx, &firebase.Config{ProjectID: projectID})
+	if err != nil {
+		return nil, fmt.Errorf("firebase app: %w", err)
+	}
+	client, err := app.Auth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("firebase auth: %w", err)
+	}
+	return &Accounts{client: client}, nil
+}
+
+// Exists says whether the Firebase user is still there. An error means "don't know": only
+// Firebase saying "no such user" answers false, so an outage can't look like a deleted account.
+func (a *Accounts) Exists(ctx context.Context, uid string) (bool, error) {
+	_, err := a.client.GetUser(ctx, uid)
+	if fbauth.IsUserNotFound(err) {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+// Delete removes the Firebase user. Already gone is fine.
+func (a *Accounts) Delete(ctx context.Context, uid string) error {
+	if err := a.client.DeleteUser(ctx, uid); err != nil && !fbauth.IsUserNotFound(err) {
+		return err
+	}
+	return nil
+}
+
+// KeepAccounts is for ENV=local, which has no Google login: every user exists, and deleting one
+// leaves the Firebase user in place. Config-free on purpose, like AnyInvoker.
+type KeepAccounts struct{}
+
+func (KeepAccounts) Exists(context.Context, string) (bool, error) { return true, nil }
+func (KeepAccounts) Delete(context.Context, string) error         { return nil }
+
 // Allowlist is the invite list (the ALLOWED_EMAILS secret, comma-separated).
 // The same rule everywhere: only listed emails get in, an empty list lets nobody in.
 type Allowlist struct {

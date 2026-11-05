@@ -31,6 +31,54 @@ type fakeUsers struct {
 	byUID   map[string]users.User
 	creates int
 	err     error
+	// deleteErr fails Delete.
+	deleteErr error
+}
+
+// fakeAccounts plays Firebase: everyone exists unless they're in gone.
+type fakeAccounts struct {
+	gone      map[string]bool
+	checks    int
+	checkErr  error
+	deleteErr error
+}
+
+func (f *fakeAccounts) Exists(_ context.Context, uid string) (bool, error) {
+	f.checks++
+	return !f.gone[uid], f.checkErr
+}
+
+func (f *fakeAccounts) Delete(_ context.Context, uid string) error {
+	if f.deleteErr != nil {
+		return f.deleteErr
+	}
+	f.gone[uid] = true
+	return nil
+}
+
+func (f *fakeUsers) Find(_ context.Context, uid, _ string) (users.User, error) {
+	if f.err != nil {
+		return users.User{}, f.err
+	}
+	if u, ok := f.byUID[uid]; ok {
+		return u, nil
+	}
+	return users.User{}, users.ErrNotFound
+}
+
+func (f *fakeUsers) Delete(ctx context.Context, id string, also func(context.Context) error) error {
+	if f.deleteErr != nil {
+		return f.deleteErr
+	}
+	if err := also(ctx); err != nil {
+		return err // rolled back: the row stays
+	}
+	for uid, u := range f.byUID {
+		if u.ID == id {
+			delete(f.byUID, uid)
+		}
+	}
+	return nil
 }
 
 func (f *fakeUsers) FindOrCreate(_ context.Context, uid, email string) (users.User, error) {
@@ -41,7 +89,7 @@ func (f *fakeUsers) FindOrCreate(_ context.Context, uid, email string) (users.Us
 		return u, nil
 	}
 	f.creates++
-	u := users.User{ID: "id-" + uid, Email: email, Timezone: "UTC", DefaultTimeOfDay: "09:00", DefaultNagIntervalMin: 60}
+	u := users.User{ID: "id-" + uid, FirebaseUID: uid, Email: email, Timezone: "UTC", DefaultTimeOfDay: "09:00", DefaultNagIntervalMin: 60}
 	f.byUID[uid] = u
 	return u, nil
 }
@@ -69,14 +117,16 @@ const (
 )
 
 type testAPI struct {
-	handler http.Handler
-	users   *fakeUsers
-	logs    *bytes.Buffer
+	handler  http.Handler
+	users    *fakeUsers
+	accounts *fakeAccounts
+	logs     *bytes.Buffer
 }
 
 func newMeAPI() testAPI {
 	logs := &bytes.Buffer{}
 	store := &fakeUsers{byUID: map[string]users.User{}}
+	accounts := &fakeAccounts{gone: map[string]bool{}}
 	api := New(logging.New(logs), Deps{
 		DB: fakeDB{},
 		Tokens: fakeTokens{
@@ -84,10 +134,11 @@ func newMeAPI() testAPI {
 			strangerToken:   {UID: "u2", Email: "stranger@example.com", EmailVerified: true, SignInProvider: auth.GoogleProvider},
 			unverifiedToken: {UID: "u3", Email: "ewa@example.com", EmailVerified: false, SignInProvider: auth.GoogleProvider},
 		},
-		Users:   store,
-		Invited: auth.NewAllowlist("ewa@example.com"),
+		Users:    store,
+		Accounts: accounts,
+		Invited:  auth.NewAllowlist("ewa@example.com"),
 	})
-	return testAPI{handler: api.Router(), users: store, logs: logs}
+	return testAPI{handler: api.Router(), users: store, accounts: accounts, logs: logs}
 }
 
 // call sends a request and returns the status and the decoded JSON body.
@@ -103,6 +154,9 @@ func (a testAPI) call(t *testing.T, method, path, authHeader, body string) (int,
 	}
 	rec := httptest.NewRecorder()
 	a.handler.ServeHTTP(rec, req)
+	if rec.Code == http.StatusNoContent {
+		return rec.Code, nil // no body by definition
+	}
 	var out map[string]any
 	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
 		t.Fatalf("body is not JSON: %v\n%s", err, rec.Body.String())

@@ -46,6 +46,17 @@ func main() {
 		log.Error("firebase", "err", err)
 		os.Exit(1)
 	}
+	// Locally there's no Google login for reading and deleting Firebase users.
+	var accounts httpapi.AccountStore = auth.KeepAccounts{}
+	if cfg.Env == "local" {
+		log.Warn("ENV=local: deleting an account leaves the Firebase user in place")
+	} else {
+		accounts, err = auth.NewAccounts(context.Background(), cfg.GCPProject)
+		if err != nil {
+			log.Error("firebase accounts", "err", err)
+			os.Exit(1)
+		}
+	}
 	invited := auth.NewAllowlist(cfg.AllowedEmails)
 	if invited.Len() == 0 {
 		log.Warn("ALLOWED_EMAILS is empty: nobody can sign in")
@@ -98,7 +109,7 @@ func main() {
 
 	actions := actiontoken.NewSigner(cfg.ActionTokenKey)
 	api := httpapi.New(log, httpapi.Deps{
-		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Reminders: reminders.NewService(pool, sched, log),
+		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Accounts: accounts, Reminders: reminders.NewService(pool, sched, log),
 		Devices: devices.NewService(pool), Invited: invited, Invoker: invoker,
 		Dispatcher: dispatch.New(pool, sender, sched, actions, log), Actions: actions,
 	})

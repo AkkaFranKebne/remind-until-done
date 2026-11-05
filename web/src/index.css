@@ -389,6 +389,20 @@
   }
 }
 
+/* Inventory → Tokens: a card sheet sits above the home bar, or above the on-screen keyboard when it
+   has a field (Base UI measures the keyboard into --drawer-keyboard-inset). sheet-card-fit keeps
+   the card inside what's left, scrolling if it doesn't fit on a short phone. */
+@utility sheet-card-bottom {
+  bottom: calc(0.75rem + max(env(safe-area-inset-bottom), var(--drawer-keyboard-inset, 0px)));
+}
+@utility sheet-card-fit {
+  max-height: calc(
+    100dvh - 1.5rem - env(safe-area-inset-top) -
+      max(env(safe-area-inset-bottom), var(--drawer-keyboard-inset, 0px))
+  );
+  overflow-y: auto;
+}
+
 /* Inventory → AddReminderSheet: a form sheet that is full height (below the status bar) when
    dragged up and opens at 85% (Base UI snap points). The bottom padding grows with the snap
    offset, so the content above the CTA shrinks and the CTA stays visible in both positions. */

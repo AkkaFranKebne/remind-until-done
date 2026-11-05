@@ -1,10 +1,11 @@
 import { Button as BaseButton } from '@base-ui/react/button'
 import { useMutation } from '@tanstack/react-query'
-import { ChevronRight, LogOut } from 'lucide-react'
+import { ChevronRight, LogOut, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { AppScreen } from '../../app/AppScreen'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { DeleteAccountSheet } from '../auth/DeleteAccountSheet'
 import { useAuth } from '../auth/useAuth'
 import { useMe } from '../auth/useMe'
 import { forgetThisDevice } from '../notifications/forgetThisDevice'
@@ -15,12 +16,13 @@ import { PreferencesSection } from './PreferencesSection'
 /**
  * /settings: notifications on this device, preferences and the account (M3).
  * Design Inventory → Phone Screens → Settings ("Default", "Notifications denied — iOS",
- * "No device registered", "Sign-out confirm").
+ * "No device registered", "Sign-out confirm"), Destructive account flows → "Delete account".
  */
 export function SettingsPage() {
   const { user, signOut } = useAuth()
   const me = useMe() // email and settings: our API (GET /me)
   const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const push = usePushClient()
   // Signing out: first this device leaves the API and its push token is deleted (best effort,
   // design doc 5.7), then Firebase signs out. The button stays busy (isPending) until it's done;
@@ -81,6 +83,19 @@ export function SettingsPage() {
             <span className="flex-1 text-base font-medium">Sign out</span>
             <ChevronRight aria-hidden="true" size={16} strokeWidth={1.75} className="text-fg3" />
           </BaseButton>
+          <BaseButton
+            onClick={() => setDeleting(true)}
+            className="flex min-h-11 w-full cursor-pointer items-center gap-3.5 border-b border-border px-3.5 py-3 text-left focus-visible:outline-2 focus-visible:outline-accent"
+          >
+            <span
+              aria-hidden="true"
+              className="flex size-8.5 shrink-0 items-center justify-center rounded-md bg-error-bg text-error-text"
+            >
+              <Trash2 size={17} strokeWidth={1.75} />
+            </span>
+            <span className="flex-1 text-base font-medium text-error-text">Delete account</span>
+            <ChevronRight aria-hidden="true" size={16} strokeWidth={1.75} className="text-fg3" />
+          </BaseButton>
         </section>
 
         <ConfirmSheet
@@ -95,6 +110,7 @@ export function SettingsPage() {
           No notifications on this device until you&apos;re back. Anything that fires meanwhile goes
           straight to Overdue. We&apos;ll pretend not to notice.
         </ConfirmSheet>
+        <DeleteAccountSheet open={deleting} onOpenChange={setDeleting} />
       </div>
     </AppScreen>
   )

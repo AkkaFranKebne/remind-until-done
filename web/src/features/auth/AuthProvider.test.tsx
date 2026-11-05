@@ -113,15 +113,14 @@ describe('AuthProvider', () => {
     expect(calls.map((c) => c.method)).toEqual(['GET'])
   })
 
-  it('not invited: shows who tried, and signs them out of Firebase', async () => {
+  it('not invited: shows who tried, and keeps them signed in', async () => {
     mockApi({ status: 403, body: { error: { code: 'not_invited', message: 'invite-only' } } })
     const client = new FakeAuthClient(tester)
     renderAuth(client)
 
     expect(await screen.findByText('notInvited tester@example.com')).toBeInTheDocument()
-    await waitFor(() => expect(client.signOutCalls).toBe(1))
-    // The sign-out event must not replace the invite-only screen.
-    expect(screen.getByText('notInvited tester@example.com')).toBeInTheDocument()
+    // They stay signed in, for the buttons on that screen (decision 79).
+    expect(client.signOutCalls).toBe(0)
   })
 
   it('API down: signed out with a message, Firebase session ended', async () => {

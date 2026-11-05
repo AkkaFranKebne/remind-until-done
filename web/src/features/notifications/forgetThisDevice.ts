@@ -35,3 +35,22 @@ export async function forgetThisDevice(push: PushClient): Promise<void> {
   clearTimeout(timer)
   resetRegisterOnStart()
 }
+
+/**
+ * After the account was deleted: the API has no device any more, so only this browser's side is
+ * left. Best effort, like signing out.
+ */
+export async function forgetDeletedDevice(push: PushClient): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const limit = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, CLEANUP_LIMIT_MS)
+  })
+  const cleanup = (async () => {
+    await registrationSettled() // one still running would save its device after this
+    await push.deleteToken().catch(() => {})
+  })()
+  await Promise.race([cleanup, limit])
+  clearTimeout(timer)
+  clearDeviceId()
+  resetRegisterOnStart()
+}

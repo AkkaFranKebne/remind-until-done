@@ -1,16 +1,19 @@
 import { useMutation } from '@tanstack/react-query'
 import { CircleAlert, Download, Lock } from 'lucide-react'
 import { cva } from 'class-variance-authority'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { CenteredScreen } from '../../components/ui/CenteredScreen'
 import { Wordmark } from '../../components/ui/Wordmark'
 import { PreviewsTip } from '../notifications/DeviceTips'
+import { forgetThisDevice } from '../notifications/forgetThisDevice'
+import { usePushClient } from '../notifications/usePushClient'
 import { IosInstallSteps } from '../pwa/IosInstallSteps'
 import { IosVersionGate } from '../pwa/IosVersionGate'
 import { MIN_IOS } from '../pwa/platform'
 import { tabInstallLine } from '../pwa/tabInstall'
 import { useInstall, type InstallState } from '../pwa/useInstall'
+import { DeleteAccountSheet } from './DeleteAccountSheet'
 import { useAuth } from './useAuth'
 import { GoogleIcon } from './GoogleIcon'
 import { SplashScreen } from './SplashScreen'
@@ -87,25 +90,7 @@ export function LoginPage() {
       </div>
 
       {notInvited ? (
-        <section className="flex flex-col items-center gap-3.5" aria-labelledby="invite-only">
-          <span
-            aria-hidden="true"
-            className="flex size-14 items-center justify-center rounded-md bg-error-bg text-error-text"
-          >
-            <Lock size={24} strokeWidth={1.75} />
-          </span>
-          <h2 id="invite-only" className="text-lg font-bold text-balance">
-            This app is invite-only.
-          </h2>
-          {state.email ? (
-            <p className="rounded-sm bg-bg3 px-3 py-1.5 font-mono text-sm text-fg2">
-              {state.email}
-            </p>
-          ) : null}
-          <p className="text-sm text-balance text-fg2">
-            Your account isn&apos;t on the list. Ask Ewa to add you.
-          </p>
-        </section>
+        <InviteOnly email={state.email} />
       ) : install === 'ios-browser' ? (
         // iPhone in a browser tab: the steps only. Signing in here would be wasted: the
         // installed app keeps its own sign-in (design doc §0).
@@ -147,6 +132,11 @@ export function LoginPage() {
               {tabInstallLine['just-installed']}
             </output>
           ) : null}
+          {state.accountDeleted ? (
+            <output className="block rounded-md bg-accent-bg px-3.5 py-3 text-sm text-balance text-accent">
+              Your account was deleted. All your reminders are gone.
+            </output>
+          ) : null}
           {state.error ? (
             <p
               role="alert"
@@ -168,7 +158,11 @@ export function LoginPage() {
             loading={google.isPending}
             onClick={() => google.mutate()}
           >
-            {state.error ? 'Try again' : 'Continue with Google'}
+            {state.error
+              ? 'Try again'
+              : state.accountDeleted
+                ? 'Sign in again'
+                : 'Continue with Google'}
           </Button>
           {state.error && install === 'installed' ? null : (
             <p className="text-sm text-fg2">{footnote[install]}</p>
@@ -181,5 +175,58 @@ export function LoginPage() {
         </div>
       )}
     </CenteredScreen>
+  )
+}
+
+/**
+ * Not on the invite list. They stay signed in, so they can try another account or delete this one
+ * (decision 79). Sign out works like the one in Settings: this browser's push token goes first, or
+ * a removed person's phone keeps showing their nags. The API refuses the device delete here; the
+ * token going is enough.
+ */
+function InviteOnly({ email }: { email: string | null }) {
+  const { signOut } = useAuth()
+  const [deleting, setDeleting] = useState(false)
+  const push = usePushClient()
+  const leave = useMutation({
+    mutationFn: async () => {
+      await forgetThisDevice(push)
+      await signOut()
+    },
+    networkMode: 'always',
+  })
+
+  return (
+    <section className="flex flex-col items-center gap-3.5" aria-labelledby="invite-only">
+      <span
+        aria-hidden="true"
+        className="flex size-14 items-center justify-center rounded-md bg-error-bg text-error-text"
+      >
+        <Lock size={24} strokeWidth={1.75} />
+      </span>
+      <h2 id="invite-only" className="text-lg font-bold text-balance">
+        This app is invite-only.
+      </h2>
+      {email ? (
+        <p className="rounded-sm bg-bg3 px-3 py-1.5 font-mono text-sm text-fg2">{email}</p>
+      ) : null}
+      <p className="text-sm text-balance text-fg2">
+        Your account isn&apos;t on the list. Ask Ewa to add you.
+      </p>
+      <div className="mt-2 flex w-full max-w-sm flex-col gap-2">
+        <Button
+          variant="surface"
+          size="lg"
+          loading={leave.isPending}
+          onClick={() => leave.mutate()}
+        >
+          Sign out
+        </Button>
+        <Button variant="neutral" size="lg" onClick={() => setDeleting(true)}>
+          Delete my account
+        </Button>
+      </div>
+      <DeleteAccountSheet open={deleting} onOpenChange={setDeleting} />
+    </section>
   )
 }

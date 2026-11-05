@@ -33,11 +33,9 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
       // sees another's (design doc 5.7). Firebase only reports sign-in and sign-out here.
       queryClient.clear()
       if (!user) {
-        // Our own sign-out after "not invited" or a failed /me: keep that screen and its message.
+        // Our own sign-out after a failed /me: keep that message.
         setState((prev) =>
-          prev.status === 'notInvited' || prev.status === 'signedOut'
-            ? prev
-            : { status: 'signedOut', byUser: signingOut.current },
+          prev.status === 'signedOut' ? prev : { status: 'signedOut', byUser: signingOut.current },
         )
         return
       }
@@ -71,8 +69,18 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
           signingOut.current = false
         })
       },
+      accountDeleted: async () => {
+        // Set directly, not through the "nobody" event: Firebase may have signed out by itself
+        // already (the user is gone), and then no event comes. A failed sign-out changes nothing:
+        // the account is gone either way.
+        signingOut.current = true
+        await client.signOut().catch(() => {})
+        signingOut.current = false
+        queryClient.clear()
+        setState({ status: 'signedOut', byUser: true, accountDeleted: true })
+      },
     }),
-    [client, state],
+    [client, queryClient, state],
   )
 
   return <AuthContext value={value}>{children}</AuthContext>
@@ -80,7 +88,8 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
 
 /**
  * After Firebase sign-in: ask the API who we are (GET /me, kept in the query cache).
- * `signOut`: the Firebase session must end (not invited, or the API refused us).
+ * `signOut`: the Firebase session must end (the API refused us). Not invited keeps it, for the
+ * buttons on the invite-only screen (decision 79).
  */
 async function loadMe(
   queryClient: QueryClient,
@@ -91,7 +100,7 @@ async function loadMe(
     return { next: { status: 'signedIn', user }, signOut: false }
   } catch (e) {
     if (e instanceof ApiError && e.code === 'not_invited') {
-      return { next: { status: 'notInvited', email: user.email }, signOut: true }
+      return { next: { status: 'notInvited', email: user.email }, signOut: false }
     }
     // Offline (status 0): keep the Firebase session, so the app works again once the
     // connection is back. Any other failure ends it.

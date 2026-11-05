@@ -90,3 +90,29 @@ test('while confirming, a tap outside does not close it', async () => {
 
   expect(onOpenChange).not.toHaveBeenCalled()
 })
+
+test('cancelOnly: Escape does not close it, Cancel does, and confirmDisabled locks the button', () => {
+  const onOpenChange = jest.fn()
+  render(
+    <ConfirmSheet
+      open
+      onOpenChange={onOpenChange}
+      icon={LogOut}
+      title="Delete your account?"
+      confirmLabel="Delete"
+      confirmDisabled
+      cancelOnly
+      onConfirm={() => {}}
+    >
+      Everything goes.
+    </ConfirmSheet>,
+  )
+  const sheet = screen.getByRole('alertdialog')
+
+  fireEvent.keyDown(sheet, { key: 'Escape' })
+  expect(onOpenChange).not.toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+  expect(onOpenChange).toHaveBeenCalledWith(false)
+})

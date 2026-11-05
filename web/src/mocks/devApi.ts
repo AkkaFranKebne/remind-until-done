@@ -168,6 +168,12 @@ export const devHandlers = [
     user = { ...user, ...body.data }
     return HttpResponse.json(user)
   }),
+  // Like the real one: everything goes, and doing it again is fine.
+  http.delete('*/api/v1/me', () => {
+    resetDevData()
+    reminders = []
+    return new HttpResponse(null, { status: 204 })
+  }),
 
   http.get('*/api/v1/reminders', ({ request }) => {
     const params = new URL(request.url).searchParams

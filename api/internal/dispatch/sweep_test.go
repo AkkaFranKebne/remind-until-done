@@ -94,10 +94,15 @@ func TestSweepBooksFirstPushesThatHaveNoTask(t *testing.T) {
 		t.Errorf("log has no sweep_repaired count: %s", w.logs)
 	}
 
-	// The next day: nothing left to do.
+	// The next day, the past-due one has fired: nothing left to do.
+	r := w.get(t, late)
+	if err := w.fire.Fire(ctx, scheduling.Body{ReminderID: late, Version: r.ScheduleVersion, N: 0}); err != nil {
+		t.Fatal(err)
+	}
+	tasks := len(w.nags.Tasks())
 	stats, err = w.fire.Sweep(ctx)
-	if err != nil || stats.Booked != 0 || len(w.nags.Tasks()) != 3 {
-		t.Errorf("second sweep: %+v, %v, %d tasks; want nothing new", stats, err, len(w.nags.Tasks()))
+	if err != nil || stats != (dispatch.SweepStats{Finished: true}) || len(w.nags.Tasks()) != tasks {
+		t.Errorf("second sweep: %+v, %v, %d more tasks; want nothing new", stats, err, len(w.nags.Tasks())-tasks)
 	}
 }
 

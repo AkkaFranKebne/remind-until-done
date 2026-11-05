@@ -47,3 +47,18 @@ resource "google_cloud_run_v2_service_iam_member" "public" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# API may delete a Firebase user when their account is deleted, and check one still exists before
+# creating a row for them (decision 76). Its own small role: the ready-made roles/firebaseauth.admin
+# could also create and change users, and change the sign-in settings.
+resource "google_project_iam_custom_role" "api_firebase_users" {
+  role_id     = "rudApiFirebaseUsers"
+  title       = "RUD API: read and delete Firebase users"
+  permissions = ["firebaseauth.users.delete", "firebaseauth.users.get"]
+}
+
+resource "google_project_iam_member" "api_firebase_users" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.api_firebase_users.id
+  member  = "serviceAccount:${google_service_account.api.email}"
+}

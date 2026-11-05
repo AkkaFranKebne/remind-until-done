@@ -263,6 +263,10 @@ func (s *Service) Update(ctx context.Context, userID, id string, in UpdateInput)
 		return Reminder{}, fmt.Errorf("update reminder: %w", err)
 	}
 	if restart {
+		// A new cycle: the sweep's count towards giving up starts over (decision 76).
+		if _, err := tx.Exec(ctx, `DELETE FROM reminder_events WHERE reminder_id = $1 AND type = 'sweep_rebooked'`, r.ID); err != nil {
+			return Reminder{}, fmt.Errorf("reset rebookings: %w", err)
+		}
 		if err := s.scheduleFirstPush(ctx, tx, r); err != nil {
 			return Reminder{}, err
 		}

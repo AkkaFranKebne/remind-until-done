@@ -274,7 +274,7 @@ export const getDeleteMeUrl = () => {
 }
 
 /**
- * @summary Delete the account: user row (cascades to reminders, devices, events) then the Firebase user. Idempotent.
+ * @summary Delete the account of whoever signed in, invited or not: user row (cascades to reminders, devices, events) and the Firebase user. Idempotent: already gone answers 204.
  */
 export const deleteMe = async (options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
   return apiFetch<void>(getDeleteMeUrl(), {
@@ -286,7 +286,7 @@ export const deleteMe = async (options?: Parameters<typeof apiFetch>[1]): Promis
 export const getDeleteMeMutationKey = () => ['deleteMe'] as const
 
 export const getDeleteMeMutationOptions = <
-  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | Error>,
+  TError = ErrorType<UnauthorizedResponse | Error>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>
@@ -308,15 +308,12 @@ export const getDeleteMeMutationOptions = <
 
 export type DeleteMeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMe>>>
 
-export type DeleteMeMutationError = ErrorType<UnauthorizedResponse | NotInvitedResponse | Error>
+export type DeleteMeMutationError = ErrorType<UnauthorizedResponse | Error>
 
 /**
- * @summary Delete the account: user row (cascades to reminders, devices, events) then the Firebase user. Idempotent.
+ * @summary Delete the account of whoever signed in, invited or not: user row (cascades to reminders, devices, events) and the Firebase user. Idempotent: already gone answers 204.
  */
-export const useDeleteMe = <
-  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | Error>,
-  TContext = unknown,
->(
+export const useDeleteMe = <TError = ErrorType<UnauthorizedResponse | Error>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>
     request?: SecondParameter<typeof apiFetch>

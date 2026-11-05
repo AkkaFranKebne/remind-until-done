@@ -119,14 +119,14 @@ type route struct {
 	handler      http.HandlerFunc
 }
 
-// routes lists every public route. requireUser wraps the ones that need sign-in: all but /healthz
-// and /actions.
+// routes lists every public route. requireUser wraps them all, except /healthz, /actions and
+// DELETE /me (decision 79). notBehindTheInvite in delete_me_test.go holds the same list.
 func (a *API) routes() []route {
 	return []route{
 		{"GET", "/healthz", a.healthz},
 		{"GET", "/me", a.requireUser(a.getMe)},
 		{"PATCH", "/me", a.requireUser(a.patchMe)},
-		{"DELETE", "/me", a.requireUser(a.deleteMe)},
+		{"DELETE", "/me", a.deleteMe}, // any valid sign-in, invited or not: it checks the token itself
 		{"GET", "/reminders", a.requireUser(a.listReminders)},
 		{"POST", "/reminders", a.requireUser(a.createReminder)},
 		{"GET", "/reminders/{id}", a.requireUser(a.getReminder)},

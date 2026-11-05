@@ -22,13 +22,14 @@ type SweepStats struct {
 	Booked     int  // step b: first pushes booked
 	Rebooked   int  // steps c and d: lost pushes booked again under a new version
 	GaveUp     int  // steps c and d: rebooked for 3 days with no luck, now Overdue (decision 76)
-	Failed     int  // steps b, c, d: Cloud Tasks refused; tried again on the next sweep
+	Failed     int  // Cloud Tasks refused, or a cleanup failed; tried again on the next sweep
 	Superseded int  // steps b, c, d: edited or done meanwhile; that change wins
+	Deleted    int  // retention: rows past their time (design doc 7.4)
 	Finished   bool // false: the time budget ran out first (or the caller hung up)
 }
 
 // Sweep is the daily safety net Cloud Scheduler calls (design doc 3.4): it repairs what the main
-// path missed. The retention cleanup comes later in M6.
+// path missed, then deletes what's past its time (retention.go).
 //
 // a) Gives back sends stuck in 'sending', after a crash or a failed recordSent, stop or release.
 // b) Books the first push of pending reminders that have none for their current version (saved
@@ -56,7 +57,7 @@ func (d *Dispatcher) Sweep(ctx context.Context) (SweepStats, error) {
 	}
 	level(context.WithoutCancel(ctx), "sweep_repaired", "released", stats.Released, "booked", stats.Booked,
 		"rebooked", stats.Rebooked, "gave_up", stats.GaveUp, "failed", stats.Failed,
-		"superseded", stats.Superseded, "finished", stats.Finished)
+		"superseded", stats.Superseded, "deleted", stats.Deleted, "finished", stats.Finished)
 	return stats, nil
 }
 
@@ -83,6 +84,7 @@ func (d *Dispatcher) sweepSteps(ctx context.Context, stats *SweepStats) error {
 			return err
 		}
 	}
+	d.deleteOld(ctx, stats)
 	stats.Finished = ctx.Err() == nil
 	return nil
 }

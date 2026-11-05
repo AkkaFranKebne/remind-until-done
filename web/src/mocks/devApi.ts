@@ -161,6 +161,10 @@ function listOf(status: string, limit: number): ReminderList {
 }
 
 export const devHandlers = [
+  // Follows the browser, so DevTools' offline switch shows the offline screen in mock mode.
+  http.get('*/api/v1/healthz', () =>
+    navigator.onLine ? HttpResponse.json({ status: 'ok', database: 'ok' }) : HttpResponse.error(),
+  ),
   http.get('*/api/v1/me', () => HttpResponse.json(user)),
   http.patch('*/api/v1/me', async ({ request }) => {
     const body = UpdateMeBody.safeParse(await request.json())

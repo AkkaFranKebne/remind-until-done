@@ -22,6 +22,7 @@ const auth: AuthContextValue = {
   signIn: () => Promise.resolve(),
   signOut: () => Promise.resolve(),
   accountDeleted: () => Promise.resolve(),
+  retrySignIn: () => {},
 }
 
 const hour = 3_600_000

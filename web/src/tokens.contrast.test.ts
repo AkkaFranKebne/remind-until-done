@@ -97,6 +97,7 @@ const pairs: [string, string, string, number, number?][] = [
   ['secondary text on cards and sheets', '--fg2', '--bg2', TEXT],
   ['text on quiet surfaces: settings rows, the secondary button', '--fg', '--bg3', TEXT],
   ['secondary text on quiet surfaces', '--fg2', '--bg3', TEXT],
+  ['the offline screen icon on its quiet tile', '--fg3', '--bg3', LARGE],
   ['links and the logo on the page', '--accent', '--bg', TEXT],
   ['the near-limit counter on a sheet', '--accent', '--bg2', TEXT],
   ['banner, selected chip, avatar', '--accent', '--accent-bg', TEXT],

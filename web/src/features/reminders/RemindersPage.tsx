@@ -65,7 +65,8 @@ export function RemindersPage() {
   // The picked tile is in the address (/?show=done), so Back from a reminder and a reload keep it.
   // Replace, not push: switching tiles doesn't fill the Back history.
   // (strict: false: also works in Storybook's small router, where there's no /app/ route.)
-  const picked = useSearch({ strict: false }).show ?? null
+  // The type is spelled out: Jest compiles file by file, and may not have seen the router's types.
+  const picked: ReminderStatusKind | null = useSearch({ strict: false }).show ?? null
   const navigate = useNavigate({ from: '/' })
   const setPicked = (kind: ReminderStatusKind | null) =>
     void navigate({ search: kind ? { show: kind } : {}, replace: true, resetScroll: false })

@@ -15,4 +15,6 @@ export const server = setupServer(
   ...getUserMock(),
   http.get('*/api/v1/reminders', () => HttpResponse.json(noReminders)),
   http.get('*/api/v1/devices', () => HttpResponse.json({ items: [] })),
+  // The offline check (lib/online.ts): the server answers, unless a test says not.
+  http.get('*/api/v1/healthz', () => HttpResponse.json({ status: 'ok', database: 'ok' })),
 )

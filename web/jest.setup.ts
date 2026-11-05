@@ -1,6 +1,7 @@
 // Adds DOM matchers like toBeInTheDocument() to expect().
 import '@testing-library/jest-dom'
 import { faker } from '@faker-js/faker'
+import { onlineManager } from '@tanstack/react-query'
 import { server } from './src/mocks/server'
 
 // jsdom has no real scrolling. TanStack Router restores the scroll position after
@@ -58,5 +59,8 @@ if (CLOCK_SHIFT_H) {
 // a real server. Same made-up data in every run (orval's mocks use faker).
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 beforeEach(() => faker.seed(1))
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  onlineManager.setOnline(true) // it lives outside React, so it outlives the test
+})
 afterAll(() => server.close())

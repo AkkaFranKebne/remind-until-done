@@ -1,10 +1,13 @@
 /**
  * The one function every API call goes through (orval's "mutator", design doc 5.5).
- * The generated hooks in ./generated call it; nothing else calls fetch for the API.
+ * The generated hooks in ./generated call it; nothing else calls fetch for the API, but for two
+ * calls that can't: the offline check (lib/online.ts) and the service worker's Done (sw/click.ts).
  * - Sends the sign-in token as "Authorization: Bearer <token>".
  * - Turns the API's error shape {"error":{"code","message"}} into an ApiError.
- * - A request that never reached the server becomes ApiError status 0, code "network".
+ * - A request that never reached the server becomes ApiError status 0, code "network", and may
+ *   mean we're offline (lib/online.ts).
  */
+import { requestFailed } from '../online'
 
 export class ApiError extends Error {
   /** HTTP status; 0 when the request never reached the server (offline, DNS ...). */
@@ -27,20 +30,37 @@ export function setTokenSource(next: () => Promise<string | null>) {
   tokenSource = next
 }
 
+function isNetworkFailure(e: unknown): boolean {
+  return isRecord(e) && e.code === 'auth/network-request-failed'
+}
+
+const noConnection = () =>
+  new ApiError(0, 'network', "Can't reach the server. Check your connection.")
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
 export async function apiFetch<T>(url: string, init: RequestInit): Promise<T> {
   const headers = new Headers(init.headers)
-  const token = await tokenSource()
-  if (token) headers.set('Authorization', `Bearer ${token}`)
+  try {
+    const token = await tokenSource()
+    if (token) headers.set('Authorization', `Bearer ${token}`)
+  } catch (e) {
+    // A token past its hour needs the network to refresh. Any other failure here isn't about the
+    // connection, and must not look like it.
+    if (!isNetworkFailure(e)) throw e
+    requestFailed()
+    throw noConnection()
+  }
 
   let res: Response
   try {
     res = await fetch(url, { ...init, headers })
   } catch {
-    throw new ApiError(0, 'network', "Can't reach the server. Check your connection.")
+    // A cancelled request (TanStack dropping a query) says nothing about the connection.
+    if (!init.signal?.aborted) requestFailed()
+    throw noConnection()
   }
 
   if (!res.ok) throw await toApiError(res)

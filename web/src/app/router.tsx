@@ -40,7 +40,7 @@ const appRoute = createRoute({
   id: 'app',
   beforeLoad: ({ context, location }) => {
     const { status } = context.auth
-    if (status === 'checking' || status === 'signedIn') return
+    if (status === 'checking' || status === 'signedIn' || status === 'offline') return
     // Tapped Sign out: a fresh start on the plain login page (then the list), not back to this
     // page. Signed out any other way (session ended): remember the page in `next`.
     const byUser = context.auth.status === 'signedOut' && context.auth.byUser === true

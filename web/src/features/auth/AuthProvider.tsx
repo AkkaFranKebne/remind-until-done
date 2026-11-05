@@ -1,9 +1,11 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ApiError, setTokenSource } from '../../lib/api/mutator'
 import type { AuthClient, AuthUser } from '../../lib/authClient'
 import { AuthContext, type AuthContextValue, type AuthState } from './useAuth'
 import { meQueryOptions } from './useMe'
+
+const noRetry = () => {}
 
 const SIGN_IN_FAILED = 'Sign-in failed. Check your connection and try again.'
 
@@ -11,6 +13,9 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
   const [state, setState] = useState<AuthState>({ status: 'checking' })
   // Set when the person taps Sign out, so the next "nobody" event is marked byUser.
   const signingOut = useRef(false)
+  // Runs the /me request for the current session again. Stable, so effects can depend on it.
+  const retry = useRef(noRetry)
+  const retrySignIn = useCallback(() => retry.current(), [])
   const queryClient = useQueryClient()
 
   // Sync with Firebase (outside React): its "user changed" events drive the state.
@@ -33,18 +38,23 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
       // sees another's (design doc 5.7). Firebase only reports sign-in and sign-out here.
       queryClient.clear()
       if (!user) {
+        retry.current = noRetry
         // Our own sign-out after a failed /me: keep that message.
         setState((prev) =>
           prev.status === 'signedOut' ? prev : { status: 'signedOut', byUser: signingOut.current },
         )
         return
       }
-      void loadMe(queryClient, user).then(({ next, signOut }) => {
-        if (run !== current) return
-        setState(next) // first show the result ...
-        // ... then sign out (that event keeps this state). A failed sign-out changes nothing.
-        if (signOut) client.signOut().catch(() => {})
-      })
+      const load = () => {
+        void loadMe(queryClient, user).then(({ next, signOut }) => {
+          if (run !== current) return
+          setState(next) // first show the result ...
+          // ... then sign out (that event keeps this state). A failed sign-out changes nothing.
+          if (signOut) client.signOut().catch(() => {})
+        })
+      }
+      retry.current = load
+      load()
     })
     return () => {
       current = -1
@@ -56,6 +66,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
     () => ({
       state,
       user: state.status === 'signedIn' ? state.user : null,
+      retrySignIn,
       signIn: async () => {
         try {
           await client.signIn() // leaves the page for Google
@@ -80,7 +91,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
         setState({ status: 'signedOut', byUser: true, accountDeleted: true })
       },
     }),
-    [client, queryClient, state],
+    [client, queryClient, retrySignIn, state],
   )
 
   return <AuthContext value={value}>{children}</AuthContext>
@@ -104,10 +115,8 @@ async function loadMe(
     }
     // Offline (status 0): keep the Firebase session, so the app works again once the
     // connection is back. Any other failure ends it.
-    const offline = e instanceof ApiError && e.status === 0
-    return {
-      next: { status: 'signedOut', error: offline ? e.message : SIGN_IN_FAILED },
-      signOut: !offline,
-    }
+    if (e instanceof ApiError && e.status === 0)
+      return { next: { status: 'offline' }, signOut: false }
+    return { next: { status: 'signedOut', error: SIGN_IN_FAILED }, signOut: true }
   }
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { usePushRefresh } from '../notifications/usePushRefresh'
 import { useRegisterOnStart } from '../notifications/useNotifications'
+import { OfflineScreen } from './OfflineScreen'
 import { useAuth } from './useAuth'
 import { SplashScreen } from './SplashScreen'
 
@@ -10,6 +11,7 @@ import { SplashScreen } from './SplashScreen'
  */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { state } = useAuth()
+  if (state.status === 'offline') return <OfflineScreen />
   if (state.status !== 'signedIn') return <SplashScreen />
   return (
     <>

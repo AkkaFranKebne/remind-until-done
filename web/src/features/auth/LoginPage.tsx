@@ -14,6 +14,7 @@ import { MIN_IOS } from '../pwa/platform'
 import { tabInstallLine } from '../pwa/tabInstall'
 import { useInstall, type InstallState } from '../pwa/useInstall'
 import { DeleteAccountSheet } from './DeleteAccountSheet'
+import { OfflineScreen } from './OfflineScreen'
 import { useAuth } from './useAuth'
 import { GoogleIcon } from './GoogleIcon'
 import { SplashScreen } from './SplashScreen'
@@ -63,6 +64,8 @@ export function LoginPage() {
 
   // No web push on this iPhone: nothing else matters (any state, even mid-sign-in).
   if (install === 'ios-too-old') return <IosVersionGate ios={ios} />
+
+  if (state.status === 'offline') return <OfflineScreen />
 
   // Signed in: the route's beforeLoad sends you on to `next` (app/router.tsx); until then, the splash.
   if (state.status === 'checking' || state.status === 'signedIn') return <SplashScreen />

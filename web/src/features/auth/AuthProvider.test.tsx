@@ -132,12 +132,12 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(client.signOutCalls).toBe(1))
   })
 
-  it('offline: shows the connection message but keeps the Firebase session', async () => {
+  it('offline: says so and keeps the Firebase session', async () => {
     server.use(http.get('*/api/v1/me', () => HttpResponse.error()))
     const client = new FakeAuthClient(tester)
     renderAuth(client)
 
-    expect(await screen.findByText(/^signedOut error: Can't reach the server/)).toBeInTheDocument()
+    expect(await screen.findByText('offline')).toBeInTheDocument()
     expect(client.signOutCalls).toBe(0)
   })
 

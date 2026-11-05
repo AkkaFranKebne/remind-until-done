@@ -27,6 +27,8 @@ export function meQueryOptions() {
     },
     staleTime: 5 * 60_000, // settings rarely change; reload after 5 minutes at most
     gcTime: Infinity,
+    // Fail with no connection, don't pause: sign-in waits for this, and would wait forever.
+    networkMode: 'always',
   })
 }
 

@@ -48,9 +48,7 @@ func TestEveryRouteIsInSwagger(t *testing.T) {
 // notBuiltYet lists the swagger.json routes the server doesn't serve yet, with the
 // milestone that builds them. Building one? Remove it here: the test below fails
 // until you do, so the list stays true.
-var notBuiltYet = map[string]string{
-	"DELETE /me": "M6 (delete account)",
-}
+var notBuiltYet = map[string]string{}
 
 func TestEverySwaggerRouteIsServed(t *testing.T) {
 	served := map[string]bool{}

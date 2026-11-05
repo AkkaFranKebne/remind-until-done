@@ -42,6 +42,7 @@ func newRemindersAPIWithTasks(t *testing.T, tasks *scheduling.Fake) http.Handler
 			"token-bob":   {UID: "u-bob", Email: "bob@example.com", EmailVerified: true, SignInProvider: auth.GoogleProvider},
 		},
 		Users:     users.NewRepo(pool),
+		Accounts:  auth.KeepAccounts{},
 		Reminders: reminders.NewService(pool, tasks, logging.New(io.Discard)),
 		Devices:   devices.NewService(pool),
 		Invited:   auth.NewAllowlist("alice@example.com,bob@example.com"),

@@ -2,13 +2,18 @@ package httpapi
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
 
 type userKey struct{}
+
+// accountCheckTimeout bounds asking Firebase whether a new user's account still exists.
+const accountCheckTimeout = 5 * time.Second
 
 // currentUser is the signed-in user that requireUser put on the request.
 func currentUser(ctx context.Context) users.User {
@@ -43,7 +48,26 @@ func (a *API) requireUser(next http.HandlerFunc) http.HandlerFunc {
 			writeError(w, http.StatusForbidden, "not_invited", "this app is invite-only")
 			return
 		}
-		u, err := a.users.FindOrCreate(ctx, id.UID, id.Email)
+		u, err := a.users.Find(ctx, id.UID, id.Email)
+		if errors.Is(err, users.ErrNotFound) {
+			// Before making a row, check with Firebase: a deleted account's token keeps working for
+			// up to an hour, and a late request must not bring the account back (decision 76). Only
+			// here, so normal requests make no extra call. Don't know? Then no row.
+			checkCtx, cancel := context.WithTimeout(ctx, accountCheckTimeout)
+			exists, checkErr := a.accounts.Exists(checkCtx, id.UID)
+			cancel()
+			if checkErr != nil {
+				a.log.ErrorContext(ctx, "account check failed", "uid", id.UID, "err", checkErr)
+				writeError(w, http.StatusServiceUnavailable, "unavailable", "something went wrong, try again in a moment")
+				return
+			}
+			if !exists {
+				a.log.InfoContext(ctx, "account is gone", "uid", id.UID)
+				writeError(w, http.StatusUnauthorized, "unauthorized", "invalid or expired sign-in, sign in again")
+				return
+			}
+			u, err = a.users.FindOrCreate(ctx, id.UID, id.Email)
+		}
 		if err != nil {
 			a.log.ErrorContext(ctx, "user lookup failed", "uid", id.UID, "err", err)
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")

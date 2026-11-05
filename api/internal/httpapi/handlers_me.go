@@ -1,9 +1,11 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )
@@ -57,3 +59,37 @@ func (a *API) patchMe(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, toUserJSON(u))
 	}
 }
+
+// DELETE /api/v1/me: the user's rows and the Firebase user, inside one database transaction
+// (design doc 5.7, decision 78). If it fails the answer says so and the app can try again, which
+// finishes the job. On its own context: a phone hanging up mustn't stop it halfway.
+func (a *API) deleteMe(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), deleteMeTimeout)
+	defer cancel()
+	u := currentUser(r.Context())
+	err := a.users.Delete(ctx, u.ID, func(ctx context.Context) error {
+		// Its own, shorter limit: the commit after it must still have time.
+		ctx, cancel := context.WithTimeout(ctx, firebaseDeleteTimeout)
+		defer cancel()
+		return a.accounts.Delete(ctx, u.FirebaseUID)
+	})
+	if errors.Is(err, users.ErrNotCommitted) {
+		// The one half-done case. A retry within the token's hour finishes it; after that the row
+		// can only be removed by hand, so this log line must say which one.
+		a.log.ErrorContext(ctx, "firebase user deleted, row still there", "user_id", u.ID, "err", err)
+		writeError(w, http.StatusServiceUnavailable, "unavailable", "something went wrong, try again in a moment")
+		return
+	}
+	if err != nil {
+		a.log.ErrorContext(ctx, "account not deleted", "user_id", u.ID, "err", err)
+		writeError(w, http.StatusServiceUnavailable, "unavailable", "something went wrong, try again in a moment")
+		return
+	}
+	a.log.InfoContext(ctx, "account deleted", "user_id", u.ID)
+	w.WriteHeader(http.StatusNoContent)
+}
+
+const (
+	deleteMeTimeout       = 15 * time.Second
+	firebaseDeleteTimeout = 10 * time.Second
+)

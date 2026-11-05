@@ -16,6 +16,7 @@ import (
 )
 
 type User struct {
+	FirebaseUID           string `json:"-"` // never sent to the app
 	ID                    string
 	Email                 string
 	Timezone              string // IANA name, e.g. Europe/Stockholm
@@ -48,17 +49,23 @@ type Repo struct {
 
 func NewRepo(pool *pgxpool.Pool) *Repo { return &Repo{pool: pool} }
 
-const columns = `id, email, timezone, to_char(default_time_of_day, 'HH24:MI'), default_nag_interval_min`
+const columns = `id, firebase_uid, email, timezone, to_char(default_time_of_day, 'HH24:MI'), default_nag_interval_min`
 
 func scan(row pgx.Row) (User, error) {
 	var u User
-	err := row.Scan(&u.ID, &u.Email, &u.Timezone, &u.DefaultTimeOfDay, &u.DefaultNagIntervalMin)
+	err := row.Scan(&u.ID, &u.FirebaseUID, &u.Email, &u.Timezone, &u.DefaultTimeOfDay, &u.DefaultNagIntervalMin)
 	return u, err
 }
 
-// FindOrCreate returns the user for this Firebase account, creating it on the
-// first visit. The email is kept up to date if it changed in Google.
-func (r *Repo) FindOrCreate(ctx context.Context, firebaseUID, email string) (User, error) {
+// ErrNotFound: no user has this Firebase account yet (or any more).
+var ErrNotFound = errors.New("user not found")
+
+// ErrNotCommitted: Delete's other step succeeded, but the row is still there.
+var ErrNotCommitted = errors.New("delete not committed")
+
+// Find returns the user for this Firebase account. The email is kept up to date if it changed
+// in Google.
+func (r *Repo) Find(ctx context.Context, firebaseUID, email string) (User, error) {
 	u, err := scan(r.pool.QueryRow(ctx, `SELECT `+columns+` FROM users WHERE firebase_uid = $1`, firebaseUID))
 	switch {
 	case err == nil:
@@ -67,8 +74,44 @@ func (r *Repo) FindOrCreate(ctx context.Context, firebaseUID, email string) (Use
 		}
 		return scan(r.pool.QueryRow(ctx,
 			`UPDATE users SET email = $2 WHERE firebase_uid = $1 RETURNING `+columns, firebaseUID, email))
-	case !errors.Is(err, pgx.ErrNoRows):
+	case errors.Is(err, pgx.ErrNoRows):
+		return User{}, ErrNotFound
+	default:
 		return User{}, fmt.Errorf("find user: %w", err)
+	}
+}
+
+// Delete removes the user and, through the database's cascades, their reminders and those
+// reminders' events, their device and the lines they've seen (design doc 5.7). Deleting a user
+// who's gone already is fine. Their booked Cloud Tasks then find no row and do nothing.
+//
+// also runs before the commit (the Firebase delete, decision 78). If it fails nothing is lost, and
+// until the commit other requests still find the row, so none of them can decide this user is
+// new and make a row that outlives the account. If the commit itself fails after also succeeded,
+// the answer is ErrNotCommitted: trying again with the same token finishes the job.
+func (r *Repo) Delete(ctx context.Context, id string, also func(context.Context) error) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("delete user: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := tx.Exec(ctx, `DELETE FROM users WHERE id = $1`, id); err != nil {
+		return fmt.Errorf("delete user: %w", err)
+	}
+	if err := also(ctx); err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("%w: %w", ErrNotCommitted, err)
+	}
+	return nil
+}
+
+// FindOrCreate returns the user for this Firebase account, creating it on the first visit.
+func (r *Repo) FindOrCreate(ctx context.Context, firebaseUID, email string) (User, error) {
+	u, err := r.Find(ctx, firebaseUID, email)
+	if !errors.Is(err, ErrNotFound) {
+		return u, err
 	}
 
 	// First visit. ON CONFLICT: two first requests at the same moment both get the same row.

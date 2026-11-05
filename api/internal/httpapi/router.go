@@ -35,8 +35,17 @@ type InvokerVerifier interface {
 
 // UserStore finds and updates users. *users.Repo is the real one.
 type UserStore interface {
+	Find(ctx context.Context, firebaseUID, email string) (users.User, error)
 	FindOrCreate(ctx context.Context, firebaseUID, email string) (users.User, error)
 	Update(ctx context.Context, id string, s users.Settings) (users.User, error)
+	Delete(ctx context.Context, id string, also func(context.Context) error) error
+}
+
+// AccountStore reads and deletes Firebase users. *auth.Accounts is the real one; locally
+// auth.KeepAccounts.
+type AccountStore interface {
+	Exists(ctx context.Context, uid string) (bool, error)
+	Delete(ctx context.Context, uid string) error
 }
 
 // ReminderStore keeps reminders and their rules. *reminders.Service is the real one.
@@ -74,6 +83,7 @@ type Deps struct {
 	DB         Pinger
 	Tokens     TokenVerifier
 	Users      UserStore
+	Accounts   AccountStore
 	Reminders  ReminderStore
 	Devices    DeviceStore
 	Invited    auth.Allowlist
@@ -87,6 +97,7 @@ type API struct {
 	health     *dbHealth
 	tokens     TokenVerifier
 	users      UserStore
+	accounts   AccountStore
 	reminders  ReminderStore
 	devices    DeviceStore
 	invited    auth.Allowlist
@@ -97,7 +108,7 @@ type API struct {
 
 func New(log *slog.Logger, d Deps) *API {
 	return &API{
-		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users,
+		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users, accounts: d.Accounts,
 		reminders: d.Reminders, devices: d.Devices, invited: d.Invited, invoker: d.Invoker,
 		dispatcher: d.Dispatcher, actions: d.Actions,
 	}
@@ -115,6 +126,7 @@ func (a *API) routes() []route {
 		{"GET", "/healthz", a.healthz},
 		{"GET", "/me", a.requireUser(a.getMe)},
 		{"PATCH", "/me", a.requireUser(a.patchMe)},
+		{"DELETE", "/me", a.requireUser(a.deleteMe)},
 		{"GET", "/reminders", a.requireUser(a.listReminders)},
 		{"POST", "/reminders", a.requireUser(a.createReminder)},
 		{"GET", "/reminders/{id}", a.requireUser(a.getReminder)},

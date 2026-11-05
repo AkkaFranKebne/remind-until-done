@@ -25,6 +25,19 @@ export const Card: Story = {
   },
 }
 
+/** Only the owner's own button closes it: no handle bar, and swipes and taps outside do nothing. */
+export const NotDismissible: Story = {
+  args: {
+    dismissible: false,
+    children: (
+      <>
+        <SheetTitle className="text-lg font-bold">A sheet that stays</SheetTitle>
+        <SheetDescription className="text-sm text-fg2">Delete account uses this.</SheetDescription>
+      </>
+    ),
+  },
+}
+
 /** Attached to the bottom, opening at 85%; drag it up to full height (AddReminderSheet uses this). */
 export const FullWithSnapPoints: Story = {
   args: {

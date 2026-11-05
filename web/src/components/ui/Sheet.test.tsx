@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Sheet, SheetDescription, SheetTitle } from './Sheet'
 
 function renderSheet(props: Partial<Parameters<typeof Sheet>[0]> = {}) {
@@ -38,4 +38,37 @@ test('with snap points it is the tall form sheet', () => {
   renderSheet({ layout: 'full', snapPoints: [0.85, 1] })
 
   expect(screen.getByRole('dialog')).toHaveClass('sheet-tall', 'rounded-t-lg')
+})
+
+const tapOutside = () => {
+  fireEvent.pointerDown(document.body)
+  fireEvent.mouseDown(document.body)
+  fireEvent.pointerUp(document.body)
+  fireEvent.mouseUp(document.body)
+  fireEvent.click(document.body)
+}
+
+test('a tap outside asks to close, unless it is not dismissible, which also has no handle bar', async () => {
+  const onOpenChange = jest.fn()
+  const { rerender } = render(
+    <Sheet open onOpenChange={onOpenChange}>
+      <SheetTitle>Title</SheetTitle>
+    </Sheet>,
+  )
+  const dialog = await screen.findByRole('dialog')
+  expect(dialog.querySelector('[aria-hidden="true"]')).not.toBeNull()
+  tapOutside()
+  await waitFor(() => expect(onOpenChange).toHaveBeenCalled())
+
+  onOpenChange.mockClear()
+  rerender(
+    <Sheet open onOpenChange={onOpenChange} dismissible={false}>
+      <SheetTitle>Title</SheetTitle>
+    </Sheet>,
+  )
+  expect(dialog).toHaveAttribute('data-base-ui-swipe-ignore')
+  expect(dialog.querySelector('[aria-hidden="true"]')).toBeNull()
+  tapOutside()
+  await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
+  expect(onOpenChange).not.toHaveBeenCalled()
 })

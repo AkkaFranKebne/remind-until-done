@@ -6,7 +6,7 @@ import { Sheet, SheetDescription, SheetTitle } from './Sheet'
 /**
  * "Are you sure?" sheet that slides up from the bottom (Sign out, Discard a draft, Delete a
  * reminder). Built on our Sheet (Base UI Drawer): Cancel, a tap outside, Escape or swiping it
- * down close it; screen readers hear it as an alert dialog with its title and text.
+ * down close it, or only Cancel with cancelOnly; screen readers hear it as an alert dialog with its title and text.
  * Design Inventory → Components → "ConfirmSheet", Phone Screens → Settings → "Sign-out confirm".
  */
 export function ConfirmSheet({
@@ -20,7 +20,10 @@ export function ConfirmSheet({
   cancelLabel = 'Cancel',
   onConfirm,
   confirming = false,
+  confirmDisabled = false,
   danger = false,
+  cancelOnly = false,
+  extra,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -36,8 +39,14 @@ export function ConfirmSheet({
   onConfirm: () => void
   /** The confirmed action is running: spinner on the confirm button. */
   confirming?: boolean
+  /** The confirm button can't be used yet (the typed DELETE doesn't match). */
+  confirmDisabled?: boolean
   /** The action deletes or throws away something: red confirm button (Inventory "red danger"). */
   danger?: boolean
+  /** Only Cancel closes it, not a swipe, a tap outside or Escape: typed text mustn't be lost. */
+  cancelOnly?: boolean
+  /** Between the text and the buttons: a field to fill in, or an error. */
+  extra?: ReactNode
 }) {
   const cancelRef = useRef<HTMLButtonElement>(null)
 
@@ -46,15 +55,16 @@ export function ConfirmSheet({
       open={open}
       // While the action runs, it can't be cancelled (swipe, Escape, backdrop, Cancel).
       onOpenChange={(next) => {
-        if (!confirming) onOpenChange(next)
+        if (!confirming && !cancelOnly) onOpenChange(next)
       }}
+      dismissible={!cancelOnly}
       role="alertdialog"
       // Focus starts on Cancel: a reflexive Enter must not run the hard-to-undo action.
       initialFocus={cancelRef}
     >
       <span
         aria-hidden="true"
-        className="mt-2 flex size-11 items-center justify-center rounded-md bg-error-bg text-error-text"
+        className="mt-2 flex size-11 shrink-0 items-center justify-center rounded-md bg-error-bg text-error-text"
       >
         <Icon size={22} strokeWidth={1.75} />
       </span>
@@ -66,11 +76,13 @@ export function ConfirmSheet({
           {note}
         </p>
       ) : null}
+      {extra}
       <div className="mt-1 flex w-full flex-col gap-2">
         <Button
           size="lg"
           variant={danger ? 'danger' : 'primary'}
           loading={confirming}
+          disabled={confirmDisabled}
           onClick={onConfirm}
         >
           {confirmLabel}

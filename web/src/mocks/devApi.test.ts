@@ -122,3 +122,12 @@ test('devices: one per user, the same token keeps its id, a new one replaces it 
   expect((await api(`/devices/${first}`, { method: 'DELETE' })).status).toBe(404)
   expect((await api(`/devices/${second}`, { method: 'DELETE' })).status).toBe(204)
 })
+
+test('deleting the account removes the reminders, and doing it again is fine', async () => {
+  for (const _ of [1, 2]) {
+    const answer = await api('/me', { method: 'DELETE' })
+    expect(answer.status).toBe(204)
+  }
+  const list: unknown = await (await api('/reminders')).json()
+  expect(list).toEqual({ items: [], nextCursor: null })
+})

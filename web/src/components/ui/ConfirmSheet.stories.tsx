@@ -4,6 +4,7 @@ import { type ComponentProps, useState } from 'react'
 import { fn } from 'storybook/test'
 import { Button } from './Button'
 import { ConfirmSheet } from './ConfirmSheet'
+import { TextField } from './TextField'
 
 const meta = {
   title: 'UI/ConfirmSheet',
@@ -55,3 +56,19 @@ function InteractiveDemo(args: ComponentProps<typeof ConfirmSheet>) {
 
 /** Try it like on a phone: open it, then close it with Cancel, a tap outside, Escape or a swipe down. */
 export const Interactive: Story = { render: (args) => <InteractiveDemo {...args} /> }
+
+/** Delete account: only Cancel closes it, the button stays locked, and a field sits above it. */
+export const CancelOnly: Story = {
+  args: {
+    title: 'Delete your account?',
+    confirmLabel: 'Delete',
+    danger: true,
+    cancelOnly: true,
+    confirmDisabled: true,
+    extra: (
+      <div className="w-full text-left">
+        <TextField name="confirm" label="Type DELETE" value="" onChange={() => {}} exact />
+      </div>
+    ),
+  },
+}

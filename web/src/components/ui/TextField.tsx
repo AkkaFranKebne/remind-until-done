@@ -23,6 +23,7 @@ export function TextField({
   maxLength,
   multiline = false,
   placeholder,
+  exact = false,
   className,
 }: {
   ref?: Ref<HTMLInputElement & HTMLTextAreaElement>
@@ -39,6 +40,8 @@ export function TextField({
   maxLength?: number
   multiline?: boolean
   placeholder?: string
+  /** A word to type exactly (DELETE): the phone's keyboard capitalises it and doesn't correct it. */
+  exact?: boolean
   className?: string
 }) {
   const count = countCharacters(value)
@@ -51,6 +54,9 @@ export function TextField({
     onValueChange: (next: string) => onChange(next),
     onBlur,
     placeholder,
+    ...(exact
+      ? { autoCapitalize: 'characters', autoCorrect: 'off', autoComplete: 'off', spellCheck: false }
+      : {}),
   }
 
   return (

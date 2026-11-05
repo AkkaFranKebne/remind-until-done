@@ -95,3 +95,13 @@ test('errors are red: the message and the border', () => {
     'data-invalid:border-error-text',
   )
 })
+
+test('exact: the phone keyboard capitalises the word and leaves it alone', () => {
+  render(<TextField name="word" label="Type DELETE" value="" onChange={() => {}} exact />)
+  const field = screen.getByLabelText('Type DELETE')
+
+  expect(field).toHaveAttribute('autocapitalize', 'characters')
+  expect(field).toHaveAttribute('autocorrect', 'off')
+  expect(field).toHaveAttribute('autocomplete', 'off')
+  expect(field).toHaveAttribute('spellcheck', 'false')
+})

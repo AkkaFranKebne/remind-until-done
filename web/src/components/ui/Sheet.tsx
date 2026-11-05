@@ -6,8 +6,9 @@ import { cn } from '../../lib/cn'
 /**
  * Every bottom sheet in the app: confirmations (ConfirmSheet) and forms (AddReminderSheet).
  * Built on Base UI's Drawer: focus moves in and stays in; a tap outside, Escape or swiping
- * it down closes it (the sheet follows the finger); it slides in and out with sheet-slide
- * and its backdrop fades (Inventory → Motion 1). The handle bar invites the swipe.
+ * it down closes it (the sheet follows the finger), unless dismissible is false; it slides in
+ * and out with sheet-slide and its backdrop fades (Inventory → Motion 1). The handle bar invites
+ * the swipe. A card moves up with the on-screen keyboard (sheet-card-bottom).
  * - card: a floating card above the bottom edge (confirmations).
  * - full: attached to the bottom edge, full width, rounded top (forms). With snapPoints it
  *   is full height (below the status bar) and rests at the first snap point (sheet-tall).
@@ -16,7 +17,7 @@ import { cn } from '../../lib/cn'
 const viewport = cva('fixed flex justify-center', {
   variants: {
     layout: {
-      card: 'inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))]',
+      card: 'inset-x-3 sheet-card-bottom',
       full: 'inset-x-0 bottom-0',
     },
   },
@@ -25,7 +26,7 @@ const viewport = cva('fixed flex justify-center', {
 const popup = cva('flex w-full flex-col bg-bg2 shadow-md sheet-slide focus-visible:outline-none', {
   variants: {
     layout: {
-      card: 'max-w-sm items-center gap-3 rounded-lg px-5 pt-3 pb-5 text-center',
+      card: 'max-w-sm items-center gap-3 rounded-lg px-5 pt-3 pb-5 text-center sheet-card-fit',
       full: 'max-w-lg rounded-t-lg pt-3',
     },
   },
@@ -42,6 +43,7 @@ export function Sheet({
   snapPoints,
   snapPoint,
   onSnapPointChange,
+  dismissible = true,
   className,
   children,
 }: {
@@ -57,6 +59,11 @@ export function Sheet({
   snapPoints?: Drawer.Root.SnapPoint[]
   snapPoint?: Drawer.Root.SnapPoint | null
   onSnapPointChange?: (snapPoint: Drawer.Root.SnapPoint | null) => void
+  /**
+   * false: a tap outside or a swipe doesn't close it and there's no handle bar. Escape still asks
+   * onOpenChange: the owner ignores it (ConfirmSheet's cancelOnly).
+   */
+  dismissible?: boolean
   className?: string
   children: ReactNode
 }) {
@@ -65,6 +72,7 @@ export function Sheet({
       open={open}
       onOpenChange={(next) => onOpenChange(next)}
       swipeDirection="down"
+      disablePointerDismissal={!dismissible}
       snapPoints={snapPoints}
       snapPoint={snapPoint}
       onSnapPointChange={(next) => onSnapPointChange?.(next)}
@@ -79,12 +87,16 @@ export function Sheet({
               // (role="dialog", focus on the first focusable element).
               {...(role ? { role } : {})}
               {...(initialFocus ? { initialFocus } : {})}
+              // Base UI's own switch: swipes on it don't move it at all.
+              {...(dismissible ? {} : { 'data-base-ui-swipe-ignore': '' })}
               className={cn(popup({ layout }), snapPoints && 'sheet-tall', className)}
             >
-              <span
-                aria-hidden="true"
-                className="mx-auto h-1 w-10 shrink-0 rounded-full bg-border"
-              />
+              {dismissible ? (
+                <span
+                  aria-hidden="true"
+                  className="mx-auto h-1 w-10 shrink-0 rounded-full bg-border"
+                />
+              ) : null}
               {children}
             </Drawer.Popup>
           </Drawer.Viewport>

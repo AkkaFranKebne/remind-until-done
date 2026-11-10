@@ -113,13 +113,14 @@ type API struct {
 	dispatcher Dispatcher
 	actions    ActionVerifier
 	limit      RateLimiter
+	deleting   *inFlight // DELETE /me calls running now, by uid
 }
 
 func New(log *slog.Logger, d Deps) *API {
 	return &API{
 		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users, accounts: d.Accounts,
 		reminders: d.Reminders, devices: d.Devices, invited: d.Invited, invoker: d.Invoker,
-		dispatcher: d.Dispatcher, actions: d.Actions, limit: d.Limit,
+		dispatcher: d.Dispatcher, actions: d.Actions, limit: d.Limit, deleting: newInFlight(),
 	}
 }
 

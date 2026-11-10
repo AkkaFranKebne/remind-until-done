@@ -2,7 +2,9 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -181,5 +183,56 @@ func TestEveryLimitedRouteDocuments429(t *testing.T) {
 				t.Errorf("%s %s: swagger.json has no 429 answer", strings.ToUpper(method), path)
 			}
 		}
+	}
+}
+
+// slowFirebase plays a Firebase slowdown: Delete waits until the test lets it go.
+type slowFirebase struct {
+	fakeAccounts
+	started chan struct{}
+	release chan struct{}
+}
+
+func (f *slowFirebase) Delete(ctx context.Context, uid string) error {
+	f.started <- struct{}{}
+	<-f.release
+	return f.fakeAccounts.Delete(ctx, uid)
+}
+
+func TestOnlyOneDeleteMeAtATimePerUser(t *testing.T) {
+	firebase := &slowFirebase{
+		fakeAccounts: fakeAccounts{gone: map[string]bool{}},
+		started:      make(chan struct{}),
+		release:      make(chan struct{}),
+	}
+	h := New(logging.New(io.Discard), Deps{
+		DB: fakeDB{},
+		Tokens: fakeTokens{
+			invitedToken: {UID: "u1", Email: "ewa@example.com", EmailVerified: true, SignInProvider: auth.GoogleProvider},
+		},
+		Users:    &fakeUsers{byUID: map[string]users.User{"u1": {ID: "id-u1", FirebaseUID: "u1"}}},
+		Accounts: firebase,
+		Invited:  auth.NewAllowlist("ewa@example.com"),
+		Limit:    ratelimit.New(60),
+	}).Router()
+
+	first := make(chan int)
+	go func() { first <- request(h, "DELETE", "/api/v1/me", invitedToken, "").Code }()
+	<-firebase.started // the first one now holds its row (and connection) while Firebase is slow
+
+	second := request(h, "DELETE", "/api/v1/me", invitedToken, "")
+	if second.Code != http.StatusTooManyRequests || second.Header().Get("Retry-After") != "15" {
+		t.Fatalf("a second delete while the first runs: %d, Retry-After %q, want 429 and 15",
+			second.Code, second.Header().Get("Retry-After"))
+	}
+
+	close(firebase.release)
+	if code := <-first; code != http.StatusNoContent {
+		t.Fatalf("the first delete: %d, want 204", code)
+	}
+	// Finished, so the next one runs (already gone: 204 again).
+	go func() { <-firebase.started }()
+	if rec := request(h, "DELETE", "/api/v1/me", invitedToken, ""); rec.Code != http.StatusNoContent {
+		t.Fatalf("a delete after the first finished: %d %s, want 204", rec.Code, rec.Body.String())
 	}
 }

@@ -21,3 +21,6 @@ __pycache__/
 
 # Personal Claude Code settings (permissions you approved on your machine)
 .claude/settings.local.json
+
+# Personal Terraform settings (alert email, billing account): see infra/envs/local.tfvars.example
+infra/envs/*.local.tfvars

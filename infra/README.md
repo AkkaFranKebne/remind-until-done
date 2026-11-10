@@ -16,9 +16,11 @@ infra/
   cloud_run.tf         Go API service
   cloud_tasks.tf       reminders queue
   scheduler.tf         daily /internal/sweep job (03:00 UTC)
+  monitoring.tf        budget (SEK), uptime check and alerts, mailed to alert_email
   outputs.tf
   envs/dev.tfvars
   envs/prod.tfvars
+  envs/local.tfvars.example   copy to envs/<env>.local.tfvars (git-ignored): alert email, billing account
 ```
 `firebase.json` (Hosting config, `/api/**` -> Cloud Run) lives outside Terraform.
 
@@ -38,6 +40,12 @@ terraform init -reconfigure -backend-config="bucket=rud-tfstate-dev" -backend-co
 ```
 Use `-reconfigure` when switching between dev and prod state.
 
+Personal settings (the alert email and the billing account) stay out of the repo: copy
+`envs/local.tfvars.example` to `envs/dev.local.tfvars` and `envs/prod.local.tfvars`, fill them in,
+and pass the file after the env file on every plan and apply:
+`-var-file=envs/dev.tfvars -var-file=envs/dev.local.tfvars`. Applying the budget needs your login
+to be an admin (or costs manager) of the billing account.
+
 1. Enable the APIs and create the empty secrets:
 ```
 terraform apply -var-file=envs/dev.tfvars \
@@ -52,8 +60,8 @@ printf '%s' "$ALLOWED_EMAILS" | gcloud secrets versions add allowed-emails   --d
 ```
 3. Create everything else:
 ```
-terraform plan  -var-file=envs/dev.tfvars
-terraform apply -var-file=envs/dev.tfvars
+terraform plan  -var-file=envs/dev.tfvars -var-file=envs/dev.local.tfvars -out=dev.tfplan
+terraform apply dev.tfplan
 ```
 
 Copy the `wif_provider` and `deployer_sa_email` outputs into GitHub environment

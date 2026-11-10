@@ -16,6 +16,7 @@ locals {
     "monitoring.googleapis.com",            # uptime check and alerts (monitoring.tf)
     "logging.googleapis.com",               # the log-based push metric
     "billingbudgets.googleapis.com",        # the budget
+    "apikeys.googleapis.com",               # managing the browser key's restrictions (firebase.tf)
   ]
 }
 

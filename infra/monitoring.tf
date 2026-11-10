@@ -239,7 +239,7 @@ resource "google_monitoring_alert_policy" "lost_tasks" {
 # Mails at 50% and 100% of what this project spends, to the alert address and, as Google does by
 # default, to the billing account's admins. It only warns: nothing is switched off.
 resource "google_billing_budget" "monthly" {
-  provider        = google.billing
+  provider        = google.quota
   billing_account = var.billing_account
   display_name    = "rud ${var.env} monthly"
 

@@ -12,7 +12,7 @@ class ToJdbc(unittest.TestCase):
         self.assertEqual(
             t.to_flyway(NEON),
             {
-                "FLYWAY_URL": "jdbc:postgresql://ep-cool-name-123.eu-central-1.aws.neon.tech/rud?sslmode=require",
+                "FLYWAY_URL": "jdbc:postgresql://ep-cool-name-123.eu-central-1.aws.neon.tech/rud?sslmode=verify-full&sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory",
                 "FLYWAY_USER": "rud_owner",
                 "FLYWAY_PASSWORD": "s3cret",
             },
@@ -22,9 +22,9 @@ class ToJdbc(unittest.TestCase):
         url = NEON.replace("-pooler", "")
         self.assertIn("//ep-cool-name-123.eu-central-1", t.to_flyway(url)["FLYWAY_URL"])
 
-    def test_port_kept_and_sslmode_defaults_to_require(self):
+    def test_port_kept(self):
         s = t.to_flyway("postgres://u:p@localhost:5433/rud")
-        self.assertEqual(s["FLYWAY_URL"], "jdbc:postgresql://localhost:5433/rud?sslmode=require")
+        self.assertEqual(s["FLYWAY_URL"], f"jdbc:postgresql://localhost:5433/rud?{t.VERIFY_FULL}")
 
     def test_percent_encoded_password_is_decoded(self):
         self.assertEqual(t.to_flyway("postgres://u:a%40b%2Fc@h/rud")["FLYWAY_PASSWORD"], "a@b/c")
@@ -32,10 +32,11 @@ class ToJdbc(unittest.TestCase):
     def test_trailing_newline_is_ignored(self):
         self.assertEqual(t.to_flyway(NEON + "\n")["FLYWAY_PASSWORD"], "s3cret")
 
-    def test_every_safe_sslmode_is_accepted(self):
+    def test_tls_is_always_verify_full_whatever_the_url_says(self):
         for mode in t.SSL_MODES:
             with self.subTest(mode=mode):
-                self.assertTrue(t.to_flyway(f"postgres://u:p@h/rud?sslmode={mode}")["FLYWAY_URL"].endswith(mode))
+                url = t.to_flyway(f"postgres://u:p@h/rud?sslmode={mode}")["FLYWAY_URL"]
+                self.assertTrue(url.endswith("?" + t.VERIFY_FULL), url)
 
     def test_bad_urls_are_refused(self):
         for bad in [

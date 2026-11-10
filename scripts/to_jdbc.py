@@ -2,14 +2,18 @@
 """Turns a Postgres URL (Neon's format) into Flyway's settings.
 
 Neon gives:   postgresql://user:password@ep-x-pooler.eu-central-1.aws.neon.tech/rud?sslmode=require
-Flyway needs: FLYWAY_URL=jdbc:postgresql://ep-x.eu-central-1.aws.neon.tech/rud?sslmode=require
+Flyway needs: FLYWAY_URL=jdbc:postgresql://ep-x.eu-central-1.aws.neon.tech/rud?sslmode=verify-full&sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory
               FLYWAY_USER=user
               FLYWAY_PASSWORD=password
 
 - The URL is read from stdin, never from the command line, so it doesn't show up in the
   list of running processes.
 - "-pooler" is removed from the host: migrations use Neon's direct connection (design doc 6.5).
-- Only sslmode is kept from the query (the Java driver doesn't know Neon's other options).
+- TLS is always verify-full: encrypted, and the certificate must be valid for the host
+  (decision 86). DefaultJavaSSLFactory checks it against Java's trusted roots, which include
+  Let's Encrypt (Neon's); the driver's own default wants a root.crt file instead. The URL's
+  sslmode is still checked, but can't weaken this. The Java driver doesn't know Neon's other
+  options, so they're dropped.
 - Everything that ends up in FLYWAY_URL is checked against a strict pattern, so a crafted
   value can't add extra driver settings (some of them load code).
 
@@ -21,6 +25,7 @@ import sys
 from urllib.parse import parse_qs, unquote, urlsplit
 
 SSL_MODES = {"disable", "require", "verify-ca", "verify-full"}
+VERIFY_FULL = "sslmode=verify-full&sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory"
 HOST = re.compile(r"[A-Za-z0-9.-]+")
 DATABASE = re.compile(r"[A-Za-z0-9_-]+")
 
@@ -45,7 +50,7 @@ def to_flyway(url: str) -> dict[str, str]:
         raise ValueError(f"sslmode must be one of {sorted(SSL_MODES)}")
 
     settings = {
-        "FLYWAY_URL": f"jdbc:postgresql://{host}{port}/{database}?sslmode={sslmode}",
+        "FLYWAY_URL": f"jdbc:postgresql://{host}{port}/{database}?{VERIFY_FULL}",
         "FLYWAY_USER": unquote(parts.username),
         "FLYWAY_PASSWORD": unquote(parts.password),
     }

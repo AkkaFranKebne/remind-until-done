@@ -35,7 +35,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	pool, err := db.Open(context.Background(), cfg.DatabaseURL)
+	// Outside a laptop, the database's certificate is always checked (db.Config).
+	pool, err := db.Open(context.Background(), cfg.DatabaseURL, cfg.Env != "local")
 	if err != nil {
 		log.Error("database", "err", err)
 		os.Exit(1)

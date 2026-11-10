@@ -39,7 +39,7 @@ func Start(t *testing.T) *pgxpool.Pool {
 		t.Fatal(err)
 	}
 
-	pool, err := db.Open(ctx, url)
+	pool, err := db.Open(ctx, url, false) // the test container has no TLS
 	if err != nil {
 		t.Fatal(err)
 	}

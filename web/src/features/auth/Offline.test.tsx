@@ -32,6 +32,26 @@ describe('losing the connection while using the app', () => {
   })
 })
 
+describe('the Settings icon while offline', () => {
+  it('hides on the list, so there is no tap that seems to do nothing, and comes back online', async () => {
+    mockMe()
+    mockReminders({})
+    server.use(http.get('*/api/v1/healthz', () => HttpResponse.error()))
+    renderApp('/', new FakeAuthClient(tester))
+    const settings = { name: /settings/i }
+    expect(await screen.findByRole('link', settings)).toBeInTheDocument()
+
+    act(() => onlineManager.setOnline(false))
+
+    expect(screen.getByRole('heading', OFFLINE)).toBeInTheDocument()
+    expect(screen.queryByRole('link', settings)).toBeNull()
+
+    act(() => onlineManager.setOnline(true))
+
+    expect(screen.getByRole('link', settings)).toBeInTheDocument()
+  })
+})
+
 describe('opening the app with no connection', () => {
   it('the browser already says offline: it shows the message, not the splash forever', async () => {
     onlineManager.setOnline(false)

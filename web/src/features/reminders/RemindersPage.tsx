@@ -143,8 +143,8 @@ export function RemindersPage() {
     <AppScreen
       tone="brand"
       background={shell[filter ?? 'all']}
-      // Only on the empty state (Inventory): with reminders, the tiles start right under the bar.
-      contextLine={nothingAtAll ? 'Nothing nagging you yet.' : undefined}
+      // With reminders, the tiles start right under the bar. No context line on the empty state:
+      // the empty message in the middle already says it (owner, 2026-11-10).
       tight={!nothingAtAll}
     >
       <h1 className="sr-only">Your reminders</h1>

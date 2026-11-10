@@ -6,6 +6,11 @@ import { Button } from './Button'
 
 /** While this shows, how often to look for the connection coming back. */
 const RECHECK_MS = 15_000
+/**
+ * The least time Try again spins. In flight mode Android fails the check at once, so the spinner
+ * only blinked and the tap looked like it did nothing.
+ */
+const MIN_BUSY_MS = 1000
 
 /** The message itself. Design Inventory → Phone Screens → "Offline — no cache". */
 export function OfflineMessage({
@@ -82,7 +87,14 @@ export function OfflineContent({ onBack }: { onBack?: () => void }) {
     onlineManager.setOnline(true)
     back.current?.()
   })
-  const tap = useMutation({ mutationFn: () => check.current(), networkMode: 'always' })
+  const tap = useMutation({
+    mutationFn: () =>
+      Promise.all([
+        check.current(),
+        new Promise((resolve) => window.setTimeout(resolve, MIN_BUSY_MS)),
+      ]),
+    networkMode: 'always',
+  })
 
   useEffect(() => {
     void check.current() // at once: one failed request may have been a blip

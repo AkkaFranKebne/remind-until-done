@@ -1,9 +1,9 @@
 import { ApiError } from './mutator'
-import { errorText, SLOW_DOWN } from './errorText'
+import { ERROR, errorText } from './errorText'
 
 test('a 429 says to slow down', () => {
   expect(errorText(new ApiError(429, 'rate_limited', 'x'), "Couldn't save. Try again.")).toBe(
-    SLOW_DOWN,
+    ERROR.slowDown,
   )
 })
 

@@ -3,11 +3,11 @@ import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
 import { TextField } from '../../components/ui/TextField'
+import { ERROR, errorText } from '../../lib/api/errorText'
 import { deleteMe } from '../../lib/api/generated/user/user'
 import { forgetDeletedDevice } from '../notifications/forgetThisDevice'
 import { usePushClient } from '../notifications/usePushClient'
 import { useAuth } from './useAuth'
-import { errorText } from '../../lib/api/errorText'
 
 const CONFIRM_WORD = 'DELETE'
 
@@ -66,7 +66,7 @@ export function DeleteAccountSheet({
           />
           {remove.isError ? (
             <p role="alert" className="text-sm text-error-text">
-              {errorText(remove.error, 'Something went wrong. Try again in a moment.')}
+              {errorText(remove.error, ERROR.generic)}
             </p>
           ) : null}
         </div>

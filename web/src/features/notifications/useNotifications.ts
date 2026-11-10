@@ -127,6 +127,10 @@ function useBrowserState() {
   return { standalone, permission, supported: supported.data, devices: devices.data?.items }
 }
 
+/** The toast after this device takes the pushes back from another one (Settings and the list). */
+export const MOVED_HERE_TOAST =
+  'You are now receiving notifications on this device; the previous device has been removed.'
+
 export function useNotifications() {
   const { standalone, permission, supported, devices } = useBrowserState()
   const register = useRegister()

@@ -7,7 +7,7 @@ import { useToast } from '../../components/ui/useToast'
 import { readIos, type Ios } from '../pwa/platform'
 import { TabInstallHint } from '../pwa/TabInstallHint'
 import { FindRud, MacMutedTip, PreviewsTip } from './DeviceTips'
-import { useNotifications, type NotificationState } from './useNotifications'
+import { MOVED_HERE_TOAST, useNotifications, type NotificationState } from './useNotifications'
 
 /**
  * The bell's tile: green when on, the error colour when blocked, gold when pushes go nowhere or
@@ -136,9 +136,7 @@ export function NotificationsSection() {
     enable({
       onSuccess: (device) => {
         if (device && state === 'elsewhere') {
-          toast.success(
-            'You are now receiving notifications on this device; the previous device has been removed.',
-          )
+          toast.success(MOVED_HERE_TOAST)
         }
       },
       onError: () => toast.error("Couldn't turn on notifications. Try again."),

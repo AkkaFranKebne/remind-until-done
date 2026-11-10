@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { Bell, BellOff, Download, X } from 'lucide-react'
+import { Bell, BellOff, Download, Smartphone, X } from 'lucide-react'
 import { Banner, BannerButton, BannerLink } from './Banner'
 import { IconButton } from './IconButton'
 
@@ -60,6 +60,28 @@ export const WithLink: Story = {
       </>
     ),
   },
+}
+
+/** NotifBanner when another device has the pushes: the longest action label, at a small phone's width. */
+export const PushesElsewhere: Story = {
+  args: {
+    label: 'Pushes go to another device',
+    icon: Smartphone,
+    children: "Pushes won't reach you here.",
+    actions: (
+      <>
+        <BannerButton>Use this device</BannerButton>
+        <BannerButton quiet>Later</BannerButton>
+      </>
+    ),
+  },
+  decorators: [
+    (Story) => (
+      <div className="max-w-80">
+        <Story />
+      </div>
+    ),
+  ],
 }
 
 /** InstallBanner: the action and ✕. `live`: the line is a status, announced when it changes. */

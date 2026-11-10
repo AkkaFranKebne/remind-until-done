@@ -33,6 +33,7 @@ export function notificationStateOf({
   devices,
   myDeviceId,
   registering,
+  startPending = false,
 }: {
   standalone: boolean
   /** undefined: still asking the browser. */
@@ -42,6 +43,11 @@ export function notificationStateOf({
   devices: Device[] | undefined
   myDeviceId: string | null
   registering: boolean
+  /**
+   * This app start's own registration hasn't been tried yet. It runs in an effect, after the first
+   * render with the devices: without this, "no device" would flash "lost" before it starts.
+   */
+  startPending?: boolean
 }): NotificationState {
   if (!standalone) return 'needs-install'
   if (supported === false || permission === 'unsupported') return 'unsupported'
@@ -50,7 +56,7 @@ export function notificationStateOf({
   if (permission === 'default') return registering ? 'checking' : 'off'
   if (registering || !devices) return 'checking'
   const [device] = devices
-  if (!device) return 'lost'
+  if (!device) return startPending ? 'checking' : 'lost'
   return device.id === myDeviceId ? 'on' : 'elsewhere'
 }
 
@@ -127,6 +133,10 @@ function useBrowserState() {
   return { standalone, permission, supported: supported.data, devices: devices.data?.items }
 }
 
+/** The toast after this device takes the pushes back from another one (Settings and the list). */
+export const MOVED_HERE_TOAST =
+  'You are now receiving notifications on this device; the previous device has been removed.'
+
 export function useNotifications() {
   const { standalone, permission, supported, devices } = useBrowserState()
   const register = useRegister()
@@ -139,6 +149,7 @@ export function useNotifications() {
     devices,
     myDeviceId: loadDeviceId(),
     registering,
+    startPending: !registeredThisStart,
   })
 
   return {

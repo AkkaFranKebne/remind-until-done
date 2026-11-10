@@ -1,13 +1,43 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../mocks/server'
-import { pretendInstalled, pretendNotifications, resetDevice } from '../../test-utils/device'
+import type { Device } from '../../lib/api/generated/model'
+import {
+  pretendDeviceId,
+  pretendInstalled,
+  pretendNotifications,
+  resetDevice,
+} from '../../test-utils/device'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
+import { FakePushClient } from '../../test-utils/fakePushClient'
 import { mockMe, renderApp } from '../../test-utils/renderApp'
 
 const HOUR = 60 * 60 * 1000
 
 const banner = () => screen.findByRole('region', { name: 'Turn on notifications' })
+
+const device = (id: string): Device => ({
+  id,
+  platform: 'web',
+  userAgent: null,
+  createdAt: '2026-10-21T08:00:00Z',
+  lastSeenAt: '2026-10-21T08:00:00Z',
+})
+
+/** The fake API's device: `registered` at first; POST makes this one `newId`. */
+function mockDevices(registered: Device | null, newId = 'd-new') {
+  let current = registered
+  let posts = 0
+  server.use(
+    http.get('*/api/v1/devices', () => HttpResponse.json({ items: current ? [current] : [] })),
+    http.post('*/api/v1/devices', () => {
+      posts += 1
+      current = device(newId)
+      return HttpResponse.json(current)
+    }),
+  )
+  return { posts: () => posts }
+}
 
 describe('NotifBanner (the list)', () => {
   beforeEach(() => mockMe())
@@ -164,5 +194,91 @@ describe('NotifBanner (the list)', () => {
     renderApp('/', new FakeAuthClient(tester))
     expect(await screen.findByRole('heading', { name: 'Your reminders' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Turn on notifications' })).not.toBeInTheDocument()
+  })
+
+  it('another device has the pushes: says so, and Use this device takes them back here', async () => {
+    pretendInstalled()
+    pretendNotifications('granted')
+    pretendDeviceId('d1')
+    const api = mockDevices(device('d-other'), 'd2')
+    renderApp('/', new FakeAuthClient(tester))
+
+    const warning = await screen.findByRole('region', { name: 'Pushes go to another device' })
+    expect(warning).toHaveTextContent("Pushes won't reach you here.")
+    expect(api.posts()).toBe(0) // never taken back without the tap
+
+    fireEvent.click(screen.getByRole('button', { name: 'Use this device' }))
+
+    expect(
+      await screen.findByText(
+        'You are now receiving notifications on this device; the previous device has been removed.',
+      ),
+    ).toBeInTheDocument()
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('region', { name: 'Pushes go to another device' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(localStorage.getItem('rud.deviceId')).toBe('d2')
+  })
+
+  it('another device has the pushes: Later hides it for a day', async () => {
+    pretendInstalled()
+    pretendNotifications('granted')
+    pretendDeviceId('d1')
+    mockDevices(device('d-other'))
+    renderApp('/', new FakeAuthClient(tester))
+    await screen.findByRole('region', { name: 'Pushes go to another device' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Later' }))
+
+    expect(
+      screen.queryByRole('region', { name: 'Pushes go to another device' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('signed in again with no device: no flash of the warning while the app registers itself', async () => {
+    pretendInstalled()
+    pretendNotifications('granted')
+    mockDevices(null)
+    const seen: string[] = []
+    // Every banner ever added, even one removed again before anyone looks.
+    const watch = new MutationObserver((changes) => {
+      for (const change of changes) {
+        for (const node of change.addedNodes) {
+          if (!(node instanceof Element)) continue
+          for (const region of [node, ...node.querySelectorAll('section[aria-label]')]) {
+            const name = region.getAttribute('aria-label')
+            if (name) seen.push(name)
+          }
+        }
+      }
+    })
+    watch.observe(document.body, { childList: true, subtree: true })
+    renderApp('/', new FakeAuthClient(tester))
+
+    await waitFor(() => expect(localStorage.getItem('rud.deviceId')).toBe('d-new'))
+    watch.disconnect()
+    expect(seen).not.toContain('No device registered')
+  })
+
+  it('registering this device failed: says so, and Re-register tries again', async () => {
+    pretendInstalled()
+    pretendNotifications('granted')
+    mockDevices(null)
+    const token = { fails: true } // token requests fail until the test flips this
+    renderApp('/', new FakeAuthClient(tester), new FakePushClient(token))
+
+    const warning = await screen.findByRole('region', { name: 'No device registered' })
+    expect(warning).toHaveTextContent("Pushes won't reach you.")
+
+    token.fails = false
+    fireEvent.click(screen.getByRole('button', { name: 'Re-register' }))
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('region', { name: 'No device registered' }),
+      ).not.toBeInTheDocument(),
+    )
   })
 })

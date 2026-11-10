@@ -268,7 +268,10 @@ export function ReminderDetail({
               size="lg"
               icon={Check}
               loading={markDone.isPending}
-              onClick={() => markDone.mutate({ id: reminder.id })}
+              onClick={() => {
+                remove.reset() // the message below is about the newest try
+                markDone.mutate({ id: reminder.id })
+              }}
             >
               Done
             </Button>
@@ -291,7 +294,10 @@ export function ReminderDetail({
         cancelLabel="Keep it"
         danger
         confirming={remove.isPending}
-        onConfirm={() => remove.mutate({ id: reminder.id })}
+        onConfirm={() => {
+          markDone.reset()
+          remove.mutate({ id: reminder.id })
+        }}
       >
         We&apos;ll stop nagging. Just this once.
       </ConfirmSheet>

@@ -57,8 +57,11 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
         void loadMe(queryClient, user).then(({ next, signOut, again }) => {
           if (run !== current) return
           if (again) {
+            // The splash while it waits, also after Try again on the offline screen: the
+            // connection is fine, so "offline" would be wrong.
+            setState(next)
             later = window.setTimeout(load, RATE_LIMITED_RETRY_MS)
-            return // still "checking": the splash stays
+            return
           }
           setState(next) // first show the result ...
           // ... then sign out (that event keeps this state). A failed sign-out changes nothing.

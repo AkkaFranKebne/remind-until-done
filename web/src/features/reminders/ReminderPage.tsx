@@ -12,7 +12,7 @@ import { useMe } from '../auth/useMe'
 import { ReminderDetail } from './ReminderDetail'
 import { pollAfterCountdown } from './reminderState'
 import { useListSearch } from './useListSearch'
-import { errorText } from '../../lib/api/errorText'
+import { ERROR, errorText } from '../../lib/api/errorText'
 
 /**
  * /r/:id: loads one reminder (GET /reminders/:id) and shows it (ReminderDetail). A tapped
@@ -81,9 +81,7 @@ export function ReminderPage() {
           role="alert"
           className="flex flex-col items-start gap-3 rounded-md bg-bg2 p-4 shadow-sm"
         >
-          <p className="text-base text-fg">
-            {errorText(reminder.error, 'Something went wrong. Try again in a moment.')}
-          </p>
+          <p className="text-base text-fg">{errorText(reminder.error, ERROR.generic)}</p>
           <Button variant="ghost" onClick={() => void reminder.refetch()}>
             Try again
           </Button>

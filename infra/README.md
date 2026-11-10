@@ -46,6 +46,10 @@ and pass the file after the env file on every plan and apply:
 `-var-file=envs/dev.tfvars -var-file=envs/dev.local.tfvars`. Applying the budget needs your login
 to be an admin (or costs manager) of the billing account.
 
+A resource that reads an API before Terraform has switched it on (the browser key needs the API
+Keys API) fails at plan time on a fresh project: apply the API first with
+`-target='google_project_service.enabled["apikeys.googleapis.com"]'`, then plan everything.
+
 1. Enable the APIs and create the empty secrets:
 ```
 terraform apply -var-file=envs/dev.tfvars \

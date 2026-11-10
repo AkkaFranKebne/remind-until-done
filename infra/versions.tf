@@ -20,10 +20,11 @@ provider "google-beta" {
   region  = var.region
 }
 
-# Only for the budget: the Budget API needs a project to bill its quota to when you apply with your
-# own login (ADC). Kept to this one alias, so nothing else changes how it calls Google.
+# For the APIs that need a project to bill their quota to when you apply with your own login (ADC):
+# the Budget API (monitoring.tf) and the API Keys API (firebase.tf). Only resources that name this
+# alias use it, so nothing else changes how it calls Google.
 provider "google" {
-  alias                 = "billing"
+  alias                 = "quota"
   project               = var.project_id
   region                = var.region
   user_project_override = true

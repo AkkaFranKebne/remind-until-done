@@ -62,7 +62,7 @@ export const WithLink: Story = {
   },
 }
 
-/** NotifBanner when another device has the pushes: the longest action label, at phone width. */
+/** NotifBanner when another device has the pushes: the longest action label, at a small phone's width. */
 export const PushesElsewhere: Story = {
   args: {
     label: 'Pushes go to another device',
@@ -75,6 +75,13 @@ export const PushesElsewhere: Story = {
       </>
     ),
   },
+  decorators: [
+    (Story) => (
+      <div className="max-w-80">
+        <Story />
+      </div>
+    ),
+  ],
 }
 
 /** InstallBanner: the action and ✕. `live`: the line is a status, announced when it changes. */

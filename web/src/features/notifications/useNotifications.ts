@@ -33,6 +33,7 @@ export function notificationStateOf({
   devices,
   myDeviceId,
   registering,
+  startPending = false,
 }: {
   standalone: boolean
   /** undefined: still asking the browser. */
@@ -42,6 +43,11 @@ export function notificationStateOf({
   devices: Device[] | undefined
   myDeviceId: string | null
   registering: boolean
+  /**
+   * This app start's own registration hasn't been tried yet. It runs in an effect, after the first
+   * render with the devices: without this, "no device" would flash "lost" before it starts.
+   */
+  startPending?: boolean
 }): NotificationState {
   if (!standalone) return 'needs-install'
   if (supported === false || permission === 'unsupported') return 'unsupported'
@@ -50,7 +56,7 @@ export function notificationStateOf({
   if (permission === 'default') return registering ? 'checking' : 'off'
   if (registering || !devices) return 'checking'
   const [device] = devices
-  if (!device) return 'lost'
+  if (!device) return startPending ? 'checking' : 'lost'
   return device.id === myDeviceId ? 'on' : 'elsewhere'
 }
 
@@ -143,6 +149,7 @@ export function useNotifications() {
     devices,
     myDeviceId: loadDeviceId(),
     registering,
+    startPending: !registeredThisStart,
   })
 
   return {

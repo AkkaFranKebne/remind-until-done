@@ -39,6 +39,8 @@ describe('notificationStateOf (decision 43)', () => {
     expect(notificationStateOf({ ...base, devices: [device('d2')] })).toBe('elsewhere')
     expect(notificationStateOf({ ...base, myDeviceId: null })).toBe('elsewhere')
     expect(notificationStateOf({ ...base, devices: [] })).toBe('lost')
+    // Before this start's own registration has run: still checking, so nothing flashes "lost".
+    expect(notificationStateOf({ ...base, devices: [], startPending: true })).toBe('checking')
   })
 
   it('still asking, or registering: checking', () => {

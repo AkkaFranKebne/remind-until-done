@@ -237,11 +237,36 @@ describe('NotifBanner (the list)', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('signed in again with no device: no flash of the warning while the app registers itself', async () => {
+    pretendInstalled()
+    pretendNotifications('granted')
+    mockDevices(null)
+    const seen: string[] = []
+    // Every banner ever added, even one removed again before anyone looks.
+    const watch = new MutationObserver((changes) => {
+      for (const change of changes) {
+        for (const node of change.addedNodes) {
+          if (!(node instanceof Element)) continue
+          for (const region of [node, ...node.querySelectorAll('section[aria-label]')]) {
+            const name = region.getAttribute('aria-label')
+            if (name) seen.push(name)
+          }
+        }
+      }
+    })
+    watch.observe(document.body, { childList: true, subtree: true })
+    renderApp('/', new FakeAuthClient(tester))
+
+    await waitFor(() => expect(localStorage.getItem('rud.deviceId')).toBe('d-new'))
+    watch.disconnect()
+    expect(seen).not.toContain('No device registered')
+  })
+
   it('registering this device failed: says so, and Re-register tries again', async () => {
     pretendInstalled()
     pretendNotifications('granted')
     mockDevices(null)
-    const token = { fails: true } // the first token request fails, later ones work
+    const token = { fails: true } // token requests fail until the test flips this
     renderApp('/', new FakeAuthClient(tester), new FakePushClient(token))
 
     const warning = await screen.findByRole('region', { name: 'No device registered' })

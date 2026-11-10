@@ -10,12 +10,45 @@ import (
 )
 
 func TestOpenRejectsBadURLWithoutLeakingIt(t *testing.T) {
-	_, err := db.Open(context.Background(), "postgres://user:s3cret@host:notaport/rud")
+	_, err := db.Open(context.Background(), "postgres://user:s3cret@host:notaport/rud", false)
 	if err == nil {
 		t.Fatal("Open() error = nil, want an error for a bad URL")
 	}
 	if got := err.Error(); got != "DATABASE_URL is not a valid Postgres URL" {
 		t.Errorf("Open() error = %q, must not quote the URL", got)
+	}
+}
+
+func TestDevAndProdAlwaysVerifyTheServer(t *testing.T) {
+	// What Neon's URL says, and weaker: none of them may switch the check off.
+	for _, mode := range []string{"require", "prefer", "allow", "disable", "verify-ca"} {
+		t.Run(mode, func(t *testing.T) {
+			url := "postgres://u:p@ep-x-pooler.eu-central-1.aws.neon.tech/rud?sslmode=" + mode
+			cfg, err := db.Config(url, true)
+			if err != nil {
+				t.Fatal(err)
+			}
+			tls := cfg.ConnConfig.TLSConfig
+			if tls == nil || tls.InsecureSkipVerify || tls.ServerName != "ep-x-pooler.eu-central-1.aws.neon.tech" {
+				t.Fatalf("TLS = %+v, want the certificate checked for the host", tls)
+			}
+			if tls.RootCAs != nil {
+				t.Error("RootCAs set: want the system's trusted roots")
+			}
+			if len(cfg.ConnConfig.Fallbacks) != 0 {
+				t.Errorf("%d fallbacks: a connection without TLS must not be tried", len(cfg.ConnConfig.Fallbacks))
+			}
+		})
+	}
+}
+
+func TestLocallyTheURLDecides(t *testing.T) {
+	cfg, err := db.Config("postgres://rud:rud@localhost:5432/rud?sslmode=disable", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.ConnConfig.TLSConfig != nil {
+		t.Error("TLS set for the local database, which has none")
 	}
 }
 

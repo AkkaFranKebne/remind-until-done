@@ -12,7 +12,7 @@ infra/
   artifact_registry.tf Docker repo for the Go image
   service_accounts.tf  runtime SA + invoker SA (OIDC for Tasks/Scheduler)
   wif.tf               GitHub Actions deploy identity (Workload Identity Federation)
-  secrets.tf           Secret Manager containers (values set out-of-band)
+  secrets.tf           Secret Manager containers (values set out-of-band); database-url (API, rud_app), database-migrate-url (Flyway, owner)
   cloud_run.tf         Go API service
   cloud_tasks.tf       reminders queue
   scheduler.tf         daily /internal/sweep job (03:00 UTC)
@@ -71,6 +71,57 @@ terraform apply dev.tfplan
 Copy the `wif_provider` and `deployer_sa_email` outputs into GitHub environment
 variables `WIF_PROVIDER` and `DEPLOYER_SA`. Terraform is applied manually from a
 laptop in v1; the CI identity cannot change infrastructure.
+
+## The app's database role (once per environment, dev first; decision 86)
+The API logs in as `rud_app`, which may only read and write rows; Flyway keeps the owner's login
+for schema changes. Two secrets: `database-url` (the API, `rud_app`) and `database-migrate-url`
+(Flyway in `deploy.yml`, the owner). Migration `V4__app_role.sql` creates `rud_app` without login
+and grants its rights; the password is set by hand here and never goes into the repo. Nothing
+below prints a password. `P` is the project, e.g. `rud-dev-4f7k2`.
+
+1. Apply Terraform (the new secret; the deployer reads it instead of `database-url`), then fill it
+   with today's owner URL straight away, and merge the PR right after: until then a deploy of the
+   old `main` can't read its secret and stops before Cloud Run.
+```
+terraform apply dev.tfplan
+set -o pipefail   # a failed read must not add an empty version
+gcloud secrets versions access latest --secret=database-url --project=P \
+  | gcloud secrets versions add database-migrate-url --data-file=- --project=P
+```
+   For prod: the apply and this copy must happen before the next prod deploy run (which reads the
+   new secret); if forgotten, that run stops at Flyway, before Cloud Run, and prod keeps serving.
+2. Merge. The deploy runs `V4` as the owner: `rud_app` exists now, without login.
+3. In the Neon console → SQL Editor (that environment's database), turn its login on with a new
+   password (`openssl rand -base64 24 | pbcopy` puts one on the clipboard without showing it; keep
+   it only as long as the next step needs). Neon's rule for passwords set in SQL: at least 60 bits
+   of entropy, which this easily has. Afterwards delete that query from the editor's history.
+```
+ALTER ROLE rud_app WITH LOGIN PASSWORD '<the password>';
+```
+4. Point `database-url` at `rud_app` (same host and database as the owner URL; the password is
+   read without showing it):
+```
+set -o pipefail
+read -rs APP_PW   # paste the password: nothing shows, nothing goes into the history
+gcloud secrets versions access latest --secret=database-migrate-url --project=P \
+  | APP_PW="$APP_PW" python3 -c 'import os,sys,urllib.parse as u; p=u.urlsplit(sys.stdin.read().strip()); port=f":{p.port}" if p.port else ""; print(p._replace(netloc="rud_app:"+u.quote(os.environ["APP_PW"],safe="")+"@"+p.hostname+port).geturl(), end="")' \
+  | gcloud secrets versions add database-url --data-file=- --project=P
+unset APP_PW
+```
+5. Start a new revision (re-run the latest `deploy` workflow, or the next merge does it). Check:
+   the smoke test says `"database":"ok"`, and in Neon
+   `SELECT usename, count(*) FROM pg_stat_activity GROUP BY 1;` shows `rud_app`. If the API can't
+   connect, use Undo below straight away: the new revision serves even without a database.
+6. Disable the older versions of `database-url`: they still hold the owner's login, and the API's
+   service account may read every version, not only the latest.
+```
+gcloud secrets versions list database-url --project=P
+gcloud secrets versions disable <each older version number> --secret=database-url --project=P
+```
+
+Undo: add the owner URL back as a new version of `database-url` (the copy command of step 1,
+with the two secret names swapped) and start a new revision. Disable that version again when
+you switch back to `rud_app`.
 
 ## Add or remove a tester (invite list)
 The list is the `allowed-emails` secret (comma-separated Google emails). The API

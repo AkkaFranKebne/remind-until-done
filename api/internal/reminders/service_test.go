@@ -400,9 +400,7 @@ func TestALineProblemCantStopDone(t *testing.T) {
 	var logs bytes.Buffer
 	s := reminders.NewService(pool, &scheduling.Fake{}, logging.New(&logs))
 	r := create(t, s, user, "Bin day", in(1))
-	if _, err := pool.Exec(ctx, `ALTER TABLE nag_messages RENAME TO gone`); err != nil {
-		t.Fatal(err)
-	}
+	dbtest.AsOwner(t, pool, `ALTER TABLE nag_messages RENAME TO gone`)
 
 	done, err := s.MarkDone(ctx, user, r.ID)
 	if err != nil || done.Status != reminders.StatusDone || done.Line != nil {
@@ -480,11 +478,7 @@ func TestAnEditDuringAnActionWins(t *testing.T) {
 	// Wait until it's stuck on the edit's lock: it has passed the check and reached the UPDATE.
 	deadline := time.Now().Add(10 * time.Second)
 	for {
-		var waiting int
-		if err := pool.QueryRow(ctx, `SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock'`).Scan(&waiting); err != nil {
-			t.Fatal(err)
-		}
-		if waiting > 0 {
+		if dbtest.CountAsOwner(t, pool, `SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock'`) > 0 {
 			break
 		}
 		if time.Now().After(deadline) {

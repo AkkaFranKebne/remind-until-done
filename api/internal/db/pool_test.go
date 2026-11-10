@@ -79,6 +79,32 @@ func TestMigrationsCreateTheSchema(t *testing.T) {
 	}
 }
 
+func TestTheAppRoleCanWriteRowsButNotChangeTables(t *testing.T) {
+	pool := dbtest.Start(t)
+	ctx := context.Background()
+
+	var who string
+	if err := pool.QueryRow(ctx, `SELECT current_user`).Scan(&who); err != nil || who != dbtest.AppRole {
+		t.Fatalf("current_user = %q, %v; want %s", who, err, dbtest.AppRole)
+	}
+	if _, err := pool.Exec(ctx, `INSERT INTO users (firebase_uid, email) VALUES ('uid-r', 'r@example.com')`); err != nil {
+		t.Fatalf("insert a row: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `SELECT nextval('reminder_schedule_version_seq')`); err != nil {
+		t.Fatalf("take a schedule version: %v", err)
+	}
+	for _, ddl := range []string{
+		`DROP TABLE reminder_events`,
+		`ALTER TABLE users ADD COLUMN nope int`,
+		`CREATE TABLE nope (id int)`,
+		`TRUNCATE users CASCADE`,
+	} {
+		if _, err := pool.Exec(ctx, ddl); err == nil {
+			t.Errorf("%s worked; the app's role must not change tables", ddl)
+		}
+	}
+}
+
 func TestUserDefaultsAndChecks(t *testing.T) {
 	pool := dbtest.Start(t)
 	ctx := context.Background()

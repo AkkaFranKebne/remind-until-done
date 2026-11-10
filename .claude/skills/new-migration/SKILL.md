@@ -33,6 +33,7 @@ Deploys migrate first, then start the new API; for a while the **old** API runs 
 - Go database tests (`dbtest.Start(t)`) apply every `V*.sql`, then `R__*.sql`, to a fresh Postgres, so `make fmt vet test` in `api/` runs your migration.
 - **At V10:** `applyMigrations` in `api/internal/dbtest/dbtest.go` sorts file names as text (`V10` before `V2`). Make it sort by the number before adding `V10`.
 - Add or update service tests for the new column or table (`internal/<feature>/service_test.go`).
+- The tests' pool works as the app's role `rud_app` (rows only). A new table gets its rights from `V4`'s default privileges; something the app must do beyond rows needs its own `GRANT` in the migration.
 - CI also runs the real Flyway (`migrate` + `validate`) against a fresh database.
 
 ## 5. Code that uses it

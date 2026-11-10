@@ -78,7 +78,6 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 ## Deferred work (do it when its milestone starts)
 - Any time: Terraform Google provider is pinned `~> 6.0`; the registry has 8.x (two major versions). Upgrade in its own PR, dev first, read both upgrade guides.
 - M7 (hardening): Content-Security-Policy in `web/firebase.json`, report-only first (design doc 7.1).
-- M7 (hardening): a separate Neon role for the app that can only read and write rows; Flyway keeps the owner role for schema changes.
 - M7 (e2e tests): Firebase Auth emulator, only if Playwright needs it (Google blocks automated logins; design doc decision 32).
 - Any time: `npm audit` in `web/` also reports findings in dev tools (mostly inside `firebase-tools`, the deploy CLI; also `jest`, `orval`, `vite-plugin-pwa`). None ship in the app; `npm audit --omit=dev` shows only what does. Check for releases that fix them.
 - Any time: a lint rule so app code can't import test-only code (`msw`, `@faker-js/faker`, `*.msw.ts`). The built bundle is already checked (`npm run check:bundle` in CI); a lint rule would catch it earlier, in the editor.

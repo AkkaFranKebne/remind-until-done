@@ -94,17 +94,19 @@ gcloud secrets versions access latest --secret=database-url --project=P \
 3. Make the password and save it in `database-url`, in one go. Paste the command as it is, with
    nothing to fill in: it makes a random password, adds it as a new version of `database-url`
    (`rud_app`, same host and database as the owner URL), and only then puts the finished SQL line
-   on your clipboard. Nothing prints the password. (Copying a command from somewhere replaces the
+   on your clipboard. Nothing prints the password, and nothing is saved unless every part before
+   it worked. (Copying a command from somewhere replaces the
    clipboard, so the password can't wait there for a later command; and Neon's editor adds quotes
    by itself, so the SQL comes ready with them.)
 ```
-set -o pipefail; APP_PW="$(openssl rand -base64 24)"; gcloud secrets versions access latest --secret=database-migrate-url --project=P | APP_PW="$APP_PW" python3 -c 'import os,sys,urllib.parse as u; p=u.urlsplit(sys.stdin.read().strip()); port=f":{p.port}" if p.port else ""; print(p._replace(netloc="rud_app:"+u.quote(os.environ["APP_PW"],safe="")+"@"+p.hostname+port).geturl(), end="")' | gcloud secrets versions add database-url --data-file=- --project=P && printf "ALTER ROLE rud_app WITH LOGIN PASSWORD '%s';" "$APP_PW" | pbcopy; unset APP_PW
+set -o pipefail; APP_PW="$(openssl rand -base64 24)" && URL="$(gcloud secrets versions access latest --secret=database-migrate-url --project=P | APP_PW="$APP_PW" python3 -c 'import os,sys,urllib.parse as u; p=u.urlsplit(sys.stdin.read().strip()); port=f":{p.port}" if p.port else ""; print(p._replace(netloc="rud_app:"+u.quote(os.environ["APP_PW"],safe="")+"@"+p.hostname+port).geturl(), end="")')" && printf '%s' "$URL" | gcloud secrets versions add database-url --data-file=- --project=P && printf "ALTER ROLE rud_app WITH LOGIN PASSWORD '%s';" "$APP_PW" | pbcopy; unset APP_PW URL
 ```
 4. In the Neon console → SQL Editor (that environment's database): clear the editor, paste (⌘V),
-   run. Neon's rule for passwords set in SQL is at least 60 bits of entropy; this has 192. Delete
-   the query from the editor's history if it lets you. Until this runs, `database-url`'s new
-   version doesn't match Neon, so do it straight away (the running revision isn't affected: it read
-   the secret when it started).
+   run. Neon's rule for passwords set in SQL is at least 60 bits of entropy; this has 192. Then
+   clear the clipboard (`pbcopy < /dev/null`) and delete the query from the editor's history if
+   it lets you. Do it straight away: instances already running keep the login they started with,
+   but a new one (even of the running revision, after scaling to zero) reads the new version and
+   can't log in until this runs. If the SQL fails and you can't fix it at once, use Undo.
 5. Start a new revision (re-run the latest `deploy` workflow, or the next merge does it). Check:
    the smoke test says `"database":"ok"`, and in Neon
    `SELECT usename, count(*) FROM pg_stat_activity GROUP BY 1;` shows `rud_app`. If the API can't

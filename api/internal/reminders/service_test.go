@@ -400,9 +400,7 @@ func TestALineProblemCantStopDone(t *testing.T) {
 	var logs bytes.Buffer
 	s := reminders.NewService(pool, &scheduling.Fake{}, logging.New(&logs))
 	r := create(t, s, user, "Bin day", in(1))
-	if _, err := pool.Exec(ctx, `ALTER TABLE nag_messages RENAME TO gone`); err != nil {
-		t.Fatal(err)
-	}
+	dbtest.AsOwner(t, pool, `ALTER TABLE nag_messages RENAME TO gone`)
 
 	done, err := s.MarkDone(ctx, user, r.ID)
 	if err != nil || done.Status != reminders.StatusDone || done.Line != nil {

@@ -1,6 +1,7 @@
 package dispatch_test
 
 import (
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
 	"strings"
 	"testing"
 	"time"
@@ -127,7 +128,7 @@ func TestAFailedCleanupOnlyCountsAndTheOthersStillRun(t *testing.T) {
 	w := setup(t)
 	oldDone := w.doneAgo(t, "181 days")
 	oldDevice, _ := w.deviceSeenAgo(t, "bob", "271 days")
-	w.exec(t, `ALTER TABLE reminder_events RENAME TO reminder_events_away`)
+	dbtest.AsOwner(t, w.pool, `ALTER TABLE reminder_events RENAME TO reminder_events_away`)
 
 	stats, err := w.fire.Sweep(ctx)
 	if err != nil || stats != (dispatch.SweepStats{Deleted: 2, Failed: 1, Finished: true}) {

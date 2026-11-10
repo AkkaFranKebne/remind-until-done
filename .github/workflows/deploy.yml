@@ -132,7 +132,8 @@ jobs:
       # never printed, never on a command line, and masked in case anything echoes it.
       - name: Migrate the database (Flyway)
         run: |
-          DB_URL="$(gcloud secrets versions access latest --secret=database-url --project ${{ vars.PROJECT_ID }})"
+          # The owner's login (schema changes); the API itself logs in as rud_app (decision 86).
+          DB_URL="$(gcloud secrets versions access latest --secret=database-migrate-url --project ${{ vars.PROJECT_ID }})"
           # Reviewed (semgrep, 2026-10-20): stopping log masking needs a changed workflow, and only
           # deploy.yml on main may log in to Google (infra/wif.tf), so a copy on a branch never
           # gets this secret. Nothing in this step prints before the masks (output goes into variables).

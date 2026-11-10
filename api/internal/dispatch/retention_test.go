@@ -1,11 +1,11 @@
 package dispatch_test
 
 import (
-	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/dbtest"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/dispatch"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
 )

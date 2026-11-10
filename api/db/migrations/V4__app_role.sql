@@ -12,6 +12,9 @@ BEGIN
 END
 $$;
 
+-- Postgres 15 and later already keep everyone but the owner from creating tables in public; say
+-- it anyway, so an older server can't let rud_app create them either.
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO rud_app;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO rud_app;
 -- nextval: reminder_schedule_version_seq, and the event ids (bigserial).

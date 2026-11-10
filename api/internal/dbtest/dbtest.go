@@ -112,3 +112,27 @@ func applyMigrations(t *testing.T, pool *pgxpool.Pool) {
 		}
 	}
 }
+
+// CountAsOwner runs a count query as the owner: Postgres shows other sessions' details in
+// pg_stat_activity only to the owner, not to the app's role.
+func CountAsOwner(t *testing.T, pool *pgxpool.Pool, sql string) int {
+	t.Helper()
+	ctx := context.Background()
+	c, err := pool.Acquire(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Release()
+	if _, err := c.Exec(ctx, "RESET ROLE"); err != nil {
+		t.Fatal(err)
+	}
+	var n int
+	err = c.QueryRow(ctx, sql).Scan(&n)
+	if _, setErr := c.Exec(ctx, "SET ROLE "+AppRole); setErr != nil {
+		t.Fatal(setErr)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	return n
+}

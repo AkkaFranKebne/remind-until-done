@@ -478,11 +478,7 @@ func TestAnEditDuringAnActionWins(t *testing.T) {
 	// Wait until it's stuck on the edit's lock: it has passed the check and reached the UPDATE.
 	deadline := time.Now().Add(10 * time.Second)
 	for {
-		var waiting int
-		if err := pool.QueryRow(ctx, `SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock'`).Scan(&waiting); err != nil {
-			t.Fatal(err)
-		}
-		if waiting > 0 {
+		if dbtest.CountAsOwner(t, pool, `SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock'`) > 0 {
 			break
 		}
 		if time.Now().After(deadline) {

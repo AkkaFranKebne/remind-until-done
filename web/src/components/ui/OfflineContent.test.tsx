@@ -29,17 +29,28 @@ test('says so, in the Inventory copy', () => {
   ).toBeInTheDocument()
 })
 
-test('Try again: still no server, still offline', async () => {
+test('Try again: still no server, still offline, and it spins long enough to see', async () => {
   serverSilent()
-  const onBack = renderContent()
+  jest.useFakeTimers({ doNotFake: ['queueMicrotask', 'nextTick'] })
+  try {
+    const onBack = renderContent()
 
-  const button = screen.getByRole('button', { name: 'Try again' })
-  fireEvent.click(button)
+    const button = screen.getByRole('button', { name: 'Try again' })
+    fireEvent.click(button)
 
-  await waitFor(() => expect(button).toBeEnabled())
-  await waitFor(() => expect(button).not.toHaveAttribute('aria-busy', 'true'))
-  expect(onlineManager.isOnline()).toBe(false)
-  expect(onBack).not.toHaveBeenCalled()
+    // The check fails at once (flight mode), but the spinner stays a moment.
+    await act(() => jest.advanceTimersByTimeAsync(500))
+    expect(button).toHaveAttribute('aria-busy', 'true')
+
+    // A few ms more: TanStack hands the result over on a timer of its own.
+    await act(() => jest.advanceTimersByTimeAsync(550))
+    expect(button).not.toHaveAttribute('aria-busy', 'true')
+    expect(button).toBeEnabled()
+    expect(onlineManager.isOnline()).toBe(false)
+    expect(onBack).not.toHaveBeenCalled()
+  } finally {
+    jest.useRealTimers()
+  }
 })
 
 test('checks at once: one failed request may have been a blip', async () => {

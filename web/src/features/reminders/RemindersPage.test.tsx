@@ -24,7 +24,8 @@ test('empty: the warm empty state, the + button, no tiles', async () => {
   expect(
     await screen.findByRole('heading', { name: /Suspiciously productive/ }),
   ).toBeInTheDocument()
-  expect(screen.getByText('Nothing nagging you yet.')).toBeInTheDocument()
+  // Said once, in the middle: no second line under the top bar.
+  expect(screen.queryByText('Nothing nagging you yet.')).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Add reminder' })).toBeInTheDocument()
   expect(screen.queryByRole('group', { name: 'Filter reminders' })).not.toBeInTheDocument()
 })
@@ -38,8 +39,6 @@ test('only done ones left: the tiles stay (Done one tap away), with the warm emp
   ).toBeInTheDocument()
   expect(screen.getByRole('group', { name: 'Filter reminders' })).toBeInTheDocument()
   expect(screen.queryByText('Nothing here right now.')).not.toBeInTheDocument()
-  // The context line is only for no reminders at all.
-  expect(screen.queryByText('Nothing nagging you yet.')).not.toBeInTheDocument()
 
   // Done is one tap away.
   fireEvent.click(screen.getByRole('button', { name: /^Done/ }))
@@ -197,7 +196,6 @@ test('if the list fails to load: a message and Try again', async () => {
   openList()
 
   expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load your reminders.")
-  expect(screen.queryByText('Nothing nagging you yet.')).not.toBeInTheDocument()
   mockReminders({ upcoming: [aReminder({ title: 'Back again' })] })
   fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
   await waitFor(() => expect(screen.getByRole('link', { name: /Back again/ })).toBeInTheDocument())

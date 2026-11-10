@@ -10,6 +10,8 @@ import { useOnline } from '../lib/online'
  * gradient that follows the picked tile; Settings on the plain background.
  * With no connection the offline message takes the content's place (design doc 5.3). The page stays
  * mounted, only hidden, so a draft or a filter is still there when the connection comes back.
+ * The Settings icon hides too, like on the offline screen at start: Settings would only show the
+ * same message, and the icon vanishing looked like a broken tap.
  */
 export function AppScreen({
   tone = 'plain',
@@ -37,7 +39,7 @@ export function AppScreen({
       <TopBar
         tone={online ? tone : 'plain'}
         contextLine={online ? contextLine : undefined}
-        showSettings={showSettings}
+        showSettings={showSettings && online}
       />
       <main
         className={cn(

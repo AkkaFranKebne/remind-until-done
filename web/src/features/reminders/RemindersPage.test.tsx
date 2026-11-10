@@ -200,3 +200,19 @@ test('if the list fails to load: a message and Try again', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
   await waitFor(() => expect(screen.getByRole('link', { name: /Back again/ })).toBeInTheDocument())
 })
+
+test('too many requests: the list says to slow down, not just try again', async () => {
+  server.use(
+    http.get('*/api/v1/reminders', () =>
+      HttpResponse.json(
+        { error: { code: 'rate_limited', message: 'x' } },
+        { status: 429, headers: { 'Retry-After': '30' } },
+      ),
+    ),
+  )
+  openList()
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Slow down a little. Try again in a minute.',
+  )
+})

@@ -17,7 +17,7 @@ The recipe the reminders API (PR #18) and `nextNagAt` (PR #22) followed. Rules i
 ## 1. Contract first: `api/swagger.json`
 - Add or change the path, its parameters, request body, responses and schemas. This file is the single source of truth: the web client is generated from it.
 - Put limits in the schema (`maxLength`, `minimum`, `maximum`, `required`). The web forms read them from the generated constants, so they are never typed twice.
-- Errors use the `Error` schema (`{"error":{"code","message"}}`) through the shared responses in `components.responses` (`BadRequest`, `Unauthorized`, `NotFound`, `LimitReached`, `NotInvited`), with the codes from design doc 2.2 (`validation_failed`, `not_found`, `limit_reached`, ...). Reuse them; add a new shared response only for a new kind of error.
+- Errors use the `Error` schema (`{"error":{"code","message"}}`) through the shared responses in `components.responses` (`BadRequest`, `Unauthorized`, `NotFound`, `LimitReached`, `NotInvited`, `TooManyRequests`), with the codes from design doc 2.2 (`validation_failed`, `not_found`, `limit_reached`, ...). Reuse them; add a new shared response only for a new kind of error.
 - Building a route already in `swagger.json`? Remove it from `notBuiltYet` in `internal/httpapi/router_contract_test.go`.
 
 ## 2. Business rules: the feature package (`internal/<feature>`)
@@ -37,7 +37,7 @@ The recipe the reminders API (PR #18) and `nextNagAt` (PR #22) followed. Rules i
 
 ## 4. The route: `API.routes()` in `internal/httpapi/router.go`
 - One line, path without `/api/v1`, exactly as in `swagger.json`: `{"POST", "/reminders/{id}/done", a.requireUser(a.markReminderDone)}`.
-- Every route this recipe builds is wrapped in `requireUser` (401 without a token, 403 `not_invited`). Only `/healthz` is public, plus the own-login routes in step 0.
+- Every route this recipe builds is wrapped in `requireUser` (401 without a token, 429 `rate_limited` over the per-user limit, 403 `not_invited`), and its swagger.json responses include `"429": {"$ref": "#/components/responses/TooManyRequests"}` (`TestEveryLimitedRouteDocuments429` checks it). A route with its own login calls `a.allow(w, r, key)` itself, before any database call. Only `/healthz` is public, plus the own-login routes in step 0.
 
 ## 5. Tests
 - **Service** (`internal/<feature>/service_test.go`): `dbtest.Start(t)` gives a real, throwaway Postgres with the migrations applied (Docker must run). Test every rule and limit, and that another user's row is not found.

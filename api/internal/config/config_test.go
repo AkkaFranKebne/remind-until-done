@@ -265,3 +265,30 @@ func TestLocalIsRefusedOnCloudRun(t *testing.T) {
 		t.Errorf("on Cloud Run: %v, want it refused", err)
 	}
 }
+
+func TestLoadRateLimit(t *testing.T) {
+	t.Setenv("ENV", "")
+	t.Setenv("DATABASE_URL", "")
+	t.Setenv("GCP_PROJECT", "rud-dev-4f7k2")
+	t.Setenv("INTERNAL_AUTH", "off")
+	t.Setenv("SCHEDULER", "log")
+	t.Setenv("PUSH", "log")
+
+	t.Setenv("RATE_LIMIT_PER_MINUTE", "")
+	cfg, err := Load()
+	if err != nil || cfg.RateLimitPerMinute != DefaultRateLimitPerMinute {
+		t.Errorf("not set: %v, %d, want the default %d", err, cfg.RateLimitPerMinute, DefaultRateLimitPerMinute)
+	}
+
+	t.Setenv("RATE_LIMIT_PER_MINUTE", "120")
+	if cfg, err := Load(); err != nil || cfg.RateLimitPerMinute != 120 {
+		t.Errorf("set to 120: %v, %d", err, cfg.RateLimitPerMinute)
+	}
+
+	for _, bad := range []string{"0", "-5", "lots", "1.5"} {
+		t.Setenv("RATE_LIMIT_PER_MINUTE", bad)
+		if _, err := Load(); err == nil || !strings.Contains(err.Error(), "RATE_LIMIT_PER_MINUTE") {
+			t.Errorf("%q loaded (%v), want an error naming the setting", bad, err)
+		}
+	}
+}

@@ -20,6 +20,7 @@ import (
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/httpapi"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/logging"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/push"
+	"github.com/AkkaFranKebne/remind-until-done/api/internal/ratelimit"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/reminders"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/scheduling"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/users"
@@ -112,6 +113,7 @@ func main() {
 		DB: pool, Tokens: tokens, Users: users.NewRepo(pool), Accounts: accounts, Reminders: reminders.NewService(pool, sched, log),
 		Devices: devices.NewService(pool), Invited: invited, Invoker: invoker,
 		Dispatcher: dispatch.New(pool, sender, sched, actions, log), Actions: actions,
+		Limit: ratelimit.New(cfg.RateLimitPerMinute),
 	})
 
 	// Check the database once, before taking requests (/healthz reports this result).

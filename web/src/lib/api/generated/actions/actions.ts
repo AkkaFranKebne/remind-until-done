@@ -19,6 +19,7 @@ import type {
   BadRequestResponse,
   Error,
   NotFoundResponse,
+  TooManyRequestsResponse,
 } from '../model'
 
 import { apiFetch } from '../../mutator'
@@ -67,7 +68,7 @@ export const applyAction = async (
 export const getApplyActionMutationKey = () => ['applyAction'] as const
 
 export const getApplyActionMutationOptions = <
-  TError = ErrorType<BadRequestResponse | Error | NotFoundResponse>,
+  TError = ErrorType<BadRequestResponse | Error | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -104,14 +105,16 @@ export const getApplyActionMutationOptions = <
 
 export type ApplyActionMutationResult = NonNullable<Awaited<ReturnType<typeof applyAction>>>
 export type ApplyActionMutationBody = ActionRequest
-export type ApplyActionMutationError = ErrorType<BadRequestResponse | Error | NotFoundResponse>
+export type ApplyActionMutationError = ErrorType<
+  BadRequestResponse | Error | NotFoundResponse | TooManyRequestsResponse
+>
 export type ApplyActionMutationVariables = { data: ActionRequest }
 
 /**
  * @summary Apply Done from a notification button without a Firebase token (idempotent)
  */
 export const useApplyAction = <
-  TError = ErrorType<BadRequestResponse | Error | NotFoundResponse>,
+  TError = ErrorType<BadRequestResponse | Error | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(
   options?: {

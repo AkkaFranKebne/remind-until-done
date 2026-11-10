@@ -24,6 +24,7 @@ import {
 import { toastText } from './toastText'
 import { useListSearch } from './useListSearch'
 import { useReminderChanged } from './useReminderChanged'
+import { errorText } from '../../lib/api/errorText'
 
 /** Each state's gradient (index.css: strong top in light, dark tint in dark). */
 const background = {
@@ -249,7 +250,10 @@ export function ReminderDetail({
           </p>
           {failed ? (
             <p role="alert" className="text-sm text-error-text">
-              Something went wrong. Try again in a moment.
+              {errorText(
+                markDone.error ?? remove.error,
+                'Something went wrong. Try again in a moment.',
+              )}
             </p>
           ) : null}
           {done ? (

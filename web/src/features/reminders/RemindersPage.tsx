@@ -29,6 +29,7 @@ import { SwipeableRow } from './SwipeableRow'
 import { toastText } from './toastText'
 import { listOrder, statusKind } from './reminderState'
 import { useReminderChanged } from './useReminderChanged'
+import { errorText } from '../../lib/api/errorText'
 
 /** The reminder ids of the still-running mutations with this key (their `{ id }` input). */
 function usePendingIds(mutationKey: readonly unknown[]): string[] {
@@ -81,7 +82,7 @@ export function RemindersPage() {
         toast.success(updated.line ?? toastText.done)
         return changed(id, updated)
       },
-      onError: () => toast.error(toastText.failed),
+      onError: (error) => toast.error(errorText(error, toastText.failed)),
     },
   })
   const remove = useDeleteReminder({
@@ -90,7 +91,7 @@ export function RemindersPage() {
         toast.success(toastText.deleted)
         return changed(id)
       },
-      onError: () => toast.error(toastText.failed),
+      onError: (error) => toast.error(errorText(error, toastText.failed)),
     },
   })
   // Optimistic, "via the UI" (TanStack Query docs): a row whose Done or Delete is still running
@@ -158,7 +159,9 @@ export function RemindersPage() {
             role="alert"
             className="flex flex-col items-start gap-3 rounded-md bg-bg2 p-4 shadow-sm"
           >
-            <p className="text-base text-fg">Couldn&apos;t load your reminders.</p>
+            <p className="text-base text-fg">
+              {errorText(upcoming.error, "Couldn't load your reminders.")}
+            </p>
             <Button variant="ghost" onClick={() => void upcoming.refetch()}>
               Try again
             </Button>

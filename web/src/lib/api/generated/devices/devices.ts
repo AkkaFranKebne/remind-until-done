@@ -27,6 +27,7 @@ import type {
   ListDevices200,
   NotFoundResponse,
   RegisterDevice,
+  TooManyRequestsResponse,
   UnauthorizedResponse,
 } from '../model'
 
@@ -72,7 +73,7 @@ export const getListDevicesQueryKey = () => {
 
 export const getListDevicesQueryOptions = <
   TData = Awaited<ReturnType<typeof listDevices>>,
-  TError = ErrorType<UnauthorizedResponse>,
+  TError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse>,
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDevices>>, TError, TData>>
   request?: SecondParameter<typeof apiFetch>
@@ -92,11 +93,11 @@ export const getListDevicesQueryOptions = <
 }
 
 export type ListDevicesQueryResult = NonNullable<Awaited<ReturnType<typeof listDevices>>>
-export type ListDevicesQueryError = ErrorType<UnauthorizedResponse>
+export type ListDevicesQueryError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse>
 
 export function useListDevices<
   TData = Awaited<ReturnType<typeof listDevices>>,
-  TError = ErrorType<UnauthorizedResponse>,
+  TError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDevices>>, TError, TData>> &
@@ -114,7 +115,7 @@ export function useListDevices<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListDevices<
   TData = Awaited<ReturnType<typeof listDevices>>,
-  TError = ErrorType<UnauthorizedResponse>,
+  TError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDevices>>, TError, TData>> &
@@ -132,7 +133,7 @@ export function useListDevices<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListDevices<
   TData = Awaited<ReturnType<typeof listDevices>>,
-  TError = ErrorType<UnauthorizedResponse>,
+  TError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDevices>>, TError, TData>>
@@ -146,7 +147,7 @@ export function useListDevices<
 
 export function useListDevices<
   TData = Awaited<ReturnType<typeof listDevices>>,
-  TError = ErrorType<UnauthorizedResponse>,
+  TError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listDevices>>, TError, TData>>
@@ -204,7 +205,7 @@ export const registerDevice = async (
 export const getRegisterDeviceMutationKey = () => ['registerDevice'] as const
 
 export const getRegisterDeviceMutationOptions = <
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -241,14 +242,16 @@ export const getRegisterDeviceMutationOptions = <
 
 export type RegisterDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof registerDevice>>>
 export type RegisterDeviceMutationBody = RegisterDevice
-export type RegisterDeviceMutationError = ErrorType<BadRequestResponse | UnauthorizedResponse>
+export type RegisterDeviceMutationError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse
+>
 export type RegisterDeviceMutationVariables = { data: RegisterDevice }
 
 /**
  * @summary Register this device. Replaces any previously registered device of the user (one device per user)
  */
 export const useRegisterDevice = <
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(
   options?: {
@@ -289,7 +292,7 @@ export const deleteDevice = async (
 export const getDeleteDeviceMutationKey = () => ['deleteDevice'] as const
 
 export const getDeleteDeviceMutationOptions = <
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -326,14 +329,16 @@ export const getDeleteDeviceMutationOptions = <
 
 export type DeleteDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDevice>>>
 
-export type DeleteDeviceMutationError = ErrorType<UnauthorizedResponse | NotFoundResponse>
+export type DeleteDeviceMutationError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse
+>
 export type DeleteDeviceMutationVariables = { id: string }
 
 /**
  * @summary Unregister a device
  */
 export const useDeleteDevice = <
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(
   options?: {

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +18,10 @@ const LocalDatabaseURL = "postgres://rud:rud@localhost:5432/rud?sslmode=disable"
 
 // LocalActionTokenKey signs Done-button tokens on a laptop only: it protects nothing real.
 const LocalActionTokenKey = "local-only-not-a-secret-key-for-action-tokens"
+
+// DefaultRateLimitPerMinute is how many requests one user may send a minute (design doc 7.2,
+// decision 86). An app start makes a handful; a loop makes far more.
+const DefaultRateLimitPerMinute = 60
 
 // minActionTokenKey: an HMAC-SHA256 key shorter than the hash (32 bytes) is weaker than it needs to be.
 const minActionTokenKey = 32
@@ -41,6 +46,9 @@ type Config struct {
 	TasksQueue    string
 	SchedulerLog  bool // SCHEDULER=log: tasks are only logged, local only (Cloud Tasks can't call a laptop)
 	PushLog       bool // PUSH=log: pushes are only logged, local only
+
+	// RATE_LIMIT_PER_MINUTE: requests per user (and per reminder's Done button) a minute, per instance.
+	RateLimitPerMinute int
 }
 
 func Load() (Config, error) {
@@ -61,6 +69,14 @@ func Load() (Config, error) {
 		TasksQueue:    os.Getenv("TASKS_QUEUE"),
 		SchedulerLog:  os.Getenv("SCHEDULER") == "log",
 		PushLog:       os.Getenv("PUSH") == "log",
+	}
+	cfg.RateLimitPerMinute = DefaultRateLimitPerMinute
+	if v := os.Getenv("RATE_LIMIT_PER_MINUTE"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 1 {
+			return Config{}, fmt.Errorf("RATE_LIMIT_PER_MINUTE must be a whole number above 0, got %q", v)
+		}
+		cfg.RateLimitPerMinute = n
 	}
 	switch cfg.Env {
 	case "local", "dev", "prod":

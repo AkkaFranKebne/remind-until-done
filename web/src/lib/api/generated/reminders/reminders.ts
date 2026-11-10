@@ -30,6 +30,7 @@ import type {
   NotFoundResponse,
   Reminder,
   ReminderList,
+  TooManyRequestsResponse,
   UnauthorizedResponse,
   UpdateReminder,
 } from '../model'
@@ -89,7 +90,7 @@ export const getListRemindersQueryKey = (params?: ListRemindersParams) => {
 
 export const getListRemindersQueryOptions = <
   TData = Awaited<ReturnType<typeof listReminders>>,
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   params?: ListRemindersParams,
   options?: {
@@ -112,11 +113,13 @@ export const getListRemindersQueryOptions = <
 }
 
 export type ListRemindersQueryResult = NonNullable<Awaited<ReturnType<typeof listReminders>>>
-export type ListRemindersQueryError = ErrorType<BadRequestResponse | UnauthorizedResponse>
+export type ListRemindersQueryError = ErrorType<
+  BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse
+>
 
 export function useListReminders<
   TData = Awaited<ReturnType<typeof listReminders>>,
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   params: undefined | ListRemindersParams,
   options: {
@@ -135,7 +138,7 @@ export function useListReminders<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListReminders<
   TData = Awaited<ReturnType<typeof listReminders>>,
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   params?: ListRemindersParams,
   options?: {
@@ -154,7 +157,7 @@ export function useListReminders<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListReminders<
   TData = Awaited<ReturnType<typeof listReminders>>,
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   params?: ListRemindersParams,
   options?: {
@@ -169,7 +172,7 @@ export function useListReminders<
 
 export function useListReminders<
   TData = Awaited<ReturnType<typeof listReminders>>,
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | TooManyRequestsResponse>,
 >(
   params?: ListRemindersParams,
   options?: {
@@ -228,7 +231,13 @@ export const createReminder = async (
 export const getCreateReminderMutationKey = () => ['createReminder'] as const
 
 export const getCreateReminderMutationOptions = <
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | LimitReachedResponse | Error>,
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | LimitReachedResponse
+    | TooManyRequestsResponse
+    | Error
+  >,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -266,7 +275,7 @@ export const getCreateReminderMutationOptions = <
 export type CreateReminderMutationResult = NonNullable<Awaited<ReturnType<typeof createReminder>>>
 export type CreateReminderMutationBody = CreateReminder
 export type CreateReminderMutationError = ErrorType<
-  BadRequestResponse | UnauthorizedResponse | LimitReachedResponse | Error
+  BadRequestResponse | UnauthorizedResponse | LimitReachedResponse | TooManyRequestsResponse | Error
 >
 export type CreateReminderMutationVariables = { data: CreateReminder }
 
@@ -274,7 +283,13 @@ export type CreateReminderMutationVariables = { data: CreateReminder }
  * @summary Create a reminder and schedule its task
  */
 export const useCreateReminder = <
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | LimitReachedResponse | Error>,
+  TError = ErrorType<
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | LimitReachedResponse
+    | TooManyRequestsResponse
+    | Error
+  >,
   TContext = unknown,
 >(
   options?: {
@@ -318,7 +333,7 @@ export const getGetReminderQueryKey = (id: string) => {
 
 export const getGetReminderQueryOptions = <
   TData = Awaited<ReturnType<typeof getReminder>>,
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
 >(
   id: string,
   options?: {
@@ -344,11 +359,13 @@ export const getGetReminderQueryOptions = <
 }
 
 export type GetReminderQueryResult = NonNullable<Awaited<ReturnType<typeof getReminder>>>
-export type GetReminderQueryError = ErrorType<UnauthorizedResponse | NotFoundResponse>
+export type GetReminderQueryError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse
+>
 
 export function useGetReminder<
   TData = Awaited<ReturnType<typeof getReminder>>,
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
 >(
   id: string,
   options: {
@@ -367,7 +384,7 @@ export function useGetReminder<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReminder<
   TData = Awaited<ReturnType<typeof getReminder>>,
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
 >(
   id: string,
   options?: {
@@ -386,7 +403,7 @@ export function useGetReminder<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetReminder<
   TData = Awaited<ReturnType<typeof getReminder>>,
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
 >(
   id: string,
   options?: {
@@ -401,7 +418,7 @@ export function useGetReminder<
 
 export function useGetReminder<
   TData = Awaited<ReturnType<typeof getReminder>>,
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
 >(
   id: string,
   options?: {
@@ -462,7 +479,12 @@ export const getUpdateReminderMutationKey = () => ['updateReminder'] as const
 
 export const getUpdateReminderMutationOptions = <
   TError = ErrorType<
-    BadRequestResponse | UnauthorizedResponse | NotFoundResponse | LimitReachedResponse | Error
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | NotFoundResponse
+    | LimitReachedResponse
+    | TooManyRequestsResponse
+    | Error
   >,
   TContext = unknown,
 >(options?: {
@@ -501,7 +523,12 @@ export const getUpdateReminderMutationOptions = <
 export type UpdateReminderMutationResult = NonNullable<Awaited<ReturnType<typeof updateReminder>>>
 export type UpdateReminderMutationBody = UpdateReminder
 export type UpdateReminderMutationError = ErrorType<
-  BadRequestResponse | UnauthorizedResponse | NotFoundResponse | LimitReachedResponse | Error
+  | BadRequestResponse
+  | UnauthorizedResponse
+  | NotFoundResponse
+  | LimitReachedResponse
+  | TooManyRequestsResponse
+  | Error
 >
 export type UpdateReminderMutationVariables = { id: string; data: UpdateReminder }
 
@@ -510,7 +537,12 @@ export type UpdateReminderMutationVariables = { id: string; data: UpdateReminder
  */
 export const useUpdateReminder = <
   TError = ErrorType<
-    BadRequestResponse | UnauthorizedResponse | NotFoundResponse | LimitReachedResponse | Error
+    | BadRequestResponse
+    | UnauthorizedResponse
+    | NotFoundResponse
+    | LimitReachedResponse
+    | TooManyRequestsResponse
+    | Error
   >,
   TContext = unknown,
 >(
@@ -552,7 +584,7 @@ export const deleteReminder = async (
 export const getDeleteReminderMutationKey = () => ['deleteReminder'] as const
 
 export const getDeleteReminderMutationOptions = <
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -589,14 +621,16 @@ export const getDeleteReminderMutationOptions = <
 
 export type DeleteReminderMutationResult = NonNullable<Awaited<ReturnType<typeof deleteReminder>>>
 
-export type DeleteReminderMutationError = ErrorType<UnauthorizedResponse | NotFoundResponse>
+export type DeleteReminderMutationError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse
+>
 export type DeleteReminderMutationVariables = { id: string }
 
 /**
  * @summary Delete a reminder
  */
 export const useDeleteReminder = <
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(
   options?: {
@@ -637,7 +671,7 @@ export const markReminderDone = async (
 export const getMarkReminderDoneMutationKey = () => ['markReminderDone'] as const
 
 export const getMarkReminderDoneMutationOptions = <
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -676,14 +710,16 @@ export type MarkReminderDoneMutationResult = NonNullable<
   Awaited<ReturnType<typeof markReminderDone>>
 >
 
-export type MarkReminderDoneMutationError = ErrorType<UnauthorizedResponse | NotFoundResponse>
+export type MarkReminderDoneMutationError = ErrorType<
+  UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse
+>
 export type MarkReminderDoneMutationVariables = { id: string }
 
 /**
  * @summary Mark done (idempotent)
  */
 export const useMarkReminderDone = <
-  TError = ErrorType<UnauthorizedResponse | NotFoundResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotFoundResponse | TooManyRequestsResponse>,
   TContext = unknown,
 >(
   options?: {

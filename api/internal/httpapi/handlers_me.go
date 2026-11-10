@@ -73,6 +73,10 @@ func (a *API) deleteMe(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// Open to any Google account (decision 79), so the limit comes before the database and Firebase.
+	if !a.allow(w, r, "user:"+id.UID) {
+		return
+	}
 	// The invite check is the only other place that looks at this: without it, a sign-in method
 	// someone switched on in the console could hand out tokens for free.
 	if id.SignInProvider != auth.GoogleProvider {

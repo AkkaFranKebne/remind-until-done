@@ -25,6 +25,7 @@ import type {
   BadRequestResponse,
   Error,
   NotInvitedResponse,
+  TooManyRequestsResponse,
   UnauthorizedResponse,
   UpdateUser,
   User,
@@ -70,7 +71,7 @@ export const getGetMeQueryKey = () => {
 
 export const getGetMeQueryOptions = <
   TData = Awaited<ReturnType<typeof getMe>>,
-  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse>,
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>
   request?: SecondParameter<typeof apiFetch>
@@ -90,11 +91,13 @@ export const getGetMeQueryOptions = <
 }
 
 export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>
-export type GetMeQueryError = ErrorType<UnauthorizedResponse | NotInvitedResponse>
+export type GetMeQueryError = ErrorType<
+  UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse
+>
 
 export function useGetMe<
   TData = Awaited<ReturnType<typeof getMe>>,
-  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse>,
 >(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> &
@@ -112,7 +115,7 @@ export function useGetMe<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetMe<
   TData = Awaited<ReturnType<typeof getMe>>,
-  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse>,
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> &
@@ -130,7 +133,7 @@ export function useGetMe<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetMe<
   TData = Awaited<ReturnType<typeof getMe>>,
-  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse>,
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>
@@ -144,7 +147,7 @@ export function useGetMe<
 
 export function useGetMe<
   TData = Awaited<ReturnType<typeof getMe>>,
-  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse>,
+  TError = ErrorType<UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse>,
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>
@@ -202,7 +205,9 @@ export const updateMe = async (
 export const getUpdateMeMutationKey = () => ['updateMe'] as const
 
 export const getUpdateMeMutationOptions = <
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | NotInvitedResponse>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse
+  >,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -240,7 +245,7 @@ export const getUpdateMeMutationOptions = <
 export type UpdateMeMutationResult = NonNullable<Awaited<ReturnType<typeof updateMe>>>
 export type UpdateMeMutationBody = UpdateUser
 export type UpdateMeMutationError = ErrorType<
-  BadRequestResponse | UnauthorizedResponse | NotInvitedResponse
+  BadRequestResponse | UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse
 >
 export type UpdateMeMutationVariables = { data: UpdateUser }
 
@@ -248,7 +253,9 @@ export type UpdateMeMutationVariables = { data: UpdateUser }
  * @summary Update timezone and defaults
  */
 export const useUpdateMe = <
-  TError = ErrorType<BadRequestResponse | UnauthorizedResponse | NotInvitedResponse>,
+  TError = ErrorType<
+    BadRequestResponse | UnauthorizedResponse | NotInvitedResponse | TooManyRequestsResponse
+  >,
   TContext = unknown,
 >(
   options?: {
@@ -286,7 +293,7 @@ export const deleteMe = async (options?: Parameters<typeof apiFetch>[1]): Promis
 export const getDeleteMeMutationKey = () => ['deleteMe'] as const
 
 export const getDeleteMeMutationOptions = <
-  TError = ErrorType<UnauthorizedResponse | Error>,
+  TError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse | Error>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>
@@ -308,12 +315,17 @@ export const getDeleteMeMutationOptions = <
 
 export type DeleteMeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMe>>>
 
-export type DeleteMeMutationError = ErrorType<UnauthorizedResponse | Error>
+export type DeleteMeMutationError = ErrorType<
+  UnauthorizedResponse | TooManyRequestsResponse | Error
+>
 
 /**
  * @summary Delete the account of whoever signed in, invited or not: user row (cascades to reminders, devices, events) and the Firebase user. Idempotent: already gone answers 204.
  */
-export const useDeleteMe = <TError = ErrorType<UnauthorizedResponse | Error>, TContext = unknown>(
+export const useDeleteMe = <
+  TError = ErrorType<UnauthorizedResponse | TooManyRequestsResponse | Error>,
+  TContext = unknown,
+>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>
     request?: SecondParameter<typeof apiFetch>

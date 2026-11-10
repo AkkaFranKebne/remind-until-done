@@ -22,9 +22,9 @@ locals {
 
 # Is the app reachable from the internet? Through Firebase Hosting, like the browser.
 # Every 5 minutes, from several regions: /healthz never touches the database (it reports the
-# check made when the instance started), and checks this often keep the instance warm, so no
-# new instance (with its one database check) starts for them. Cloud Run bills by request, so a
-# warm, idle instance costs nothing.
+# check made when the instance started), and checks this often keep an instance warm most of
+# the time, so they rarely start a new one (each pings the database once). Cloud Run bills by
+# request, so a warm, idle instance costs nothing.
 resource "google_monitoring_uptime_check_config" "healthz" {
   display_name = "rud ${var.env} /api/v1/healthz"
   timeout      = "10s"
@@ -245,6 +245,9 @@ resource "google_billing_budget" "monthly" {
 
   budget_filter {
     projects = ["projects/${data.google_project.this.number}"]
+    # Count spending before credits: the free-trial credit would otherwise hide a cost spike until
+    # it's used up, with no mail at all.
+    credit_types_treatment = "EXCLUDE_ALL_CREDITS"
   }
 
   amount {

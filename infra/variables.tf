@@ -70,11 +70,13 @@ variable "firebase_browser_key_uid" {
 variable "alert_email" {
   type        = string
   description = "Where budget and monitoring alerts are mailed. Personal, so it lives in envs/<env>.local.tfvars (git-ignored), not in the repo."
+  sensitive   = true # hidden in plan output, so a pasted plan can't show it
 }
 
 variable "billing_account" {
   type        = string
   description = "Billing account id (gcloud billing projects describe <project>), for the budget. In envs/<env>.local.tfvars (git-ignored)."
+  sensitive   = true
 }
 
 variable "budget_sek" {

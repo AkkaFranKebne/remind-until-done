@@ -19,3 +19,16 @@ provider "google-beta" {
   project = var.project_id
   region  = var.region
 }
+
+# Only for the budget: the Budget API needs a project to bill its quota to when you apply with your
+# own login (ADC). Kept to this one alias, so nothing else changes how it calls Google.
+provider "google" {
+  alias                 = "billing"
+  project               = var.project_id
+  region                = var.region
+  user_project_override = true
+  billing_project       = var.project_id
+}
+
+# This project's number (the budget filters by it).
+data "google_project" "this" {}

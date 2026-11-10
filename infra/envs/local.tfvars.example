@@ -1,0 +1,5 @@
+# Copy to envs/dev.local.tfvars and envs/prod.local.tfvars (git ignores *.local.tfvars) and fill in.
+# Personal settings that stay out of the repo. Pass it after the env file:
+#   terraform plan -var-file=envs/dev.tfvars -var-file=envs/dev.local.tfvars -out=dev.tfplan
+alert_email     = "you@example.com"
+billing_account = "000000-000000-000000" # gcloud billing projects describe <project_id>

@@ -9,7 +9,7 @@ Run in `infra/`. Needs `gcloud auth application-default login`.
 |---|---|
 | Format + validate | `terraform fmt -check -recursive && terraform validate` |
 | Switch environment | `terraform init -reconfigure -backend-config="bucket=rud-tfstate-<env>" -backend-config="prefix=rud"` |
-| Dry run | `terraform plan -var-file=envs/<env>.tfvars -out=<env>.tfplan` |
+| Dry run | `terraform plan -var-file=envs/<env>.tfvars -var-file=envs/<env>.local.tfvars -out=<env>.tfplan` (the local file is git-ignored: the alert email and billing account, see `envs/local.tfvars.example`) |
 | Apply (dev only, see below) | `terraform apply <env>.tfplan` |
 
 ## Rules
@@ -22,6 +22,8 @@ Run in `infra/`. Needs `gcloud auth application-default login`.
 - Secret **values** never go into Terraform (code or state). `secrets.tf` creates empty secrets; values are added with `gcloud secrets versions add`.
 - Least privilege: give each service account only the roles it uses. Explain every new role in a comment.
 - Terraform never manages the Cloud Run image (`ignore_changes`). CI deploys images.
+- Personal values (an email, the billing account id) go in `envs/<env>.local.tfvars`, never in a committed file.
+- Monitoring (`monitoring.tf`, design doc 7.6): alerts mail `var.alert_email`. Log-based alerts match our app's stdout logs (`local.app_logs`), not Cloud Run's request log, which marks every 5xx as ERROR. A new alert gets a `documentation` block that says where to look. The uptime check stays every 5 minutes: it keeps an instance warm, so new instances (each pings the database once at start) don't wake Neon. The budget is in SEK, the billing account's currency, through the `google.billing` provider alias.
 
 ## Never
 - Never commit `*.tfstate`, `*.tfplan` or `.terraform/` (already in `.gitignore`).

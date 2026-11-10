@@ -66,3 +66,19 @@ variable "firebase_browser_key_uid" {
   type        = string
   description = "UID of the project's \"Browser key (auto created by Firebase)\" (gcloud services api-keys list): the key the Web App, and so init.json, uses. A UID, not the key itself."
 }
+
+variable "alert_email" {
+  type        = string
+  description = "Where budget and monitoring alerts are mailed. Personal, so it lives in envs/<env>.local.tfvars (git-ignored), not in the repo."
+}
+
+variable "billing_account" {
+  type        = string
+  description = "Billing account id (gcloud billing projects describe <project>), for the budget. In envs/<env>.local.tfvars (git-ignored)."
+}
+
+variable "budget_sek" {
+  type        = number
+  description = "Monthly budget for this project, in SEK (the billing account's currency): about $5 (design doc 7.6). Mails at 50% and 100%; nothing is switched off."
+  default     = 50
+}

@@ -13,6 +13,9 @@ locals {
     "fcm.googleapis.com",
     "fcmregistrations.googleapis.com",
     "firebaseinstallations.googleapis.com", # FCM getToken registers the browser here first
+    "monitoring.googleapis.com",            # uptime check and alerts (monitoring.tf)
+    "logging.googleapis.com",               # the log-based push metric
+    "billingbudgets.googleapis.com",        # the budget
   ]
 }
 

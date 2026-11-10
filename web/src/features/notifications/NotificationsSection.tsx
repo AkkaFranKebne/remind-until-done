@@ -8,6 +8,7 @@ import { readIos, type Ios } from '../pwa/platform'
 import { TabInstallHint } from '../pwa/TabInstallHint'
 import { FindRud, MacMutedTip, PreviewsTip } from './DeviceTips'
 import { MOVED_HERE_TOAST, useNotifications, type NotificationState } from './useNotifications'
+import { errorText } from '../../lib/api/errorText'
 
 /**
  * The bell's tile: green when on, the error colour when blocked, gold when pushes go nowhere or
@@ -139,7 +140,8 @@ export function NotificationsSection() {
           toast.success(MOVED_HERE_TOAST)
         }
       },
-      onError: () => toast.error("Couldn't turn on notifications. Try again."),
+      onError: (error) =>
+        toast.error(errorText(error, "Couldn't turn on notifications. Try again.")),
     })
 
   return (

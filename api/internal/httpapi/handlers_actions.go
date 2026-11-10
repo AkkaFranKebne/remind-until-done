@@ -27,6 +27,10 @@ func (a *API) applyAction(w http.ResponseWriter, r *http.Request) {
 		writeActionTokenError(w)
 		return
 	}
+	// One real token works for 24 hours: without this, it could keep the database awake.
+	if !a.allow(w, r, "action:"+claims.ReminderID) {
+		return
+	}
 	rem, err := a.reminders.MarkDoneFromAction(r.Context(), claims.ReminderID, claims.Version)
 	switch {
 	case errors.Is(err, reminders.ErrActionStale):

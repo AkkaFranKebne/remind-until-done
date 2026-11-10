@@ -44,6 +44,7 @@ func (a *API) identity(w http.ResponseWriter, r *http.Request) (auth.Identity, b
 // invited Google account (design doc Appendix D.8):
 //
 //	no or bad token        -> 401 unauthorized
+//	too many requests      -> 429 rate_limited (middleware_ratelimit.go)
 //	valid, but not invited -> 403 not_invited
 //	otherwise              -> finds or creates the user, then calls next
 //
@@ -53,6 +54,10 @@ func (a *API) requireUser(next http.HandlerFunc) http.HandlerFunc {
 		ctx := r.Context()
 		id, ok := a.identity(w, r)
 		if !ok {
+			return
+		}
+		// Before the invite check and the database: someone not invited is limited too.
+		if !a.allow(w, r, "user:"+id.UID) {
 			return
 		}
 		if !a.invited.Allows(id) {

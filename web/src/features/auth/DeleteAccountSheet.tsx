@@ -7,6 +7,7 @@ import { deleteMe } from '../../lib/api/generated/user/user'
 import { forgetDeletedDevice } from '../notifications/forgetThisDevice'
 import { usePushClient } from '../notifications/usePushClient'
 import { useAuth } from './useAuth'
+import { errorText } from '../../lib/api/errorText'
 
 const CONFIRM_WORD = 'DELETE'
 
@@ -65,7 +66,7 @@ export function DeleteAccountSheet({
           />
           {remove.isError ? (
             <p role="alert" className="text-sm text-error-text">
-              Something went wrong. Try again in a moment.
+              {errorText(remove.error, 'Something went wrong. Try again in a moment.')}
             </p>
           ) : null}
         </div>

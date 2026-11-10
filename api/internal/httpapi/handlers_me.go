@@ -74,12 +74,24 @@ func (a *API) deleteMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// The invite check is the only other place that looks at this: without it, a sign-in method
-	// someone switched on in the console could hand out tokens for free.
+	// someone switched on in the console could hand out tokens for free. First, so such tokens
+	// can't even make keys for the limit below.
 	if id.SignInProvider != auth.GoogleProvider {
 		a.log.InfoContext(r.Context(), "delete refused: not a Google sign-in", "uid", id.UID)
 		writeError(w, http.StatusUnauthorized, "unauthorized", "invalid or expired sign-in, sign in again")
 		return
 	}
+	// Open to any Google account (decision 79), so the limit comes before the database and Firebase.
+	if !a.allow(w, r, "user:"+id.UID) {
+		return
+	}
+	// One at a time per user: it holds a database connection while Firebase answers (inFlight).
+	if !a.deleting.start(id.UID) {
+		a.log.InfoContext(r.Context(), "delete already running", "uid", id.UID)
+		writeTooMany(w, deleteMeTimeout)
+		return
+	}
+	defer a.deleting.done(id.UID)
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), deleteMeTimeout)
 	defer cancel()
 	deleteFirebaseUser := func(ctx context.Context) error {

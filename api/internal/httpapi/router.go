@@ -6,6 +6,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/actiontoken"
 	"github.com/AkkaFranKebne/remind-until-done/api/internal/auth"
@@ -78,6 +79,12 @@ type Dispatcher interface {
 	Sweep(ctx context.Context) (dispatch.SweepStats, error)
 }
 
+// RateLimiter caps requests per key (design doc 7.2). *ratelimit.Limiter is the real one; nil
+// means no limit (most tests).
+type RateLimiter interface {
+	Allow(key string) (ok bool, retryAfter time.Duration)
+}
+
 // Deps is everything the API talks to. main passes the real ones, tests pass fakes.
 type Deps struct {
 	DB         Pinger
@@ -90,6 +97,7 @@ type Deps struct {
 	Invoker    InvokerVerifier
 	Dispatcher Dispatcher
 	Actions    ActionVerifier
+	Limit      RateLimiter
 }
 
 type API struct {
@@ -104,13 +112,15 @@ type API struct {
 	invoker    InvokerVerifier
 	dispatcher Dispatcher
 	actions    ActionVerifier
+	limit      RateLimiter
+	deleting   *inFlight // DELETE /me calls running now, by uid
 }
 
 func New(log *slog.Logger, d Deps) *API {
 	return &API{
 		log: log, health: newDBHealth(d.DB, log), tokens: d.Tokens, users: d.Users, accounts: d.Accounts,
 		reminders: d.Reminders, devices: d.Devices, invited: d.Invited, invoker: d.Invoker,
-		dispatcher: d.Dispatcher, actions: d.Actions,
+		dispatcher: d.Dispatcher, actions: d.Actions, limit: d.Limit, deleting: newInFlight(),
 	}
 }
 

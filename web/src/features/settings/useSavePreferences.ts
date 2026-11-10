@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '../../components/ui/useToast'
 import { getGetMeQueryKey, updateMe } from '../../lib/api/generated/user/user'
 import type { UpdateUser, User } from '../../lib/api/generated/model'
+import { errorText } from '../../lib/api/errorText'
 
 /**
  * Saves a preference (PATCH /me, decision 47). The setting changes on screen at once; the API's
@@ -21,9 +22,9 @@ export function useSavePreferences() {
       if (before) queryClient.setQueryData<User>(key, { ...before, ...patch })
       return { before }
     },
-    onError: (_error, _patch, context) => {
+    onError: (error, _patch, context) => {
       if (context?.before) queryClient.setQueryData<User>(key, context.before)
-      toast.error("Couldn't save. Try again.")
+      toast.error(errorText(error, "Couldn't save. Try again."))
     },
     onSuccess: (me) => {
       queryClient.setQueryData<User>(key, me)

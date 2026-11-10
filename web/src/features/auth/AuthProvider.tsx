@@ -9,6 +9,12 @@ const noRetry = () => {}
 
 const SIGN_IN_FAILED = 'Sign-in failed. Check your connection and try again.'
 
+/**
+ * Over the API's rate limit at sign-in (429, decision 86): ask again after this long. The limit
+ * refills a request a second, so the next try passes; the splash just stays a moment longer.
+ */
+export const RATE_LIMITED_RETRY_MS = 5000
+
 export function AuthProvider({ client, children }: { client: AuthClient; children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'checking' })
   // Set when the person taps Sign out, so the next "nobody" event is marked byUser.
@@ -23,6 +29,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
     // Every API call (lib/api/mutator.ts) asks the sign-in client for a fresh token.
     setTokenSource(() => client.getToken())
     let current = 0 // ignore answers to older events (fast sign-in, sign-out, sign-in)
+    let later: number | undefined // a /me asked again after a 429
 
     // Coming back from Google with a failed sign-in: show why on the login page.
     void client.redirectError().then((err) => {
@@ -34,6 +41,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
 
     const stop = client.onUserChange((user) => {
       const run = ++current
+      window.clearTimeout(later)
       // A different person (or nobody): drop all cached server data, so one user never
       // sees another's (design doc 5.7). Firebase only reports sign-in and sign-out here.
       queryClient.clear()
@@ -46,8 +54,15 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
         return
       }
       const load = () => {
-        void loadMe(queryClient, user).then(({ next, signOut }) => {
+        void loadMe(queryClient, user).then(({ next, signOut, again }) => {
           if (run !== current) return
+          if (again) {
+            // The splash while it waits, also after Try again on the offline screen: the
+            // connection is fine, so "offline" would be wrong.
+            setState(next)
+            later = window.setTimeout(load, RATE_LIMITED_RETRY_MS)
+            return
+          }
           setState(next) // first show the result ...
           // ... then sign out (that event keeps this state). A failed sign-out changes nothing.
           if (signOut) client.signOut().catch(() => {})
@@ -58,6 +73,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
     })
     return () => {
       current = -1
+      window.clearTimeout(later)
       stop()
     }
   }, [client, queryClient])
@@ -105,7 +121,7 @@ export function AuthProvider({ client, children }: { client: AuthClient; childre
 async function loadMe(
   queryClient: QueryClient,
   user: AuthUser,
-): Promise<{ next: AuthState; signOut: boolean }> {
+): Promise<{ next: AuthState; signOut: boolean; again?: boolean }> {
   try {
     await queryClient.fetchQuery(meQueryOptions())
     return { next: { status: 'signedIn', user }, signOut: false }
@@ -117,6 +133,9 @@ async function loadMe(
     // connection is back. Any other failure ends it.
     if (e instanceof ApiError && e.status === 0)
       return { next: { status: 'offline' }, signOut: false }
+    // Over the rate limit: nothing is wrong with the session, so keep it and ask again soon.
+    if (e instanceof ApiError && e.status === 429)
+      return { next: { status: 'checking' }, signOut: false, again: true }
     return { next: { status: 'signedOut', error: SIGN_IN_FAILED }, signOut: true }
   }
 }

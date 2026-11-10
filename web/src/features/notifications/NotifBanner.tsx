@@ -4,6 +4,7 @@ import { Banner, BannerButton, BannerLink } from '../../components/ui/Banner'
 import { useToast } from '../../components/ui/useToast'
 import { DAY_MS, useDismissal } from '../../lib/useDismissal'
 import { MOVED_HERE_TOAST, useNotifications } from './useNotifications'
+import { errorText } from '../../lib/api/errorText'
 
 /** No pushes reach this device although it allows them: the line and the one-tap fix. */
 const warnings = {
@@ -59,7 +60,8 @@ export function NotifBanner() {
                   onSuccess: (device) => {
                     if (device && warning === 'elsewhere') toast.success(MOVED_HERE_TOAST)
                   },
-                  onError: () => toast.error("Couldn't turn on notifications. Try again."),
+                  onError: (error) =>
+                    toast.error(errorText(error, "Couldn't turn on notifications. Try again.")),
                   onSettled: () => setFixing(null),
                 })
               }}
@@ -101,7 +103,10 @@ export function NotifBanner() {
           <BannerButton
             busy={enabling}
             onClick={() =>
-              enable({ onError: () => toast.error("Couldn't turn on notifications. Try again.") })
+              enable({
+                onError: (error) =>
+                  toast.error(errorText(error, "Couldn't turn on notifications. Try again.")),
+              })
             }
           >
             Enable

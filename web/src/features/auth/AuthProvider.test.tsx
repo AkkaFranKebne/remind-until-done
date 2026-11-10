@@ -4,7 +4,7 @@ import type { User } from '../../lib/api/generated/model'
 import { server } from '../../mocks/server'
 import { FakeAuthClient, tester } from '../../test-utils/fakeAuthClient'
 import { TestQueryProvider } from '../../test-utils/TestQueryProvider'
-import { AuthProvider } from './AuthProvider'
+import { AuthProvider, RATE_LIMITED_RETRY_MS } from './AuthProvider'
 import { useAuth } from './useAuth'
 import { useMe } from './useMe'
 
@@ -139,6 +139,36 @@ describe('AuthProvider', () => {
 
     expect(await screen.findByText('offline')).toBeInTheDocument()
     expect(client.signOutCalls).toBe(0)
+  })
+
+  it('over the rate limit: keeps the session and the splash, and asks again soon', async () => {
+    let limited = true
+    let asked = 0
+    server.use(
+      http.get('*/api/v1/me', () => {
+        asked += 1
+        return limited
+          ? HttpResponse.json({ error: { code: 'rate_limited', message: 'x' } }, { status: 429 })
+          : HttpResponse.json(me)
+      }),
+      http.patch('*/api/v1/me', () => HttpResponse.json({ ...me, timezone: 'Europe/Stockholm' })),
+    )
+    jest.useFakeTimers({ doNotFake: ['queueMicrotask', 'nextTick'] })
+    try {
+      const client = new FakeAuthClient(tester)
+      renderAuth(client)
+      await act(() => jest.advanceTimersByTimeAsync(100))
+      expect(asked).toBe(1)
+      expect(screen.getByText('checking')).toBeInTheDocument()
+      expect(client.signOutCalls).toBe(0)
+
+      limited = false
+      await act(() => jest.advanceTimersByTimeAsync(RATE_LIMITED_RETRY_MS))
+      expect(asked).toBe(2)
+    } finally {
+      jest.useRealTimers()
+    }
+    expect(await screen.findByText(/^signedIn/)).toBeInTheDocument()
   })
 
   it('shows the error when coming back from a failed Google sign-in', async () => {

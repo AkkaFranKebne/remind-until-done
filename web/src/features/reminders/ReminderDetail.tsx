@@ -24,6 +24,7 @@ import {
 import { toastText } from './toastText'
 import { useListSearch } from './useListSearch'
 import { useReminderChanged } from './useReminderChanged'
+import { errorText } from '../../lib/api/errorText'
 
 /** Each state's gradient (index.css: strong top in light, dark tint in dark). */
 const background = {
@@ -249,7 +250,10 @@ export function ReminderDetail({
           </p>
           {failed ? (
             <p role="alert" className="text-sm text-error-text">
-              Something went wrong. Try again in a moment.
+              {errorText(
+                markDone.error ?? remove.error,
+                'Something went wrong. Try again in a moment.',
+              )}
             </p>
           ) : null}
           {done ? (
@@ -264,7 +268,10 @@ export function ReminderDetail({
               size="lg"
               icon={Check}
               loading={markDone.isPending}
-              onClick={() => markDone.mutate({ id: reminder.id })}
+              onClick={() => {
+                remove.reset() // the message below is about the newest try
+                markDone.mutate({ id: reminder.id })
+              }}
             >
               Done
             </Button>
@@ -287,7 +294,10 @@ export function ReminderDetail({
         cancelLabel="Keep it"
         danger
         confirming={remove.isPending}
-        onConfirm={() => remove.mutate({ id: reminder.id })}
+        onConfirm={() => {
+          markDone.reset()
+          remove.mutate({ id: reminder.id })
+        }}
       >
         We&apos;ll stop nagging. Just this once.
       </ConfirmSheet>

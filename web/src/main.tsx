@@ -1,3 +1,5 @@
+// First: it changes how every zod schema below is built.
+import './lib/zodConfig'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

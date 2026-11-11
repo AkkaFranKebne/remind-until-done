@@ -185,3 +185,13 @@ jobs:
           echo "api: $API"
           test "$APP" = "cache-control: no-cache"
           test "$API" = "cache-control: no-store"
+
+      # The page sends its Content-Security-Policy (report-only for now, design doc 7.1), and the
+      # reports reach the API through Hosting. An empty batch: 204 and no log line.
+      - name: Smoke test the Content-Security-Policy
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --dump-header - --output /dev/null "${{ vars.APP_URL }}/" | grep -qi '^content-security-policy-report-only: default-src'
+          STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' --retry 5 --retry-all-errors -X POST -H 'Content-Type: application/reports+json' --data '[]' "${{ vars.APP_URL }}/api/v1/csp-reports")"
+          echo "csp-reports: $STATUS"
+          test "$STATUS" = "204"

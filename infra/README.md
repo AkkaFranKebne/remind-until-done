@@ -91,23 +91,22 @@ gcloud secrets versions access latest --secret=database-url --project=P \
    For prod: the apply and this copy must happen before the next prod deploy run (which reads the
    new secret); if forgotten, that run stops at Flyway, before Cloud Run, and prod keeps serving.
 2. Merge. The deploy runs `V4` as the owner: `rud_app` exists now, without login.
-3. In the Neon console → SQL Editor (that environment's database), turn its login on with a new
-   password (`openssl rand -base64 24 | pbcopy` puts one on the clipboard without showing it; keep
-   it only as long as the next step needs). Neon's rule for passwords set in SQL: at least 60 bits
-   of entropy, which this easily has. Afterwards delete that query from the editor's history.
+3. Make the password and save it in `database-url`, in one go. Paste the command as it is, with
+   nothing to fill in: it makes a random password, adds it as a new version of `database-url`
+   (`rud_app`, same host and database as the owner URL), and only then puts the finished SQL line
+   on your clipboard. Nothing prints the password, and nothing is saved unless every part before
+   it worked. (Copying a command from somewhere replaces the
+   clipboard, so the password can't wait there for a later command; and Neon's editor adds quotes
+   by itself, so the SQL comes ready with them.)
 ```
-ALTER ROLE rud_app WITH LOGIN PASSWORD '<the password>';
+set -o pipefail; APP_PW="$(openssl rand -base64 24)" && URL="$(gcloud secrets versions access latest --secret=database-migrate-url --project=P | APP_PW="$APP_PW" python3 -c 'import os,sys,urllib.parse as u; p=u.urlsplit(sys.stdin.read().strip()); port=f":{p.port}" if p.port else ""; print(p._replace(netloc="rud_app:"+u.quote(os.environ["APP_PW"],safe="")+"@"+p.hostname+port).geturl(), end="")')" && printf '%s' "$URL" | gcloud secrets versions add database-url --data-file=- --project=P && printf "ALTER ROLE rud_app WITH LOGIN PASSWORD '%s';" "$APP_PW" | pbcopy; unset APP_PW URL
 ```
-4. Point `database-url` at `rud_app` (same host and database as the owner URL; the password is
-   read without showing it):
-```
-set -o pipefail
-read -rs APP_PW   # paste the password: nothing shows, nothing goes into the history
-gcloud secrets versions access latest --secret=database-migrate-url --project=P \
-  | APP_PW="$APP_PW" python3 -c 'import os,sys,urllib.parse as u; p=u.urlsplit(sys.stdin.read().strip()); port=f":{p.port}" if p.port else ""; print(p._replace(netloc="rud_app:"+u.quote(os.environ["APP_PW"],safe="")+"@"+p.hostname+port).geturl(), end="")' \
-  | gcloud secrets versions add database-url --data-file=- --project=P
-unset APP_PW
-```
+4. In the Neon console → SQL Editor (that environment's database): clear the editor, paste (⌘V),
+   run. Neon's rule for passwords set in SQL is at least 60 bits of entropy; this has 192. Then
+   clear the clipboard (`pbcopy < /dev/null`) and delete the query from the editor's history if
+   it lets you. Do it straight away: instances already running keep the login they started with,
+   but a new one (even of the running revision, after scaling to zero) reads the new version and
+   can't log in until this runs. If the SQL fails and you can't fix it at once, use Undo.
 5. Start a new revision (re-run the latest `deploy` workflow, or the next merge does it). Check:
    the smoke test says `"database":"ok"`, and in Neon
    `SELECT usename, count(*) FROM pg_stat_activity GROUP BY 1;` shows `rud_app`. If the API can't

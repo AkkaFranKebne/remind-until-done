@@ -42,7 +42,7 @@ func TestCSPReportOldFormatIsLoggedWithoutQueries(t *testing.T) {
 	}
 	l := lines[0]
 	want := map[string]any{
-		"directive": "script-src-elem", "blocked": "https://evil.example/x.js", "page": "/reminders/1",
+		"directive": "script-src-elem", "blocked": "https://evil.example", "page": "/reminders/1",
 		"source": "https://rud-dev-4f7k2.web.app/assets/index.js", "line": float64(12), "disposition": "report",
 		"severity": "WARNING",
 	}
@@ -106,7 +106,7 @@ func TestCSPReportRefusesOtherBodies(t *testing.T) {
 func TestCSPReportHasOneSharedLimit(t *testing.T) {
 	limit := &fakeLimit{full: map[string]bool{"csp-reports": true}}
 	rec, lines := postCSP(t, limit, "application/csp-report", `{"csp-report":{"violated-directive":"img-src"}}`)
-	if rec.Code != http.StatusTooManyRequests || len(lines) != 0 {
+	if rec.Code != http.StatusTooManyRequests || len(lines) != 0 || rec.Header().Get("Retry-After") == "" {
 		t.Errorf("status %d, %d lines; want 429 and none", rec.Code, len(lines))
 	}
 }

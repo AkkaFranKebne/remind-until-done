@@ -20,8 +20,13 @@ import (
 // always the same, nothing is stored, the body is small, and one shared limit per instance keeps
 // a flood from filling the logs.
 func (a *API) cspReport(w http.ResponseWriter, r *http.Request) {
-	if !a.allow(w, r, "csp-reports") {
-		return
+	// One shared limit. Over it, no "rate limited" log line (unlike a.allow): anyone can post here,
+	// so that line would only double a flood. The request log line still shows the 429.
+	if a.limit != nil {
+		if ok, retry := a.limit.Allow("csp-reports"); !ok {
+			writeTooMany(w, retry)
+			return
+		}
 	}
 	mediaType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	switch mediaType {
@@ -100,7 +105,7 @@ func parseCSPReports(raw json.RawMessage) (reports []cspReport, ok bool) {
 			directive, _, _ = strings.Cut(o.ViolatedDirective, " ")
 		}
 		return []cspReport{{
-			directive: keyword(directive), blocked: shortURL(o.BlockedURI), page: pagePath(o.DocumentURI),
+			directive: keyword(directive), blocked: origin(o.BlockedURI), page: pagePath(o.DocumentURI),
 			source: shortURL(o.SourceFile), line: o.LineNumber, disposition: keyword(o.Disposition),
 		}}, true
 	}
@@ -117,7 +122,7 @@ func parseCSPReports(raw json.RawMessage) (reports []cspReport, ok bool) {
 		}
 		b := n.Body
 		reports = append(reports, cspReport{
-			directive: keyword(b.EffectiveDirective), blocked: shortURL(b.BlockedURL), page: pagePath(b.DocumentURL),
+			directive: keyword(b.EffectiveDirective), blocked: origin(b.BlockedURL), page: pagePath(b.DocumentURL),
 			source: shortURL(b.SourceFile), line: b.LineNumber, disposition: keyword(b.Disposition),
 		})
 	}
@@ -127,7 +132,8 @@ func parseCSPReports(raw json.RawMessage) (reports []cspReport, ok bool) {
 var keywordChars = regexp.MustCompile(`^[a-z0-9-]{1,40}$`)
 
 // keyword keeps a directive name or a word like "inline", "eval", "report"; anything else
-// becomes "other", so a made-up report can't write arbitrary text into the logs.
+// becomes "other". A made-up report can still name any host and path (see shortURL), but it
+// can't add log lines or fields: the JSON log escapes every value.
 func keyword(s string) string {
 	s = strings.ToLower(strings.TrimSpace(s))
 	if s == "" {
@@ -154,6 +160,17 @@ func shortURL(s string) string {
 		return keyword(u.Scheme)
 	}
 	return keyword(s)
+}
+
+// origin is a blocked address cut to its scheme and host. The path of an outside address can
+// hold an id or a token (FCM's registration paths do), and the host is all we need to decide
+// whether to allow it. Keywords and schemes stay as shortURL gives them.
+func origin(s string) string {
+	short := shortURL(s)
+	if u, err := url.Parse(short); err == nil && u.Host != "" {
+		return u.Scheme + "://" + u.Host
+	}
+	return short
 }
 
 // pagePath is the page the report came from: the path only, since the origin is always ours.

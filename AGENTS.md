@@ -77,7 +77,7 @@ Region and other settings: `infra/envs/*.tfvars` and the GitHub environment vari
 
 ## Deferred work (do it when its milestone starts)
 - Any time: Terraform Google provider is pinned `~> 6.0`; the registry has 8.x (two major versions). Upgrade in its own PR, dev first, read both upgrade guides.
-- M7 (hardening): the Content-Security-Policy in `web/firebase.json` is report-only. After about a week without `csp violation` log lines on dev and prod, rename the header to `Content-Security-Policy` (enforced), dev first.
+- M7 (hardening): the Content-Security-Policy in `web/firebase.json` is report-only. After about a week without real `csp violation` log lines on dev and prod, rename the header to `Content-Security-Policy` (enforced), dev first. Before that: sign in once on dev with DevTools open and check that `/__/auth/handler` and `/__/auth/iframe` (Firebase's own pages, on our host) cause no reports; ignore reports from browser extensions (`chrome-extension`, `moz-extension`); and count the 429s on `/api/v1/csp-reports` in the request log, since a quiet week with many 429s isn't clean (anyone can post there).
 - M7 (e2e tests): Firebase Auth emulator, only if Playwright needs it (Google blocks automated logins; design doc decision 32).
 - Any time: `npm audit` in `web/` also reports findings in dev tools (mostly inside `firebase-tools`, the deploy CLI; also `jest`, `orval`, `vite-plugin-pwa`). None ship in the app; `npm audit --omit=dev` shows only what does. Check for releases that fix them.
 - Any time: a lint rule so app code can't import test-only code (`msw`, `@faker-js/faker`, `*.msw.ts`). The built bundle is already checked (`npm run check:bundle` in CI); a lint rule would catch it earlier, in the editor.

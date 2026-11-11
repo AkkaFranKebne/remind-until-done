@@ -28,7 +28,7 @@
     "import/no-unassigned-import": [
       "warn",
       {
-        "allow": ["**/*.css", "@testing-library/jest-dom"]
+        "allow": ["**/*.css", "@testing-library/jest-dom", "./lib/zodConfig"]
       }
     ],
     "jsx-a11y/alt-text": "error",

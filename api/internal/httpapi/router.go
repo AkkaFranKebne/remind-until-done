@@ -150,6 +150,14 @@ func (a *API) routes() []route {
 	}
 }
 
+// browserRoutes lists the public routes the browser calls by itself, not our web app: not in
+// swagger.json (the generated web client never calls them), no sign-in.
+func (a *API) browserRoutes() []route {
+	return []route{
+		{"POST", "/csp-reports", a.cspReport}, // Content-Security-Policy reports (handlers_csp.go)
+	}
+}
+
 // internalRoutes lists the routes Cloud Tasks and Cloud Scheduler call, without
 // the /internal prefix. They are not in swagger.json (not for the web app). Router
 // wraps each one in requireInvoker.
@@ -168,6 +176,9 @@ func (a *API) internalRoutes() []route {
 func (a *API) Router() http.Handler {
 	mux := http.NewServeMux()
 	for _, r := range a.routes() {
+		mux.HandleFunc(r.method+" /api/v1"+r.path, r.handler)
+	}
+	for _, r := range a.browserRoutes() {
 		mux.HandleFunc(r.method+" /api/v1"+r.path, r.handler)
 	}
 	for _, r := range a.internalRoutes() {

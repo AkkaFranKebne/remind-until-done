@@ -29,6 +29,13 @@ describe('SettingsPage', () => {
     expect(screen.getByText('tester@example.com')).toBeInTheDocument()
   })
 
+  it('links to the privacy notice, a page outside the app', async () => {
+    renderApp('/settings', new FakeAuthClient(tester))
+
+    const link = await screen.findByRole('link', { name: 'Privacy' })
+    expect(link).toHaveAttribute('href', '/privacy.html')
+  })
+
   it("shows the API's email (GET /me), not only Google's", async () => {
     mockMe(200, { ...testMe, email: 'api@example.com' })
     renderApp('/settings', new FakeAuthClient(tester))

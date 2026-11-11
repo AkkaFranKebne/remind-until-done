@@ -123,6 +123,30 @@ describe('LoginPage', () => {
     expect(screen.getByText('tester@example.com')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Google|Try again/ })).not.toBeInTheDocument()
   })
+
+  describe('links to the privacy notice in every state (design doc 7.3)', () => {
+    const privacyLink = () => screen.findByRole('link', { name: 'Privacy' })
+
+    it('signing in', async () => {
+      pretendInstalled()
+      renderApp('/login', new FakeAuthClient(null))
+      expect(await privacyLink()).toHaveAttribute('href', '/privacy.html')
+    })
+
+    it('not invited', async () => {
+      mockMe(403, { error: { code: 'not_invited', message: 'this app is invite-only' } })
+      renderApp('/login', new FakeAuthClient(tester))
+      await screen.findByRole('heading', { name: 'This app is invite-only.' })
+      expect(await privacyLink()).toHaveAttribute('href', '/privacy.html')
+    })
+
+    it('iPhone in Safari, on the install steps', async () => {
+      pretendUserAgent(IPHONE_17)
+      renderApp('/login', new FakeAuthClient(null))
+      await screen.findByRole('region', { name: 'Install on your iPhone first' })
+      expect(await privacyLink()).toHaveAttribute('href', '/privacy.html')
+    })
+  })
 })
 
 describe('LoginPage: the install gate (design doc §0)', () => {

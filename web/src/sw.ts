@@ -27,6 +27,9 @@ declare const self: ServiceWorkerGlobalScope
 void self.skipWaiting()
 clientsClaim()
 
+// The privacy notice, a page of its own outside the app (web/privacy.html, design doc 7.3).
+const PRIVACY_PAGE = '/privacy.html'
+
 // Pages first (Workbox uses the first route that matches): otherwise the precache would answer
 // "/" from the cache, and a deploy would only show up on the second open.
 registerRoute(
@@ -35,8 +38,10 @@ registerRoute(
       try {
         return await fetch(request)
       } catch {
-        // Offline: the cached app, which shows its own "no connection" state.
-        return (await matchPrecache('index.html')) ?? Response.error()
+        // Offline: the cached privacy notice for its own address; the cached app for every
+        // other page, which shows its own "no connection" state.
+        const page = new URL(request.url).pathname === PRIVACY_PAGE ? 'privacy.html' : 'index.html'
+        return (await matchPrecache(page)) ?? Response.error()
       }
     },
     { denylist: [/^\/api\//, /^\/__\//] },

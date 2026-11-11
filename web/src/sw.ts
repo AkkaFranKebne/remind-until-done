@@ -17,6 +17,7 @@ import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { handleClick } from './sw/click'
 import { pushArrived } from './sw/messages'
+import { offlinePage } from './sw/offline'
 import { toNotification } from './sw/notification'
 import { closeAllOf, showOnlyNewest } from './sw/show'
 
@@ -26,9 +27,6 @@ declare const self: ServiceWorkerGlobalScope
 // running until the next open, which then loads the new files.
 void self.skipWaiting()
 clientsClaim()
-
-// The privacy notice, a page of its own outside the app (web/privacy.html, design doc 7.3).
-const PRIVACY_PAGE = '/privacy.html'
 
 // Pages first (Workbox uses the first route that matches): otherwise the precache would answer
 // "/" from the cache, and a deploy would only show up on the second open.
@@ -40,8 +38,7 @@ registerRoute(
       } catch {
         // Offline: the cached privacy notice for its own address; the cached app for every
         // other page, which shows its own "no connection" state.
-        const page = new URL(request.url).pathname === PRIVACY_PAGE ? 'privacy.html' : 'index.html'
-        return (await matchPrecache(page)) ?? Response.error()
+        return (await matchPrecache(offlinePage(new URL(request.url).pathname))) ?? Response.error()
       }
     },
     { denylist: [/^\/api\//, /^\/__\//] },

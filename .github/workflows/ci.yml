@@ -123,8 +123,10 @@ jobs:
         run: npm run check:bundle
       # End-to-end tests (design doc 5.9): the app in a real Chromium, phone-sized, against the
       # mock mode (no API, database or Firebase). The browser version comes with @playwright/test.
+      # No --with-deps: GitHub's Ubuntu images already have Chrome's system libraries, and its
+      # extra font packages are missing from the newest image (apt fails, 2026-11-12).
       - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: End-to-end tests (Playwright)
         run: npm run test:e2e
       # On a failure: the report with a step-by-step trace of each failed test. Open it with

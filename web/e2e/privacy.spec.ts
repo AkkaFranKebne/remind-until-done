@@ -14,7 +14,11 @@ test('from Settings: the Privacy row opens the notice, Back to rud. goes home', 
   await page.getByRole('link', { name: 'Privacy' }).click()
   await expectPrivacyPage(page)
 
-  await page.getByRole('link', { name: 'Back to rud.', exact: true }).last().click()
+  // Two links say it: the ‹ arrow at the top and the text link at the bottom. Both go home.
+  const back = page.getByRole('link', { name: 'Back to rud.', exact: true })
+  await expect(back).toHaveCount(2)
+  for (const link of await back.all()) await expect(link).toHaveAttribute('href', '/')
+  await page.getByText('Back to rud.', { exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Your reminders' })).toBeVisible()
 })
 

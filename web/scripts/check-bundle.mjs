@@ -15,6 +15,7 @@ const markers = [
   '@faker-js',
   'Renew passport',
   'mock-token',
+  'rud.mock.signedOut', // the fake sign-in's sessionStorage key (mockAuthClient.ts)
   'mock-push-token',
 ]
 

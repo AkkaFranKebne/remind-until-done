@@ -92,6 +92,8 @@ export async function signOut(page: Page) {
   await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible()
 }
 
-/** A reminder row in the list (a link to its page). */
-export const row = (page: Page, title: string) =>
-  page.getByRole('link', { name: new RegExp(title) })
+/**
+ * A reminder row in the list (a link to its page). Its name is the title plus the status and
+ * time; Playwright matches part of a name by default, so the title alone finds it.
+ */
+export const row = (page: Page, title: string) => page.getByRole('link', { name: title })

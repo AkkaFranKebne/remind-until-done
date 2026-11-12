@@ -44,4 +44,14 @@ test.describe('notifications', () => {
     await expect(page.getByText('This device is registered')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Enable notifications' })).toHaveCount(0)
   })
+
+  test.describe('in a browser tab, not the installed app', () => {
+    test.use({ installed: false })
+
+    test('no Enable button: pushes need the installed app', async ({ page }) => {
+      await page.goto('/settings')
+      await expect(page.getByText('Needs the installed app')).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Enable notifications' })).toHaveCount(0)
+    })
+  })
 })

@@ -23,7 +23,8 @@ function rememberSignedOut(signedOut: boolean) {
 /**
  * The sign-in for `npm run dev:mock`, instead of Firebase: you start signed in as a test user,
  * "Sign out" signs out, "Continue with Google" signs straight back in (no Google page).
- * Signed out stays signed out after a reload, in this tab, like Firebase keeps its session: so a
+ * Signed out stays signed out after a reload, in this tab only (sessionStorage; real Firebase keeps
+ * it across tabs and restarts too): so a
  * link opened while signed out goes to /login first (the e2e tests rely on it).
  */
 export class MockAuthClient implements AuthClient {

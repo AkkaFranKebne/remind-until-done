@@ -28,3 +28,7 @@ dist-ssr
 
 # Storybook build output
 storybook-static
+
+# Playwright: test results, traces and the HTML report
+test-results
+playwright-report

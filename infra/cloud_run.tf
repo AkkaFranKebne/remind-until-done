@@ -23,6 +23,11 @@ resource "google_cloud_run_v2_service" "api" {
           cpu    = "1"
           memory = "512Mi"
         }
+        # Pay per request: CPU only while a request runs, nothing while the instance waits.
+        # Must be set here: with `limits` set and this left out, Cloud Run bills the whole time
+        # an instance is up, and the uptime check keeps one up all day (2026-11-12, about 80 kr
+        # in 11 days, paid by the free-trial credit). The API does no work outside requests.
+        cpu_idle = true
       }
 
       env {

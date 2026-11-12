@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Spinner } from './Spinner'
+import { TextLink } from './TextLink'
 import { TopBar } from './TopBar'
 import { Wordmark } from './Wordmark'
 import { CenteredScreen } from './CenteredScreen'
@@ -37,6 +38,19 @@ export const WithHeader: Story = {
         <p className="text-sm text-fg2">
           Whatever you were looking for, it&apos;s not at this URL.
         </p>
+      </>
+    ),
+  },
+}
+
+/** With a footer at the bottom (Login: the Privacy link). */
+export const WithFooter: Story = {
+  args: {
+    footer: <TextLink href="/privacy.html">Privacy</TextLink>,
+    children: (
+      <>
+        <Wordmark />
+        <p className="text-sm text-fg2">The reminder app that won&apos;t let you forget.</p>
       </>
     ),
   },

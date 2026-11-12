@@ -33,3 +33,14 @@ test('className changes the spacing (later class wins)', () => {
   expect(screen.getByRole('main')).toHaveClass('gap-2')
   expect(screen.getByRole('main')).not.toHaveClass('gap-4')
 })
+
+test('a footer comes after the content and takes over the home bar safe area', () => {
+  render(<CenteredScreen footer={<a href="/privacy.html">Privacy</a>}>x</CenteredScreen>)
+
+  const main = screen.getByRole('main')
+  const footer = screen.getByRole('contentinfo')
+  expect(main.nextElementSibling).toBe(footer)
+  expect(footer).toContainElement(screen.getByRole('link', { name: 'Privacy' }))
+  expect(footer.className).toContain('safe-area-inset-bottom')
+  expect(main.className).not.toContain('safe-area-inset-bottom')
+})

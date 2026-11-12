@@ -17,6 +17,7 @@ import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { handleClick } from './sw/click'
 import { pushArrived } from './sw/messages'
+import { offlinePage } from './sw/offline'
 import { toNotification } from './sw/notification'
 import { closeAllOf, showOnlyNewest } from './sw/show'
 
@@ -35,8 +36,9 @@ registerRoute(
       try {
         return await fetch(request)
       } catch {
-        // Offline: the cached app, which shows its own "no connection" state.
-        return (await matchPrecache('index.html')) ?? Response.error()
+        // Offline: the cached privacy notice for its own address; the cached app for every
+        // other page, which shows its own "no connection" state.
+        return (await matchPrecache(offlinePage(new URL(request.url).pathname))) ?? Response.error()
       }
     },
     { denylist: [/^\/api\//, /^\/__\//] },

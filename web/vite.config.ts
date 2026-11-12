@@ -54,6 +54,14 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      // Two pages: the app, and the privacy notice (design doc 7.3). The notice is plain HTML
+      // with our styles and no JavaScript, outside the app's routes, so it opens even when the
+      // app can't.
+      input: { app: 'index.html', privacy: 'privacy.html' },
+    },
+  },
   server: {
     // Locally, send /api calls to the Go API (make run in api/), like the
     // Firebase Hosting rewrite does in dev and prod (design doc 6.7).

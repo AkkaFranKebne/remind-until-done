@@ -4,6 +4,7 @@ import { cva } from 'class-variance-authority'
 import { useEffect, useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { CenteredScreen } from '../../components/ui/CenteredScreen'
+import { TextLink } from '../../components/ui/TextLink'
 import { Wordmark } from '../../components/ui/Wordmark'
 import { PreviewsTip } from '../notifications/DeviceTips'
 import { forgetThisDevice } from '../notifications/forgetThisDevice'
@@ -74,7 +75,11 @@ export function LoginPage() {
   const notInvited = state.status === 'notInvited'
 
   return (
-    <CenteredScreen className="gap-0">
+    <CenteredScreen
+      className="gap-0"
+      // In every login state, invite-only and the iPhone steps too (design doc 7.3).
+      footer={<TextLink href="/privacy.html">Privacy</TextLink>}
+    >
       <div
         className={brandBlock({
           look: notInvited

@@ -1,6 +1,6 @@
 import { Button as BaseButton } from '@base-ui/react/button'
 import { useMutation } from '@tanstack/react-query'
-import { ChevronRight, LogOut, Trash2 } from 'lucide-react'
+import { ChevronRight, LogOut, ShieldCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { AppScreen } from '../../app/AppScreen'
 import { ConfirmSheet } from '../../components/ui/ConfirmSheet'
@@ -70,6 +70,20 @@ export function SettingsPage() {
               <p className="truncate text-sm text-fg2">{email}</p>
             </div>
           </div>
+          {/* A plain link: the privacy notice is its own page outside the app (design doc 7.3). */}
+          <a
+            href="/privacy.html"
+            className="flex min-h-11 w-full items-center gap-3.5 border-b border-border px-3.5 py-3 text-left focus-visible:outline-2 focus-visible:outline-accent"
+          >
+            <span
+              aria-hidden="true"
+              className="flex size-8.5 shrink-0 items-center justify-center rounded-md bg-bg3 text-fg2"
+            >
+              <ShieldCheck size={17} strokeWidth={1.75} />
+            </span>
+            <span className="flex-1 text-base font-medium">Privacy</span>
+            <ChevronRight aria-hidden="true" size={16} strokeWidth={1.75} className="text-fg3" />
+          </a>
           <BaseButton
             onClick={() => setConfirming(true)}
             className="flex min-h-11 w-full cursor-pointer items-center gap-3.5 border-b border-border px-3.5 py-3 text-left focus-visible:outline-2 focus-visible:outline-accent"

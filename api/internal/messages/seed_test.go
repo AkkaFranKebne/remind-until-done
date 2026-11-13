@@ -71,6 +71,7 @@ func TestCheckFindsBrokenRules(t *testing.T) {
 		{"a wrong level", func(l []messages.Line) []messages.Line { l[0].Level = 6; return l }, "level must be"},
 		{"empty text", func(l []messages.Line) []messages.Line { l[0].Text = ""; return l }, "1 to 140"},
 		{"text too long", func(l []messages.Line) []messages.Line { l[0].Text = strings.Repeat("é", 141); return l }, "1 to 140"},
+		{"an active line too long to read at a glance", func(l []messages.Line) []messages.Line { l[0].Text = strings.Repeat("é", 61); return l }, "at most 60"},
 		{"brackets", func(l []messages.Line) []messages.Line { l[0].Text = "No rush. (Rush.)"; return l }, "no brackets"},
 		{"a long dash", func(l []messages.Line) []messages.Line { l[0].Text = "Here — still"; return l }, "long dashes"},
 		{"pending", func(l []messages.Line) []messages.Line { l[0].Text = "Still Pending."; return l }, `not "pending"`},
@@ -211,10 +212,21 @@ func TestTheSQLLoadsAndUpdates(t *testing.T) {
 	if isActive {
 		t.Errorf("id %d was deleted from the file but is still active", last)
 	}
-	if err := pool.QueryRow(ctx, `SELECT active FROM nag_messages WHERE id = 2`).Scan(&isActive); err != nil {
+	// Any other line that's active in the file must still be active (not a fixed id: the file changes).
+	other := 0
+	for _, l := range lines[1 : len(lines)-1] {
+		if l.Active {
+			other = l.ID
+			break
+		}
+	}
+	if other == 0 {
+		t.Fatal("the file has no other active line to check")
+	}
+	if err := pool.QueryRow(ctx, `SELECT active FROM nag_messages WHERE id = $1`, other).Scan(&isActive); err != nil {
 		t.Fatal(err)
 	}
 	if !isActive {
-		t.Error("deleting the last line retired another one")
+		t.Errorf("deleting the last line retired id %d too", other)
 	}
 }

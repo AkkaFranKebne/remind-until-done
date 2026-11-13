@@ -11,7 +11,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 | Run on :8080 | `make run` (uses the local database) |
 | Fire a push by hand, like Cloud Tasks | `make fire ID=<reminder id> V=<version> N=<push number>` (the API log prints the exact command for every booked task) |
 | Run the daily sweep by hand, like Cloud Scheduler | `make sweep` |
-| After editing `db/seed/messages.csv` | `make messages` (checks the rules, regenerates `db/migrations/R__nag_messages.sql`) |
+| After editing `db/seed/messages.csv` | `make messages` (checks the rules, regenerates `db/migrations/R__nag_messages.sql`; touches no database: Flyway loads the file, locally with `make migrate`, on dev and prod in the deploy). Steps: the `edit-nag-lines` skill |
 | Format check / vet / tests | `make fmt vet test` (Docker must be running) |
 | Docker image | `make docker` (Docker Desktop must be running) |
 | Known vulnerabilities | `go run golang.org/x/vuln/cmd/govulncheck@latest ./...` |
@@ -43,6 +43,51 @@ Run in `api/`. Needs Go (version in `go.mod`).
 - Locally `make run` sets `PUSH=log` and `SCHEDULER=log`; config refuses both in dev and prod. Config also refuses a `GCP_PROJECT` that isn't `rud-<env>-...`: sign-in, Cloud Tasks and FCM all use it, and a wrong one would make every push fail as "token gone" and delete every device.
 - A new schedule version always comes from `nextval('reminder_schedule_version_seq')`, never `+ 1` (decision 52): a rolled-back attempt may have booked its task, and a reused version would reuse its task name.
 - Nag lines (`internal/messages`, design doc 3.8, decisions 67 and 68): people edit `db/seed/messages.csv`; `make messages` generates the repeatable Flyway file `db/migrations/R__nag_messages.sql`, which Flyway runs again whenever its text changes, in every environment. Never edit the SQL by hand: a test fails if it doesn't match the CSV. Ids run without gaps and are permanent: to retire a line set `active` to false (a line deleted from the end is retired too, but its id could then be reused by mistake). `messages.Check` holds the rules. No program of ours loads the lines in a deploy, because only Flyway and firebase-tools may run after the Google login. `Picker.Pick` takes a random active unseen line of the push's level (`LevelFor`, decision 66); when a user has seen them all, their seen lines of that level are forgotten. It doesn't mark the line as seen: `recordSent` does, only after FCM accepts, also when Done won during the send, and outside its transaction with a short timeout: a failure there is only logged, so a line can never stop the nags (decision 69). An empty level answers `FallbackLine`, so the lines never block a push. The reminder keeps the text of its page line in `reminders.line` (decision 70): `recordSent` saves the push's line in the transaction that counts it, `MarkDone` a level-5 line. `MarkDone` picks before its transaction and marks seen after it, each with a short timeout and a failure only logged, so a line can never stop Done; with no done line, `line` stays empty and the app uses its own text, never `FallbackLine`, which is a nag.
+- Writing nag lines (design doc 3.8, decision 89): a line is read in a glance on a lock screen, so an active one has at most 60 characters (`messages.Check`). Short, plain and a little dry, like "This won't do itself. We checked." or "This task chose you. Don't let it down." Never:
+  - lines about the notification itself, or wordplay on it ("This is your reminder, reminding you.", "A hug in notification form.");
+  - a cute reminder with a personality ("This reminder dressed up for you.");
+  - warmth with no joke ("A gentle nudge wrapped in good intentions.");
+  - circular lines ("We nudge because we care. We care because we nudge.");
+  - reassurance that undercuts the nag ("…and that's okay.");
+  - filler openers ("Still here.", "Still waiting.", "A soft reminder that…"; on level 4 "After this notification…", which sounds like system text);
+  - repeated words for effect ("Softly, gently, warmly, persistently");
+  - "we", "us" or "our": the app has no narrator. The task can be the subject ("This task has settled in."), the line can talk to "you", or it can have no subject at all ("Last one. Tap Done."). The one kept exception is "This won't do itself. We checked.";
+  - the word "app": say "rud." if a line needs a name;
+  - a second sentence that only comments on the first ("Very cosy.", "Impressive.", "Probably.", "Just saying."). A second sentence must turn the meaning ("This task hasn't moved. Maybe you should.") or say what to do ("Tap Done.").
+
+- Final nag lines (level 4) say plainly that this is the last nag, and what comes next: Done or overdue. Like "Last chance before overdue." or "Final nag. Done is right there." Never:
+  - a vague "Last one." (the last what?);
+  - stage, story and sports images ("Take a bow", "No encore", "swan song", "Curtain call", "The final whistle", "The last page", "Here's the pen", "has entered the chat");
+  - silence or peace after it ("Make it a done silence.", "Then you're left in peace.");
+  - lines about the nagging itself ("This is the goodbye nag.", "The nagging stops here.", "Then the nagging retires.");
+  - clichés ("Go out on a high", "For real this time", "Make it count").
+- Gentle lines (level 1) are short, direct and friendly, or bring in your future or past self. Like "This won't take long.", "You set this for a reason.", "Do this before you forget again.", "Remember this? It remembers you.", "A note from your calmer future self.", "Make it so." or "Engage!" Never:
+  - patience lines ("The task is patient. The deadline isn't.", "Patience is vast. Not infinite.");
+  - the list, checklist or to-do list acting on its own ("The list never forgets.", "Your to-do list flagged this.", "filed a missing persons report");
+  - poetic or philosophical images ("the sound of one task waiting", "your unfinished symphony", "Soft as morning.");
+  - proverbs and clichés ("The best time to do this was earlier.", "Done feels better than almost.", "Small tap. Big payoff.");
+  - wordplay ("Still the task. Still the person.", "This exists. One tap and it doesn't.", "Set. Waiting. Done.");
+  - deadline lines ("Deadlines are real.").
+- Teasing lines (level 2) tease the delay with mock praise, a plot twist or a spoiler, or say that it's back again. Like "Plot twist: it still hasn't done itself.", "You're impressively good at ignoring things.", "Your delay has achieved a certain grandeur.", "Back again. You seem surprised. Don't be." or "This task has outlived some houseplants." Never:
+  - lines about the reminder or notification itself ("The reminder remains.", "A regular in your notification tray.", "Designed not to go away.", "Soldiering on. As reminders do.");
+  - the task taking up a hobby or a mood ("wrote a poem", "started a podcast", "started a newsletter", "developing a complex", "has gotten quite philosophical");
+  - family, relationship or housemate images ("part of the family", "More commitment than most relationships.");
+  - "noted", "notes are being taken", judging or cataloguing;
+  - clipped lists ("Watching. Waiting. Judging a little.", "Task: patient. Reminder: relentless.");
+  - big or abstract images ("the elephant in the notification tray", "A constant in your variable life.", "Growing more legendary").
+- Last-call lines (level 3) are direct, or a funny exaggeration of how long the task has waited. Like "This is getting serious.", "'Later' is no longer acceptable.", "Enough delays to fill an autobiography." or "Standing in the rain, shouting your name." Never:
+  - talk about phases, tone or escalation ("The gentle phase is over.", "From suggestion to strong recommendation.", "Escalated.", "Past subtle. At emphatic.");
+  - "imploring", or alarm and volume images ("Sounding the alarm. Metaphorically.", "Full volume.");
+  - wordplay on "urgent", "maximum" or "almost" ("Urgently not calm.", "You're maximum needed.", "Act in almost.");
+  - lines that comment on themselves ("Look how not-messing-around this is.", "This is not a drill. Well.");
+  - door, edge or last-stand images ("knocking on done's door", "The task's last stand").
+- Done lines (level 5) are plain and warm, like "Done. Knew you had it in you." or "Done. That's a weight off. Go enjoy it." Never:
+  - lines about the nagging or the app ("The nagging was worth it.", "The nag machine stands down.");
+  - "until the next one" or the next reminder;
+  - winning against the list or the deadline ("The to-do list didn't stand a chance.", "Task: defeated.");
+  - big metaphors ("Write it in the sky.", "You're the protagonist now.", "Add it to your highlight reel.");
+  - clipped word lists ("Nagged. Delivered.", "Celebrated. Moving on.");
+  - a joke at the user's cost ("They'll be less impressed.", "Nobody's crying. You're crying.").
 - Action tokens (`internal/actiontoken`, `POST /actions`, decision 72): each push carries a signed token that can only mark one reminder done, for 24 hours, until an edit changes its schedule version. It travels in the request body, never the address, because Cloud Run logs addresses. The signature is checked before the database is touched. `ACTION_TOKEN_KEY` is required in dev and prod (at least 32 bytes); locally config uses a fixed key that protects nothing. Tokens and the key are never logged.
 - Rate limit (`internal/ratelimit`, `middleware_ratelimit.go`, design doc 7.2, decision 86): a token bucket per key, in memory on each instance, `RATE_LIMIT_PER_MINUTE` requests a minute (`config.DefaultRateLimitPerMinute`). `a.allow(w, r, key)` answers 429 `rate_limited` with `Retry-After` itself. It runs before any database call: in `requireUser` and `DELETE /me` right after the token check (key `user:<uid>`, also for someone not invited), in `POST /actions` right after the signature check (key `action:<reminder id>`). A request without a valid token or signature never counts. `DELETE /me` also runs one at a time per user on an instance (`inFlight`): it holds a database connection while Firebase answers, so a few at once during a Firebase slowdown could take the pool's connections; a second one answers 429. It checks the Google provider before the limit, so other sign-in methods can't make keys. Moves and interval changes are signed-in routes, so the user's limit covers the Cloud Tasks they leave behind. Every swagger.json route but `/healthz` documents the 429. The web app shows "Slow down a little. Try again in a minute." (`web/src/lib/api/errorText.ts`).
 - Browser routes are listed in `API.browserRoutes()` (not in `swagger.json`: the browser calls them by itself, the generated web client never does). Today only `POST /csp-reports` (`handlers_csp.go`, design doc 7.1): Content-Security-Policy reports, no sign-in, one shared limit per instance (key `csp-reports`), a 16 KB body, never touches the database. Each report is one WARN line `csp violation`: the directive, the blocked address as origin only (an outside path can hold a token), the source file as origin + path (never a query or fragment), and the page path. Directives and words like `inline` must be plain keywords, else `other`. Anyone can post here, so a report can still name a made-up host; it can't add log lines or fields (the JSON log escapes values). Over the limit it answers 429 without the extra `rate limited` line.

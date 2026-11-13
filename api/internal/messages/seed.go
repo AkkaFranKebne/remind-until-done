@@ -16,7 +16,12 @@ import (
 	"unicode/utf8"
 )
 
-const maxTextLen = 140 // same limit as the CHECK on nag_messages.text
+const (
+	maxTextLen = 140 // same limit as the CHECK on nag_messages.text
+	// A lock screen shows about this much at a glance, so an active line must fit (decision 89).
+	// Retired lines keep their old text, so only active ones are held to it.
+	maxActiveLen = 60
+)
 
 // Line is one row of messages.csv.
 type Line struct {
@@ -105,6 +110,9 @@ func Check(lines []Line) error {
 			continue
 		}
 		activeAt[l.Level]++
+		if n := utf8.RuneCountInString(l.Text); n > maxActiveLen {
+			report(l.ID, "an active line has at most %d characters, it has %d", maxActiveLen, n)
+		}
 		if exactCount.MatchString(notACount.ReplaceAllString(l.Text, "")) {
 			report(l.ID, "no exact counts in text")
 		}

@@ -61,6 +61,12 @@ Run in `api/`. Needs Go (version in `go.mod`).
   - silence or peace after it ("Make it a done silence.", "Then you're left in peace.");
   - lines about the nagging itself ("This is the goodbye nag.", "The nagging stops here.", "Then the nagging retires.");
   - clichés ("Go out on a high", "For real this time", "Make it count").
+- Last-call lines (level 3) are direct, or a funny exaggeration of how long the task has waited. Like "This is getting serious.", "'Later' is no longer acceptable.", "Enough delays to fill an autobiography." or "Standing in the rain, shouting your name." Never:
+  - talk about phases, tone or escalation ("The gentle phase is over.", "From suggestion to strong recommendation.", "Escalated.", "Past subtle. At emphatic.");
+  - "imploring", or alarm and volume images ("Sounding the alarm. Metaphorically.", "Full volume.");
+  - wordplay on "urgent", "maximum" or "almost" ("Urgently not calm.", "You're maximum needed.", "Act in almost.");
+  - lines that comment on themselves ("Look how not-messing-around this is.", "This is not a drill. Well.");
+  - door, edge or last-stand images ("knocking on done's door", "The task's last stand").
 - Done lines (level 5) are plain and warm, like "Done. Knew you had it in you." or "Done. That's a weight off. Go enjoy it." Never:
   - lines about the nagging or the app ("The nagging was worth it.", "The nag machine stands down.");
   - "until the next one" or the next reminder;

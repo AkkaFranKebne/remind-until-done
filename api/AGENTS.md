@@ -55,7 +55,12 @@ Run in `api/`. Needs Go (version in `go.mod`).
   - the word "app": say "rud." if a line needs a name;
   - a second sentence that only comments on the first ("Very cosy.", "Impressive.", "Probably.", "Just saying."). A second sentence must turn the meaning ("This task hasn't moved. Maybe you should.") or say what to do ("Tap Done.").
 
-  Level 4 still says it's the last nag, in the same voice ("Last call. The bar is closing.").
+- Final nag lines (level 4) say plainly that this is the last nag, and what comes next: Done or overdue. Like "Last chance before overdue." or "Final nag. Done is right there." Never:
+  - a vague "Last one." (the last what?);
+  - stage, story and sports images ("Take a bow", "No encore", "swan song", "Curtain call", "The final whistle", "The last page", "Here's the pen", "has entered the chat");
+  - silence or peace after it ("Make it a done silence.", "Then you're left in peace.");
+  - lines about the nagging itself ("This is the goodbye nag.", "The nagging stops here.", "Then the nagging retires.");
+  - clichés ("Go out on a high", "For real this time", "Make it count").
 - Done lines (level 5) are plain and warm, like "Done. Knew you had it in you." or "Done. That's a weight off. Go enjoy it." Never:
   - lines about the nagging or the app ("The nagging was worth it.", "The nag machine stands down.");
   - "until the next one" or the next reminder;

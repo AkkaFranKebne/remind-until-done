@@ -2940,113 +2940,113 @@ id,level,text,active
 2939,3,"This task is past the point where soft nudges work.",false
 2940,3,"We speak clearly: this task needs action. Now.",false
 2941,3,"The dramatic arc has reached its decisive moment.",false
-2942,4,"Final boss level. One tap and it's over: Done.",true
+2942,4,"Final boss level. One tap and it's over: Done.",false
 2943,4,"Last push. Last chance. Last nag. Your move.",true
 2944,4,"Final. Last. Definitive. One tap.",true
-2945,4,"Nagged. Implored. This is the last.",true
-2946,4,"The nagging is done after this. Is the task?",true
-2947,4,"Last nag. Make it count.",true
-2948,4,"This is the last one.",true
+2945,4,"Nagged. Implored. This is the last.",false
+2946,4,"The nagging is done after this. Is the task?",false
+2947,4,"Last nag. Make it count.",false
+2948,4,"This is the last one.",false
 2949,4,"Final word on this: Done?",true
-2950,4,"Last call. Then quiet.",true
+2950,4,"Last call. Then quiet.",false
 2951,4,"Final nag. After this, it's up to you.",true
-2952,4,"Last one. Tap Done.",true
+2952,4,"Last one. Tap Done.",false
 2953,4,"This is it. The last nag.",true
 2954,4,"Out of nags. Not out of time.",true
 2955,4,"Last chance before overdue.",true
-2956,4,"One last tap. Then peace.",true
-2957,4,"Final nag. Saved the best for last.",true
-2958,4,"After this, silence. Make it a done silence.",true
+2956,4,"One last tap. Then peace.",false
+2957,4,"Final nag. Saved the best for last.",false
+2958,4,"After this, silence. Make it a done silence.",false
 2959,4,"Last push. Your move.",true
-2960,4,"This is the goodbye nag.",true
+2960,4,"This is the goodbye nag.",false
 2961,4,"The last nag. Make it the one that worked.",true
 2962,4,"Final notice. One tap.",true
-2963,4,"Last one. No pressure. Well, some.",true
-2964,4,"Bowing out. Tap Done on your way.",true
+2963,4,"Last one. No pressure. Well, some.",false
+2964,4,"Bowing out. Tap Done on your way.",false
 2965,4,"Our last nag. We believed in you the whole time.",false
 2966,4,"Last nag. Then it's just you and the task.",true
-2967,4,"Final round. Ding ding.",true
-2968,4,"The nagging ends here. The task doesn't.",true
+2967,4,"Final round. Ding ding.",false
+2968,4,"The nagging ends here. The task doesn't.",false
 2969,4,"Last call for Done.",true
 2970,4,"Final nag. Overdue is next.",true
-2971,4,"One last nudge. The big one.",true
-2972,4,"Last one. For real this time.",true
-2973,4,"Final nag. Go out on a high.",true
+2971,4,"One last nudge. The big one.",false
+2972,4,"Last one. For real this time.",false
+2973,4,"Final nag. Go out on a high.",false
 2974,4,"Last word on this: Done.",true
 2975,4,"Last nag. Overdue is warming up.",true
 2976,4,"This is the final nag. Let it land.",true
-2977,4,"Leaving the stage. Take a bow: tap Done.",true
-2978,4,"Final nag. The credits are about to roll.",true
-2979,4,"Last one. Make it count.",true
+2977,4,"Leaving the stage. Take a bow: tap Done.",false
+2978,4,"Final nag. The credits are about to roll.",false
+2979,4,"Last one. Make it count.",false
 2980,4,"The last nag. Overdue is next in line.",true
 2981,4,"One tap stands between this and overdue.",true
 2982,4,"Last chance to be done before overdue.",true
 2983,4,"Final nag. Tap Done.",true
 2984,4,"Final nag. Then it's over to you.",true
-2985,4,"Last nudge. Make it the one.",true
-2986,4,"Last call. The bar is closing.",true
-2987,4,"Final nag. No encore.",true
-2988,4,"The last nag has entered the chat.",true
+2985,4,"Last nudge. Make it the one.",false
+2986,4,"Last call. The bar is closing.",false
+2987,4,"Final nag. No encore.",false
+2988,4,"The last nag has entered the chat.",false
 2989,4,"Last nag. After this, overdue.",true
-2990,4,"All nags used up. This is the final one.",true
+2990,4,"All nags used up. This is the final one.",false
 2991,4,"Final notification. Done or overdue?",true
 2992,4,"Last chance. Done beats overdue.",true
-2993,4,"This is the end of the line. Last nag.",true
+2993,4,"This is the end of the line. Last nag.",false
 2994,4,"The final nag. Short and sweet: Done?",true
-2995,4,"Last one. Then you're left in peace.",true
-2996,4,"Final nag. One tap and everyone's free.",true
-2997,4,"This is the swan song. Tap Done.",true
-2998,4,"Final nag. Going out with a bang.",true
-2999,4,"Signing off. Please sign off on this.",true
-3000,4,"Last nag. Done would be a lovely ending.",true
-3001,4,"The nagging stops here. Please don't stop here.",true
+2995,4,"Last one. Then you're left in peace.",false
+2996,4,"Final nag. One tap and everyone's free.",false
+2997,4,"This is the swan song. Tap Done.",false
+2998,4,"Final nag. Going out with a bang.",false
+2999,4,"Signing off. Please sign off on this.",false
+3000,4,"Last nag. Done would be a lovely ending.",false
+3001,4,"The nagging stops here. Please don't stop here.",false
 3002,4,"Final nag. Overdue is at the door.",true
-3003,4,"Last one. Make it a happy ending.",true
-3004,4,"One last tap and this story ends well.",true
-3005,4,"Last push. Push back with Done.",true
+3003,4,"Last one. Make it a happy ending.",false
+3004,4,"One last tap and this story ends well.",false
+3005,4,"Last push. Push back with Done.",false
 3006,4,"Final nag. Last stop before overdue.",true
 3007,4,"Last call. After this, overdue takes over.",true
 3008,4,"Final nag. You can still win this.",true
-3009,4,"This is the last nag. After this, just quiet.",true
-3010,4,"The final countdown is over. Tap Done.",true
-3011,4,"Last nag. The finish line is right there.",true
+3009,4,"This is the last nag. After this, just quiet.",false
+3010,4,"The final countdown is over. Tap Done.",false
+3011,4,"Last nag. The finish line is right there.",false
 3012,4,"Final nag. Done or overdue. Pick done.",true
-3013,4,"Out of nags. One tap left. Yours.",true
+3013,4,"Out of nags. One tap left. Yours.",false
 3014,4,"Last one, promise. Done?",false
 3015,4,"Final nag. Your future self is watching.",true
 3016,4,"Last chance to beat overdue.",true
-3017,4,"Curtain call. Your cue: Done.",true
-3018,4,"Final nag. Then the nagging retires. Will the task?",true
+3017,4,"Curtain call. Your cue: Done.",false
+3018,4,"Final nag. Then the nagging retires. Will the task?",false
 3019,4,"Last nag. Then the task is all yours.",true
 3020,4,"Final notice before overdue.",true
-3021,4,"The last nag. Make it the best one.",true
-3022,4,"Final nag. Let's end this on Done.",true
-3023,4,"Last nag. Turning off the lights.",true
+3021,4,"The last nag. Make it the best one.",false
+3022,4,"Final nag. Let's end this on Done.",false
+3023,4,"Last nag. Turning off the lights.",false
 3024,4,"Final nag. Nothing left but one tap.",true
-3025,4,"Last ping. Then silence. Then hopefully Done.",true
+3025,4,"Last ping. Then silence. Then hopefully Done.",false
 3026,4,"The final nag. You've got this.",true
-3027,4,"Last one. Overdue is getting ideas.",true
+3027,4,"Last one. Overdue is getting ideas.",false
 3028,4,"This is the last you'll hear of this. Done?",true
-3029,4,"Final nag. Everything's been given. Your turn.",true
+3029,4,"Final nag. Everything's been given. Your turn.",false
 3030,4,"Last nag. Done beats overdue every time.",true
-3031,4,"The final whistle is about to blow. Tap Done.",true
-3032,4,"Last nag. Write the ending: Done.",true
-3033,4,"Final nag. The last page. Make it a good one.",true
+3031,4,"The final whistle is about to blow. Tap Done.",false
+3032,4,"Last nag. Write the ending: Done.",false
+3033,4,"Final nag. The last page. Make it a good one.",false
 3034,4,"One final tap. Then it's over.",true
-3035,4,"Last nag. Send it off with a Done.",true
+3035,4,"Last nag. Send it off with a Done.",false
 3036,4,"Final nag. Overdue is next. Done is better.",true
-3037,4,"Last call. No more asking after this.",true
-3038,4,"Final nag. The nagging stops. You don't have to.",true
+3037,4,"Last call. No more asking after this.",false
+3038,4,"Final nag. The nagging stops. You don't have to.",false
 3039,4,"Last nag. Close the loop.",true
-3040,4,"Final nag. Last train to Done.",true
+3040,4,"Final nag. Last train to Done.",false
 3041,4,"Last nag. Make it the one you answered.",true
 3042,4,"Final nag. Done is right there.",true
 3043,4,"The last nag. Tap Done and call it even.",true
-3044,4,"Last nag. It'll go quietly. Will you go to Done?",true
-3045,4,"Final nag. The end is near. Make it Done.",true
+3044,4,"Last nag. It'll go quietly. Will you go to Done?",false
+3045,4,"Final nag. The end is near. Make it Done.",false
 3046,4,"Last nag. No more after this. Just you and Done.",true
-3047,4,"Final nag. Here's the pen. Write Done.",true
-3048,4,"Last one. Make the silence a happy one.",true
+3047,4,"Final nag. Here's the pen. Write Done.",false
+3048,4,"Last one. Make the silence a happy one.",false
 3049,4,"After this, overdue. Right now, still possible. Do it.",false
 3050,4,"Our final word: one tap, and this is over. For good.",false
 3051,4,"After this notification, we go quiet. Go done.",false
@@ -3883,3 +3883,25 @@ id,level,text,active
 3882,5,"Done. That's off your plate.",true
 3883,5,"Done. You followed through.",true
 3884,5,"Done. Simple as that.",true
+3885,4,"Final nag. Done now beats overdue later.",true
+3886,4,"Last nag. One tap keeps this off overdue.",true
+3887,4,"Final reminder. Then it turns overdue.",true
+3888,4,"Last nag before this goes overdue.",true
+3889,4,"Final nag. Still time to tap Done.",true
+3890,4,"Last nag. Done is one tap away.",true
+3891,4,"Final nag. Do it now and it's done.",true
+3892,4,"Last nag. Overdue is close.",true
+3893,4,"Final nag. This one counts.",true
+3894,4,"Last nag. Now or overdue.",true
+3895,4,"Final nag. Tap Done before it's overdue.",true
+3896,4,"Final nag. Your move. Make it Done.",true
+3897,4,"Last nag. Still doable. Barely.",true
+3898,4,"Final nag. The clock is almost out.",true
+3899,4,"Last nag. After this, it shows as overdue.",true
+3900,4,"Final nag. Do it and be done with it.",true
+3901,4,"Last nag. Don't let it slip to overdue.",true
+3902,4,"Final nag. There's still time.",true
+3903,4,"Last nag. Today it's done or overdue.",true
+3904,4,"Final nag. One tap, and it's off your list.",true
+3905,4,"Last nag. Overdue is waiting. Done is quicker.",true
+3906,4,"Final nag. It's still not too late.",true

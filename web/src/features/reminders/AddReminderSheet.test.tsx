@@ -39,9 +39,9 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
-/** The hidden native picker behind "Custom…" (aria-hidden, so it has no role to find it by). */
+/** The invisible native picker over "Custom…", found by its name like a screen reader would. */
 function picker(sheet: HTMLElement) {
-  const input = sheet.querySelector('input[type="datetime-local"]')
+  const input = within(sheet).getByLabelText('Pick a custom date and time')
   if (!(input instanceof HTMLInputElement)) throw new Error('no date-time picker')
   return input
 }

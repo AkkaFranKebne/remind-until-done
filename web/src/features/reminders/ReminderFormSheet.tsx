@@ -209,11 +209,13 @@ export function ReminderFormSheet({
       // opens its own picker (it ignores showPicker() on a hidden input). On a computer a click
       // on the input doesn't open the picker, so the click asks for it. Keyboard: Space on the
       // chip (openPicker). text-input (16px) stops iOS zooming in; closing puts focus on the chips.
+      // A tap focuses the input, so it has a name instead of aria-hidden: a focused element must
+      // not be hidden from screen readers (Chrome blocks it and warns). Out of the Tab order.
       overlay: (
         <Input
           ref={pickerRef}
           type="datetime-local"
-          aria-hidden="true"
+          aria-label="Pick a custom date and time"
           tabIndex={-1}
           min={toLocalInputValue(now)}
           value={customAt}

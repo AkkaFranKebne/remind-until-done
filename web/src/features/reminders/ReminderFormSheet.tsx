@@ -175,8 +175,9 @@ export function ReminderFormSheet({
   const hint = when === 'custom' && customDate ? farFutureHint(customDate, now) : null
 
   /**
-   * "Custom…" activated on the chip itself (Space from the keyboard, or a VoiceOver double-tap,
-   * which acts on the focused chip, not the input over it) opens the date-time picker
+   * "Custom…" activated on the chip itself (Space from the keyboard, or a VoiceOver double-tap on
+   * the chip reached by swiping) opens the date-time picker; touching the chip's area with
+   * VoiceOver finds the input over it ("Custom date and time"), whose double-tap opens it directly
    * (Inventory → TimeChips). On a touch screen it also focuses the input: iPhone Safari may ignore
    * showPicker(), but opens its picker when a date input gets focus during a tap.
    */
@@ -215,7 +216,7 @@ export function ReminderFormSheet({
         <Input
           ref={pickerRef}
           type="datetime-local"
-          aria-label="Pick a custom date and time"
+          aria-label="Custom date and time"
           tabIndex={-1}
           min={toLocalInputValue(now)}
           value={customAt}

@@ -41,7 +41,7 @@ afterEach(() => {
 
 /** The invisible native picker over "Custom…", found by its name like a screen reader would. */
 function picker(sheet: HTMLElement) {
-  const input = within(sheet).getByLabelText('Pick a custom date and time')
+  const input = within(sheet).getByLabelText('Custom date and time')
   if (!(input instanceof HTMLInputElement)) throw new Error('no date-time picker')
   return input
 }

@@ -186,6 +186,21 @@ jobs:
           test "$APP" = "cache-control: no-cache"
           test "$API" = "cache-control: no-store"
 
+      # Any app address opens the app (a reminder link, a reload on a page), but a missing build file
+      # is a real 404, not index.html: a page left open from an older deploy then gets a clear error
+      # instead of HTML where it expected a script or stylesheet. See web/firebase.json's rewrites.
+      - name: Smoke test the page rewrites
+        shell: bash
+        run: |
+          PAGE="$(curl --silent --output /dev/null --write-out '%{http_code}' --retry 5 --retry-all-errors "${{ vars.APP_URL }}/r/smoke-test")"
+          ASSET="$(curl --silent --dump-header asset-headers.txt --output /dev/null --write-out '%{http_code}' --retry 5 "${{ vars.APP_URL }}/assets/smoke-test-missing.js")"
+          echo "app page: $PAGE, missing asset: $ASSET"
+          test "$PAGE" = "200"
+          test "$ASSET" = "404"
+          # The 404 gets the same security headers as the app.
+          grep -i '^x-content-type-options: nosniff' asset-headers.txt >/dev/null
+          grep -i '^content-security-policy: default-src' asset-headers.txt >/dev/null
+
       # The page sends its Content-Security-Policy (enforced since decision 91, design doc 7.1), and
       # the reports reach the API through Hosting. An empty batch: 204 and no log line. grep reads
       # all of curl's output (no -q): -q stops early, and curl's write into the closed pipe would

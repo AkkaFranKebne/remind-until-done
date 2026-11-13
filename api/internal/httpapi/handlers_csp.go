@@ -11,10 +11,10 @@ import (
 
 // POST /api/v1/csp-reports: the browser itself sends these, not our web app (design doc 7.1).
 //
-// web/firebase.json sends a Content-Security-Policy-Report-Only header: the browser blocks
-// nothing, but for everything the page loads or runs that the policy doesn't list, it posts a
-// report here. Each report becomes one WARN log line "csp violation". After about a week with
-// none, the policy is switched on (M7, decision 86).
+// web/firebase.json sends a Content-Security-Policy header: the browser blocks everything the
+// page would load or run that the policy doesn't list, and posts a report here. Each report
+// becomes one WARN log line "csp violation": a real one means part of the app is broken (it was
+// report-only first, then enforced: M7, decisions 86 and 91).
 //
 // No sign-in: browsers send reports without our token. So anyone can post here; the answer is
 // always the same, nothing is stored, the body is small, and one shared limit per instance keeps

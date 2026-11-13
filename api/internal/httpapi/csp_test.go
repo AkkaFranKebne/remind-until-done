@@ -71,6 +71,45 @@ func TestCSPReportNewFormatKeepsOnlyViolations(t *testing.T) {
 	}
 }
 
+// Safari (WebKit) posts one object, not a list, as application/csp-report; numbers are numbers.
+func TestCSPReportSafariSingleObject(t *testing.T) {
+	body := `{"type":"csp-violation","url":"https://rud-dev-4f7k2.web.app/login?next=%2Fr%2F1",
+		"body":{"documentURL":"https://rud-dev-4f7k2.web.app/login?next=%2Fr%2F1","disposition":"enforce","referrer":"",
+		"effectiveDirective":"connect-src","blockedURL":"https://example.com/x?k=secret","originalPolicy":"default-src 'self'",
+		"statusCode":200,"sample":"","sourceFile":"https://rud-dev-4f7k2.web.app/assets/index.js","lineNumber":3,"columnNumber":9}}`
+	rec, lines := postCSP(t, nil, "application/csp-report", body)
+	if rec.Code != http.StatusNoContent || len(lines) != 1 {
+		t.Fatalf("status %d %s, %d lines; want 204 and 1", rec.Code, rec.Body, len(lines))
+	}
+	l := lines[0]
+	if l["directive"] != "connect-src" || l["blocked"] != "https://example.com" || l["page"] != "/login" ||
+		l["disposition"] != "enforce" || l["line"] != float64(3) {
+		t.Errorf("line = %v", l)
+	}
+	if raw, _ := json.Marshal(l); strings.Contains(string(raw), "secret") {
+		t.Errorf("a query reached the log: %s", raw)
+	}
+}
+
+// Safari with report-uri only: the old format with "type" and "url" around it.
+func TestCSPReportSafariReportURI(t *testing.T) {
+	body := `{"type":"csp-violation","url":"https://rud-dev-4f7k2.web.app/",
+		"csp-report":{"document-uri":"https://rud-dev-4f7k2.web.app/","referrer":"","violated-directive":"script-src",
+		"effective-directive":"script-src","original-policy":"default-src 'self'","blocked-uri":"inline","status-code":0}}`
+	rec, lines := postCSP(t, nil, "application/csp-report", body)
+	if rec.Code != http.StatusNoContent || len(lines) != 1 || lines[0]["directive"] != "script-src" || lines[0]["blocked"] != "inline" {
+		t.Errorf("status %d, lines %v", rec.Code, lines)
+	}
+}
+
+// One object of another report type (a deprecation): accepted, nothing logged.
+func TestCSPReportSingleOtherTypeIsSkipped(t *testing.T) {
+	rec, lines := postCSP(t, nil, "application/reports+json", `{"type":"deprecation","body":{}}`)
+	if rec.Code != http.StatusNoContent || len(lines) != 0 {
+		t.Errorf("status %d, %d lines; want 204 and none", rec.Code, len(lines))
+	}
+}
+
 func TestCSPReportOddValuesBecomeOther(t *testing.T) {
 	body := `{"csp-report":{"document-uri":"not a url","violated-directive":"<script>alert(1)</script>","blocked-uri":"%%%"}}`
 	_, lines := postCSP(t, nil, "application/csp-report", body)

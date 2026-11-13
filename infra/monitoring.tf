@@ -178,6 +178,8 @@ resource "google_monitoring_alert_policy" "push_failures" {
 
 # Cloud Tasks couldn't deliver pushes to the API: a 401 here means the /internal login is broken
 # (invoker account or SERVICE_URL), and then no reminder goes out at all.
+# The metric's response_code is lowercase ("ok", seen in the data 2026-11-13): "OK" counted every
+# successful push as a failure, and 6 test pushes in an hour fired the alert.
 resource "google_monitoring_alert_policy" "task_failures" {
   display_name          = "rud ${var.env}: Cloud Tasks can't deliver pushes"
   combiner              = "OR"
@@ -186,7 +188,7 @@ resource "google_monitoring_alert_policy" "task_failures" {
   conditions {
     display_name = "More than 5 failed task attempts in an hour"
     condition_threshold {
-      filter          = "resource.type=\"cloud_tasks_queue\" AND resource.label.queue_id=\"${google_cloud_tasks_queue.reminders.name}\" AND metric.type=\"cloudtasks.googleapis.com/queue/task_attempt_count\" AND metric.label.response_code!=\"OK\""
+      filter          = "resource.type=\"cloud_tasks_queue\" AND resource.label.queue_id=\"${google_cloud_tasks_queue.reminders.name}\" AND metric.type=\"cloudtasks.googleapis.com/queue/task_attempt_count\" AND metric.label.response_code!=\"ok\""
       comparison      = "COMPARISON_GT"
       threshold_value = 5
       duration        = "0s"

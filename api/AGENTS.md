@@ -52,6 +52,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
   - filler openers ("Still here.", "Still waiting.", "A soft reminder that…"; on level 4 "After this notification…", which sounds like system text);
   - repeated words for effect ("Softly, gently, warmly, persistently");
   - "we", "us" or "our": the app has no narrator. The task can be the subject ("This task has settled in."), the line can talk to "you", or it can have no subject at all ("Last one. Tap Done."). The one kept exception is "This won't do itself. We checked.";
+  - the word "app": say "rud." if a line needs a name;
   - a second sentence that only comments on the first ("Very cosy.", "Impressive.", "Probably.", "Just saying."). A second sentence must turn the meaning ("This task hasn't moved. Maybe you should.") or say what to do ("Tap Done.").
 
   Level 4 still says it's the last nag, in the same voice ("Last call. The bar is closing.").

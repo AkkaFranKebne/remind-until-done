@@ -50,7 +50,9 @@ Run in `api/`. Needs Go (version in `go.mod`).
   - circular lines ("We nudge because we care. We care because we nudge.");
   - reassurance that undercuts the nag ("…and that's okay.");
   - filler openers ("Still here.", "Still waiting.", "A soft reminder that…"; on level 4 "After this notification…", which sounds like system text);
-  - repeated words for effect ("Softly, gently, warmly, persistently").
+  - repeated words for effect ("Softly, gently, warmly, persistently");
+  - "we", "us" or "our": the app has no narrator. The task can be the subject ("This task has settled in."), the line can talk to "you", or it can have no subject at all ("Last one. Tap Done."). The one kept exception is "This won't do itself. We checked.";
+  - a second sentence that only comments on the first ("Very cosy.", "Impressive.", "Probably.", "Just saying."). A second sentence must turn the meaning ("This task hasn't moved. Maybe you should.") or say what to do ("Tap Done.").
 
   Level 4 still says it's the last nag, in the same voice ("Last call. The bar is closing.").
 - Action tokens (`internal/actiontoken`, `POST /actions`, decision 72): each push carries a signed token that can only mark one reminder done, for 24 hours, until an edit changes its schedule version. It travels in the request body, never the address, because Cloud Run logs addresses. The signature is checked before the database is touched. `ACTION_TOKEN_KEY` is required in dev and prod (at least 32 bytes); locally config uses a fixed key that protects nothing. Tokens and the key are never logged.

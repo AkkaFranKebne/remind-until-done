@@ -103,6 +103,7 @@ Rules:
 Step-by-step recipes in `.claude/skills/`, written from the PRs that did it first. Claude Code loads them when the task matches; other agents and people can read them as checklists.
 - `new-endpoint`: a public API route end to end (swagger.json, feature package, handler, route, tests, regenerated web client, docs).
 - `new-migration`: a Flyway migration that's safe while the old release still runs.
+- `edit-nag-lines`: change, add or retire nag and done lines, check them, and ship them, with what updates which database.
 
 Keep a skill true: a PR that changes how one of these is done updates the skill too.
 

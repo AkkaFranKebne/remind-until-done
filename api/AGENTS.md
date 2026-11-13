@@ -11,7 +11,7 @@ Run in `api/`. Needs Go (version in `go.mod`).
 | Run on :8080 | `make run` (uses the local database) |
 | Fire a push by hand, like Cloud Tasks | `make fire ID=<reminder id> V=<version> N=<push number>` (the API log prints the exact command for every booked task) |
 | Run the daily sweep by hand, like Cloud Scheduler | `make sweep` |
-| After editing `db/seed/messages.csv` | `make messages` (checks the rules, regenerates `db/migrations/R__nag_messages.sql`) |
+| After editing `db/seed/messages.csv` | `make messages` (checks the rules, regenerates `db/migrations/R__nag_messages.sql`; touches no database: Flyway loads the file, locally with `make migrate`, on dev and prod in the deploy). Steps: the `edit-nag-lines` skill |
 | Format check / vet / tests | `make fmt vet test` (Docker must be running) |
 | Docker image | `make docker` (Docker Desktop must be running) |
 | Known vulnerabilities | `go run golang.org/x/vuln/cmd/govulncheck@latest ./...` |

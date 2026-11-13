@@ -13,6 +13,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed --workers=1",
     "preview": "vite preview",
     "api:generate": "orval --config orval.config.ts",
     "prepare": "cd .. && husky web/.husky",
@@ -36,7 +38,9 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "1.64.1",
     "@storybook/addon-a11y": "^10.6.1",
     "@storybook/addon-docs": "^10.6.1",
     "@storybook/addon-mcp": "10.6.2",
@@ -85,6 +89,9 @@
   "overrides": {
     "@firebase/firestore": {
       "@grpc/grpc-js": "^1.14.6"
+    },
+    "@axe-core/playwright": {
+      "playwright-core": "1.64.1"
     }
   }
 }

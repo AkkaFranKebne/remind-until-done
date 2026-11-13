@@ -993,101 +993,101 @@ id,level,text,active
 992,1,"Still here. The task. The reminder. The patient waiting.",false
 993,1,"A warm tap on the shoulder of your attention.",false
 994,2,"Plot twist: it still hasn't done itself.",true
-995,2,"Spoiler: this reminder isn't going away.",true
-996,2,"You didn't forget. Yet here this is.",true
+995,2,"Spoiler: this reminder isn't going away.",false
+996,2,"You didn't forget. Yet here this is.",false
 997,2,"You knew this would be back.",true
 998,2,"Oh look, this again.",true
-999,2,"The reminder remains. The irony deepens.",true
+999,2,"The reminder remains. The irony deepens.",false
 1000,2,"You're impressively good at ignoring things.",true
-1001,2,"This task called. It wants to know if you're okay.",true
-1002,2,"Notes are being taken.",true
+1001,2,"This task called. It wants to know if you're okay.",false
+1002,2,"Notes are being taken.",false
 1003,2,"Funny how 'later' keeps arriving.",true
-1004,2,"Not to be pushy, but this is a little pushy.",true
-1005,2,"Comfortable pattern you've got here.",true
-1006,2,"Miss this? It's been right here the whole time.",true
+1004,2,"Not to be pushy, but this is a little pushy.",false
+1005,2,"Comfortable pattern you've got here.",false
+1006,2,"Miss this? It's been right here the whole time.",false
 1007,2,"Your to-do list has commitment issues. We're helping it work through them.",false
-1008,2,"This can go on all day. There are snacks.",true
+1008,2,"This can go on all day. There are snacks.",false
 1009,2,"Back to ignoring this? Interesting strategy.",true
 1010,2,"Hate to say I told you so. Saying it anyway.",false
 1011,2,"The task remains. The hours pass. The notifications accumulate.",false
 1012,2,"Plot twist: you can stop these any time. One tap.",true
-1013,2,"No judging. Okay, a little judging.",true
-1014,2,"This task has started knitting while it waits.",true
+1013,2,"No judging. Okay, a little judging.",false
+1014,2,"This task has started knitting while it waits.",false
 1015,2,"You're busy, got it. This takes one tap.",true
 1016,2,"The reminder, like time itself, waits for no one. Except you. We wait for you.",false
 1017,2,"Back again. We feel like we're in a bit of a cycle here.",false
 1018,2,"Spoiler: this ends when you do the thing.",true
 1019,2,"Your future self is already grateful. Just thought you should know.",false
-1020,2,"This task brought a book. It'll be fine.",true
+1020,2,"This task brought a book. It'll be fine.",false
 1021,2,"The task persists. As do we. As do you, in avoiding it.",false
 1022,2,"This task has been here so long it started decorating.",true
-1023,2,"Swiping is a skill. Tapping Done is a better one.",true
+1023,2,"Swiping is a skill. Tapping Done is a better one.",false
 1024,2,"This is us, not taking the hint that you're taking.",false
-1025,2,"A modern tragedy in push notification form.",true
+1025,2,"A modern tragedy in push notification form.",false
 1026,2,"You saw this and moved on. Bold choice.",true
 1027,2,"The thing about ignoring reminders is they don't care.",false
-1028,2,"This task has settled in quite comfortably.",true
-1029,2,"This task is your forgotten houseplant.",true
-1030,2,"It can't give up. You built it this way.",true
-1031,2,"Courtesy of past-you, who had high hopes.",true
+1028,2,"This task has settled in quite comfortably.",false
+1029,2,"This task is your forgotten houseplant.",false
+1030,2,"It can't give up. You built it this way.",false
+1031,2,"Courtesy of past-you, who had high hopes.",false
 1032,2,"Still waiting. We're comfortable here. How about you?",false
-1033,2,"You set this reminder. So you knew. Hi.",true
+1033,2,"You set this reminder. So you knew. Hi.",false
 1034,2,"The task waits. We wait. Everybody's waiting except the clock.",false
 1035,2,"Not saying you're procrastinating. Just implying it.",true
-1036,2,"This task has started doing crosswords.",true
+1036,2,"This task has started doing crosswords.",false
 1037,2,"Your to-do list is starting to feel like a roommate you ignore.",false
 1038,2,"We sent a nudge. You ignored it. We sent another. Pattern forming.",false
 1039,2,"This thing is still undone, in case you were keeping track. You weren't.",false
-1040,2,"Plot twist: the task was in you all along.",true
+1040,2,"Plot twist: the task was in you all along.",false
 1041,2,"Baaack. You knew it would be.",true
 1042,2,"Still here. Getting quite good at this waiting game.",false
 1043,2,"You'll do this eventually. Why not now?",true
 1044,2,"This has outlasted your attention span.",true
-1045,2,"Not mad. Just persistently here.",true
-1046,2,"The saga continues.",true
-1047,2,"Your task is giving you a look. You know the one.",true
-1048,2,"Asked nicely. Still asking nicely.",true
+1045,2,"Not mad. Just persistently here.",false
+1046,2,"The saga continues.",false
+1047,2,"Your task is giving you a look. You know the one.",false
+1048,2,"Asked nicely. Still asking nicely.",false
 1049,2,"Another hour gone. Another reminder sent. You see where this is going.",false
 1050,2,"Still here. We've gotten very comfortable in your notification tray.",false
-1051,2,"The task doesn't sleep. It just waits.",true
+1051,2,"The task doesn't sleep. It just waits.",false
 1052,2,"Starting to think you enjoy these notifications.",true
 1053,2,"Still undone. We're updating our records accordingly.",false
-1054,2,"Your avoidance skills are something to behold.",true
+1054,2,"Your avoidance skills are something to behold.",false
 1055,2,"We remain. This is our life now.",false
-1056,2,"Watching you not do this has been fascinating.",true
-1057,2,"This task has nowhere else to be.",true
-1058,2,"Your task is the elephant in the notification tray.",true
+1056,2,"Watching you not do this has been fascinating.",false
+1057,2,"This task has nowhere else to be.",false
+1058,2,"Your task is the elephant in the notification tray.",false
 1059,2,"We come back every time. Every. Single. Time.",false
-1060,2,"This task is starting to feel like furniture.",true
-1061,2,"Not optional reading. Very short reading, though.",true
+1060,2,"This task is starting to feel like furniture.",false
+1061,2,"Not optional reading. Very short reading, though.",false
 1062,2,"The thing about us is we don't have feelings to hurt. So we'll keep going.",false
 1063,2,"Still here. Just in case you needed reminding that we'd still be here.",false
-1064,2,"Your procrastination has been noted. And notified.",true
+1064,2,"Your procrastination has been noted. And notified.",false
 1065,2,"This could stop. It won't. You know why.",true
 1066,2,"Still undone. The notification tray grows heavy.",false
 1067,2,"Ignoring reminders at Olympic level.",true
-1068,2,"This task isn't going anywhere.",true
-1069,2,"This task has developed a personality while waiting.",true
+1068,2,"This task isn't going anywhere.",false
+1069,2,"This task has developed a personality while waiting.",false
 1070,2,"Another nudge. Another hour. Another entry in the annals of waiting tasks.",false
-1071,2,"Is this reminder your way of keeping in touch?",true
+1071,2,"Is this reminder your way of keeping in touch?",false
 1072,2,"We've accepted our role in your life.",false
-1073,2,"You and this task: it's complicated.",true
+1073,2,"You and this task: it's complicated.",false
 1074,2,"The reminder has shown up more reliably than most things in your life.",false
 1075,2,"Still waiting. We persist. You persist in not doing it. Standoff.",false
 1076,2,"We'd be hurt, but we're a notification. Back soon.",false
 1077,2,"Another hour, another nudge. Stable relationship we've got here.",false
-1078,2,"Wearing out its welcome, one notification at a time.",true
+1078,2,"Wearing out its welcome, one notification at a time.",false
 1079,2,"Your to-do list would like to have a serious conversation with you.",false
-1080,2,"This task is part of the family now. The nagging part.",true
-1081,2,"Your avoidance is noted. Noted more than respected.",true
+1080,2,"This task is part of the family now. The nagging part.",false
+1081,2,"Your avoidance is noted. Noted more than respected.",false
 1082,2,"The task has started to feel personal. It isn't. But still.",false
 1083,2,"Back like the tide. With a task.",true
-1084,2,"This task has started a diary about you.",true
-1085,2,"Very consistent at being inconsistent about this.",true
+1084,2,"This task has started a diary about you.",false
+1085,2,"Very consistent at being inconsistent about this.",false
 1086,2,"The reminder endures. So must we. So must the nudging.",false
 1087,2,"Still here. Settling into a routine with you.",false
-1088,2,"Your task called. It said 'again? really?'",true
-1089,2,"A regular in your notification tray.",true
+1088,2,"Your task called. It said 'again? really?'",false
+1089,2,"A regular in your notification tray.",false
 1090,2,"Still waiting. We've given up trying to predict when you'll do this.",false
 1091,2,"You and this task have a complex relationship. We're mediating.",false
 1092,2,"Another nudge from your most reliable notification.",false
@@ -1098,61 +1098,61 @@ id,level,text,active
 1097,2,"We're back. You knew we'd be back. Here we are. Back.",false
 1098,2,"Another hour. Another nudge. Another entry in your waiting saga.",false
 1099,2,"Still waiting. The task is starting to feel like an old friend.",false
-1100,2,"Less 'waiting', more 'philosophically deferred'.",true
-1101,2,"Nudge. Delay. Nudge. Circle of life.",true
+1100,2,"Less 'waiting', more 'philosophically deferred'.",false
+1101,2,"Nudge. Delay. Nudge. Circle of life.",false
 1102,2,"Still here. We've redone the notification tray in your honour.",false
-1103,2,"More commitment than most relationships.",true
-1104,2,"Impressed by the consistency of the not-doing.",true
+1103,2,"More commitment than most relationships.",false
+1104,2,"Impressed by the consistency of the not-doing.",false
 1105,2,"You knew you'd need a reminder. You were right.",true
 1106,2,"We return, as we always return, with a task and a mild attitude.",false
 1107,2,"Still here. The task, like us, is not going anywhere.",false
 1108,2,"Another nudge added to the growing collection.",false
-1109,2,"Your task wonders if this is personal. It's not. Do it.",true
-1110,2,"This task wrote a poem about waiting. It's not very good.",true
+1109,2,"Your task wonders if this is personal. It's not. Do it.",false
+1110,2,"This task wrote a poem about waiting. It's not very good.",false
 1111,2,"We don't have feelings. The task might. Check on it.",false
 1112,2,"Still waiting. We're settling in for the long haul.",false
-1113,2,"It will always come back. That's the deal.",true
+1113,2,"It will always come back. That's the deal.",false
 1114,2,"Another hour, another reminder, another opportunity. Take it.",false
 1115,2,"Still here. We've made ourselves comfortable in your life.",false
-1116,2,"Your avoidance technique: sophisticated. Also futile.",true
-1117,2,"Like a good friend. An annoying one, but good.",true
-1118,2,"The task is starting to grow roots.",true
-1119,2,"Designed not to go away. By you.",true
+1116,2,"Your avoidance technique: sophisticated. Also futile.",false
+1117,2,"Like a good friend. An annoying one, but good.",false
+1118,2,"The task is starting to grow roots.",false
+1119,2,"Designed not to go away. By you.",false
 1120,2,"Another nudge in the long, proud tradition of these nudges.",false
 1121,2,"Still here. We're practically part of your routine now.",false
 1122,2,"Your task is still here. Still yours. Still waiting for you specifically.",false
 1123,2,"Someone should do something. Hint: you.",true
 1124,2,"Still undone. The notifications multiply. The task does not decrease.",false
 1125,2,"We come back because we care. And because code.",false
-1126,2,"This task has started humming while it waits.",true
+1126,2,"This task has started humming while it waits.",false
 1127,2,"Another nudge from your most persistent companion.",false
 1128,2,"Still here. We've invested a lot in this relationship.",false
 1129,2,"You're going to do this. We believe that. We're just... accelerating it.",false
-1130,2,"Time passes. The task watches it pass.",true
+1130,2,"Time passes. The task watches it pass.",false
 1131,2,"We don't tire of reminding you. It's our strength, and soon your relief.",false
 1132,2,"Another hour gone to the not-doing of this task.",false
 1133,2,"We've started naming the hours we spend together.",false
 1134,2,"Your to-do list has committed to this. Have you?",false
-1135,2,"Part of your routine now. You're welcome? Sorry?",true
+1135,2,"Part of your routine now. You're welcome? Sorry?",false
 1136,2,"Still undone. A persistent reminder about a persistent task.",false
 1137,2,"The task has the patience of a saint. We have the persistence of a notification.",false
 1138,2,"Another nudge. Another opportunity. Another chance to end this.",false
 1139,2,"Still waiting. We're going nowhere and doing it proudly.",false
 1140,2,"You're very good at living with unfinished things.",true
 1141,2,"We persist because persistence is our whole thing.",false
-1142,2,"Predictions are being made about when you'll do it.",true
+1142,2,"Predictions are being made about when you'll do it.",false
 1143,2,"The task sits. The reminder buzzes. The pattern holds.",false
 1144,2,"Another notification in the great saga of this task.",false
-1145,2,"This task is developing character.",true
+1145,2,"This task is developing character.",false
 1146,2,"Your relationship with procrastination is impressive. Annoyingly so.",false
 1147,2,"We return like clockwork. Because we are clockwork.",false
 1148,2,"Still here. Still yours. Still very much a task you should do.",false
 1149,2,"We grow stronger each hour. We don't. But still.",false
 1150,2,"Another nudge from the notification that refuses to be ignored.",false
-1151,2,"This task has started writing its memoirs.",true
+1151,2,"This task has started writing its memoirs.",false
 1152,2,"Your task is still here and still confused about why it's still here.",false
 1153,2,"We're back. As expected. As always. As we will always be.",false
-1154,2,"Your delay patterns have been memorised.",true
+1154,2,"Your delay patterns have been memorised.",false
 1155,2,"The persistent reminder persists. Persistently.",false
 1156,2,"Another hour, another reminder, another chance for you to be the hero.",false
 1157,2,"Still here. Growing more invested in this task than you are.",false
@@ -1161,50 +1161,50 @@ id,level,text,active
 1160,2,"We nudge because the alternative is silence, and silence helps no one.",false
 1161,2,"Another reminder in what is becoming quite the collection.",false
 1162,2,"Still here. We've settled into a comfortable rhythm of nagging.",false
-1163,2,"Your task has limits. Reminders don't.",true
+1163,2,"Your task has limits. Reminders don't.",false
 1164,2,"We return. As rain returns. As tide returns. As nudges return.",false
 1165,2,"Still waiting. The unfinished task endures.",false
 1166,2,"You've mastered the art of the strategic delay.",true
-1167,2,"Not impressed by the delay. Just used to it.",true
+1167,2,"Not impressed by the delay. Just used to it.",false
 1168,2,"Still here. Committed to this more than most things in our lives.",false
 1169,2,"Another nudge in the ongoing story of this task.",false
-1170,2,"This task joined a support group.",true
+1170,2,"This task joined a support group.",false
 1171,2,"This task has outlived some houseplants.",true
 1172,2,"We come back. We always come back. This is who we are.",false
-1173,2,"Your task is developing a complex.",true
-1174,2,"Past you was looking out for you. Nice of them.",true
+1173,2,"Your task is developing a complex.",false
+1174,2,"Past you was looking out for you. Nice of them.",false
 1175,2,"Another notification from your most committed accountability partner.",false
 1176,2,"Still here. The commitment is real.",false
-1177,2,"You and this task are practically housemates.",true
+1177,2,"You and this task are practically housemates.",false
 1178,2,"Still undone. Another day in the life of an ambitious to-do list.",false
 1179,2,"The reminder persists. You persist. The task waits.",false
 1180,2,"Another nudge. Another chance. Same task. Different hour.",false
-1181,2,"This task has a nickname now: The One That Waits.",true
+1181,2,"This task has a nickname now: The One That Waits.",false
 1182,2,"We don't have hobbies. We have you. And this task.",false
 1183,2,"Still here. The hours stack up. The task does not diminish.",false
 1184,2,"Your capacity for delay is almost admirable.",true
-1185,2,"Like a boomerang. A very determined boomerang.",true
+1185,2,"Like a boomerang. A very determined boomerang.",false
 1186,2,"Still waiting. The task has become part of the furniture.",false
 1187,2,"Another nudge from the notification system that cares too much.",false
 1188,2,"Still here. We've been doing this long enough to know how it ends.",false
-1189,2,"The task is there. You're here. Someone has to move.",true
+1189,2,"The task is there. You're here. Someone has to move.",false
 1190,2,"Another hour. Another reminder. Same result? Or not. Your call.",false
-1191,2,"Tracking this with a certain grim satisfaction.",true
+1191,2,"Tracking this with a certain grim satisfaction.",false
 1192,2,"You're going to do this. We know. We'll be here when you're ready.",false
 1193,2,"We nudge. You consider. You delay. We nudge. The dance continues.",false
-1194,2,"Notes are being made for the documentary.",true
-1195,2,"Your task is getting comfortable. Help it move out.",true
-1196,2,"Soldiering on. As reminders do.",true
+1194,2,"Notes are being made for the documentary.",false
+1195,2,"Your task is getting comfortable. Help it move out.",false
+1196,2,"Soldiering on. As reminders do.",false
 1197,2,"Another nudge added to the pile of nudges you've been ignoring.",false
 1198,2,"Still waiting. The task has stopped expecting things of you.",false
 1199,2,"We're back. As we said we'd be. As we always will be.",false
-1200,2,"Watching. Waiting. Judging a little.",true
+1200,2,"Watching. Waiting. Judging a little.",false
 1201,2,"The task is still here. You are still there. The gap remains.",false
 1202,2,"Another notification. Another chance. What'll it be this time?",false
-1203,2,"This task has developed strong feelings about you.",true
-1204,2,"Giving up isn't in the code.",true
-1205,2,"This task is charging rent for space in your brain.",true
-1206,2,"This task has waited so long it started a podcast.",true
+1203,2,"This task has developed strong feelings about you.",false
+1204,2,"Giving up isn't in the code.",false
+1205,2,"This task is charging rent for space in your brain.",false
+1206,2,"This task has waited so long it started a podcast.",false
 1207,2,"We return. We remind. We wait. Repeat.",false
 1208,2,"Still here. Firmly embedded in your notification routine.",false
 1209,2,"Another nudge from the system that remembers when you don't.",false
@@ -1212,27 +1212,27 @@ id,level,text,active
 1211,2,"We're not hurt by the ignoring. We're just... thorough.",false
 1212,2,"Another hour, another reminder, same unfinished task.",false
 1213,2,"Still here. Building character through patience.",false
-1214,2,"This task is a houseguest that won't leave.",true
+1214,2,"This task is a houseguest that won't leave.",false
 1215,2,"We persist. We must persist. You asked us to persist.",false
 1216,2,"Still undone. We've stopped being surprised and started being consistent.",false
 1217,2,"The task is patient because it has to be. We're patient because we choose to be.",false
 1218,2,"Another nudge. Still the same task. Still your responsibility.",false
 1219,2,"Still here. We've accepted our role as your most reliable nag.",false
-1220,2,"A whole ecosystem of avoidance around one task.",true
+1220,2,"A whole ecosystem of avoidance around one task.",false
 1221,2,"We're back. The task is still here. The circle is complete.",false
 1222,2,"Still waiting. The notifications accumulate. The task doesn't change.",false
 1223,2,"Another reminder from the app that doesn't know when to quit. Never. We never quit.",false
 1224,2,"Still here. Fully committed to this task even when you aren't.",false
 1225,2,"Your delay is noted. Your task is not deterred.",false
 1226,2,"We nudge. You delay. The task remains. This is our story.",false
-1227,2,"This saga has a theme song now.",true
-1228,2,"A constant in your variable life.",true
+1227,2,"This saga has a theme song now.",false
+1228,2,"A constant in your variable life.",false
 1229,2,"Another hour, another nudge, same patient task.",false
 1230,2,"Still here. The most loyal thing in your notification tray.",false
-1231,2,"No breaks. No hints taken.",true
+1231,2,"No breaks. No hints taken.",false
 1232,2,"Still undone. The pattern holds. The task holds.",false
 1233,2,"Your task is still here. It's starting to feel like it lives here.",false
-1234,2,"It always comes back. That's the feature, not the bug.",true
+1234,2,"It always comes back. That's the feature, not the bug.",false
 1235,2,"Still waiting. The journey continues.",false
 1236,2,"Another nudge in your direction from the direction of done.",false
 1237,2,"We've become experts in your avoidance schedule.",false
@@ -1241,16 +1241,16 @@ id,level,text,active
 1240,2,"We're nothing if not consistent.",false
 1241,2,"We don't have feelings, but we have a task and we have time.",false
 1242,2,"Still here. More committed to this than anything.",false
-1243,2,"Waiting very patiently. And very judgementally.",true
+1243,2,"Waiting very patiently. And very judgementally.",false
 1244,2,"We're back. You knew we'd be back. The task says hi.",false
 1245,2,"Still waiting. Another chapter in this remarkable story.",false
 1246,2,"Another nudge from your most reliable, and annoying, app.",false
 1247,2,"Bets are being placed on when you'll do this.",true
-1248,2,"Here long enough to claim squatter's rights.",true
+1248,2,"Here long enough to claim squatter's rights.",false
 1249,2,"We come. We remind. We leave. We come back.",false
-1250,2,"Your task is becoming a landmark.",true
+1250,2,"Your task is becoming a landmark.",false
 1251,2,"You've done harder things than this.",false
-1252,2,"There's time. Just not forever.",true
+1252,2,"There's time. Just not forever.",false
 1253,2,"Your ability to coexist with unfinished tasks is remarkable.",false
 1254,2,"We persist because the alternative is letting you off the hook.",false
 1255,2,"Still waiting. We're invested. Very invested.",false
@@ -1258,16 +1258,16 @@ id,level,text,active
 1257,2,"Another nudge. Still here. Still yours. Still undone.",false
 1258,2,"Still here. We've gotten quite attached to this task by now.",false
 1259,2,"You're going to do this eventually. We just want to be there when you do.",false
-1260,2,"No tiredness. No boredom. Just this, until it's done.",true
+1260,2,"No tiredness. No boredom. Just this, until it's done.",false
 1261,2,"Still waiting. Another day in the life of this persistent task.",false
-1262,2,"Your task wants to escalate this.",true
-1263,2,"Reliable as the postman. With a task.",true
+1262,2,"Your task wants to escalate this.",false
+1263,2,"Reliable as the postman. With a task.",false
 1264,2,"Still here. We've made peace with our role in your life.",false
 1265,2,"Another nudge. Another push. Another opportunity. Same task.",false
 1266,2,"We've started a countdown. To what? Unclear.",false
 1267,2,"The task endures. We endure. Endurance is the theme here.",false
 1268,2,"Another hour gone. The task: unmoved. The reminder: very much here.",false
-1269,2,"Your schedule is known. So is your avoidance.",true
+1269,2,"Your schedule is known. So is your avoidance.",false
 1270,2,"We nudge. We don't give up. We nudge again. You know this.",false
 1271,2,"Still waiting. The task has become a fixture.",false
 1272,2,"One tap and it can finally retire.",true
@@ -1275,36 +1275,36 @@ id,level,text,active
 1274,2,"Still here. The most consistent thing in your life right now.",false
 1275,2,"Another reminder in what is becoming an epic series.",false
 1276,2,"Still undone. We've started writing a book about waiting.",false
-1277,2,"Task: patient. Reminder: relentless. You: in between.",true
+1277,2,"Task: patient. Reminder: relentless. You: in between.",false
 1278,2,"Another nudge from the system that outlasts your procrastination.",false
-1279,2,"This has moved into your notification tray. For good.",true
+1279,2,"This has moved into your notification tray. For good.",false
 1280,2,"We come back every time because every time matters.",false
 1281,2,"Still waiting. The task is still here because you put it here.",false
 1282,2,"Another notification. Another chance to end this whole thing.",false
-1283,2,"Growing more legendary by the hour.",true
+1283,2,"Growing more legendary by the hour.",false
 1284,2,"Your task hasn't changed. One tap and it will.",false
 1285,2,"We nudge. It's our thing. We're very good at our thing.",false
-1286,2,"The task is gaining mythological status.",true
-1287,2,"Showing up every time. Gold star.",true
+1286,2,"The task is gaining mythological status.",false
+1287,2,"Showing up every time. Gold star.",false
 1288,2,"Another nudge from the notification that never takes a day off.",false
 1289,2,"Still here. We've gotten used to the view from your notification tray.",false
 1290,2,"We're back. Again. As advertised. As always.",false
 1291,2,"Still waiting. The saga of you and this task grows richer.",false
 1292,2,"Another hour. Another reminder. Another chapter.",false
 1293,2,"Still here. Firmly, unshakeably, permanently here. Until you do the thing.",false
-1294,2,"The task remembers. You keep forgetting.",true
+1294,2,"The task remembers. You keep forgetting.",false
 1295,2,"Delivered with precision, care and mild exasperation.",false
 1296,2,"Still undone. We're nothing if not thorough.",false
 1297,2,"We persist because you asked us to persist. We take requests seriously.",false
 1298,2,"Still here. The dedication is real and it is pointed directly at you.",false
-1299,2,"Your task wonders if this is just how things are now.",true
+1299,2,"Your task wonders if this is just how things are now.",false
 1300,2,"We return because returning is what we do best. Second only to reminding.",false
 1301,2,"Still waiting. The task remains. As does our commitment to reminding you.",false
 1302,2,"Another reminder from your most faithful, most annoying notification.",false
 1303,2,"Still here. We've stopped counting hours and started counting character.",false
 1304,2,"You built a monument to delay. One tap ends it.",true
 1305,2,"Back again. You seem surprised. Don't be.",true
-1306,2,"Thinking of you. Mostly of the task.",true
+1306,2,"Thinking of you. Mostly of the task.",false
 1307,2,"Still here. Getting more comfortable by the hour.",false
 1308,2,"Inspired by your commitment to not doing this.",true
 1309,2,"The task remains. So, apparently, does your avoidance strategy.",false
@@ -1322,52 +1322,52 @@ id,level,text,active
 1321,2,"You've built an impressive defence against doing this one thing.",false
 1322,2,"Another check-in from your most reliable, and irritating, notification.",false
 1323,2,"We've found peace in persistence.",false
-1324,2,"The task endures. So does your procrastination.",true
+1324,2,"The task endures. So does your procrastination.",false
 1325,2,"We return. You note it. You do not act. We return again.",false
-1326,2,"This task has gotten quite philosophical.",true
+1326,2,"This task has gotten quite philosophical.",false
 1327,2,"Another nudge, added to what is becoming quite the collection.",false
-1328,2,"No judging. Just cataloguing.",true
+1328,2,"No judging. Just cataloguing.",false
 1329,2,"Still here. Committed to this particular task in a way you are not.",false
-1330,2,"You've got a lot going on. This would love a moment too.",true
+1330,2,"You've got a lot going on. This would love a moment too.",false
 1331,2,"The reminder returns. It always returns. You may know this by now.",false
 1332,2,"Still undone. We document this with great consistency.",false
-1333,2,"Another hour of this task waiting.",true
+1333,2,"Another hour of this task waiting.",false
 1334,2,"We come back. That's what we do. Round and round.",false
 1335,2,"Still here. The task is getting to know us very well.",false
 1336,2,"You're very consistent at the inconsistent habit of ignoring this.",false
 1337,2,"Another nudge. The task remains unmoved. As do you.",false
 1338,2,"We keep showing up. You keep noting we've shown up. And then.",false
-1339,2,"This task has grown fond of waiting.",true
-1340,2,"Like a boomerang, it returns. And you throw it again.",true
+1339,2,"This task has grown fond of waiting.",false
+1340,2,"Like a boomerang, it returns. And you throw it again.",false
 1341,2,"Another hour. The task. The nudge. The pattern. You know how this goes.",false
 1342,2,"We're back. We were here an hour ago. You know this.",false
-1343,2,"This task has started a newsletter about you.",true
+1343,2,"This task has started a newsletter about you.",false
 1344,2,"The task has begun to feel like a familiar landmark.",false
 1345,2,"Another check-in. The results: same as last time.",false
 1346,2,"We've grown attached to this task. Sheer exposure.",false
 1347,2,"Still waiting. The saga continues. As sagas tend to do.",false
 1348,2,"You could end this any moment. Interesting, isn't it?",true
-1349,2,"The nudge arrives. The task remains. Curtain.",true
+1349,2,"The nudge arrives. The task remains. Curtain.",false
 1350,2,"Still here. We've run out of ways to be surprised and started being consistent.",false
 1351,2,"Another hour without resolution. We document this faithfully.",false
 1352,2,"We're here. We were here last time. We will be here next time.",false
 1353,2,"Your delay has achieved a certain grandeur.",true
-1354,2,"The task and the reminder: a long-running show.",true
-1355,2,"You've gotten very good at swiping this away.",true
+1354,2,"The task and the reminder: a long-running show.",false
+1355,2,"You've gotten very good at swiping this away.",false
 1356,2,"Still here. We've accepted this as our destiny with you.",false
-1357,2,"The task feels like family now.",true
+1357,2,"The task feels like family now.",false
 1358,2,"Another hour. Another entry in the ongoing chronicle of this task.",false
 1359,2,"We come back every time because every time is a chance.",false
 1360,2,"We've developed a complex relationship with hope.",false
 1361,2,"We arrive like clockwork. Clockwork that cares.",false
-1362,2,"The task: patient. You: creative in avoidance.",true
+1362,2,"The task: patient. You: creative in avoidance.",false
 1363,2,"We're here. We've always been here. We will continue to be here.",false
-1364,2,"The gentle sarcasm phase is fully underway.",true
+1364,2,"The gentle sarcasm phase is fully underway.",false
 1365,2,"You've turned 'later' into an art form.",true
-1366,2,"The findings: still waiting.",true
+1366,2,"The findings: still waiting.",false
 1367,2,"We keep showing up because showing up is what we committed to.",false
-1368,2,"The task has started writing its memoirs.",true
-1369,2,"Hints are not being taken. On purpose.",true
+1368,2,"The task has started writing its memoirs.",false
+1369,2,"Hints are not being taken. On purpose.",false
 1370,2,"Another hour, another nudge, same undone situation.",false
 1371,2,"We return with the regularity of a thing that returns.",false
 1372,2,"Still undone. We're taking detailed notes for posterity.",false
@@ -1377,12 +1377,12 @@ id,level,text,active
 1376,2,"Still waiting. Your task is becoming a permanent resident.",false
 1377,2,"Consistency is our whole personality.",false
 1378,2,"Another hour in the ongoing story of this task's waiting state.",false
-1379,2,"You seem moderately surprised each time.",true
-1380,2,"The task knows the schedule by heart now.",true
-1381,2,"Your procrastination is thorough. Credit where due.",true
+1379,2,"You seem moderately surprised each time.",false
+1380,2,"The task knows the schedule by heart now.",false
+1381,2,"Your procrastination is thorough. Credit where due.",false
 1382,2,"Another nudge in what has become a reliable notification series.",false
 1383,2,"We persist. The task persists. You persist in not. Pattern.",false
-1384,2,"Filed under 'endurance test'.",true
+1384,2,"Filed under 'endurance test'.",false
 1385,2,"The task has outlasted your initial motivation. Reminders have not.",false
 1386,2,"Another check-in from your most committed notification.",false
 1387,2,"We're here because persistence is the only tool we have.",false
@@ -1391,15 +1391,15 @@ id,level,text,active
 1390,2,"Another nudge. Another hour. Another chance. Same answer from you.",false
 1391,2,"We return, as we have returned, as we shall return.",false
 1392,2,"Still here. The task has seen us enough times to recognise us.",false
-1393,2,"This task has developed a rich inner life.",true
+1393,2,"This task has developed a rich inner life.",false
 1394,2,"Another hour ticked over. The task: unchecked. The nudge: delivered.",false
 1395,2,"We've committed to this task more than you currently have.",false
-1396,2,"Here when you're ready. And when you're not.",true
+1396,2,"Here when you're ready. And when you're not.",false
 1397,2,"The task and the reminder: still together, still waiting for you.",false
 1398,2,"Another nudge in this ongoing lesson about the persistence of reminders.",false
 1399,2,"We come back because that's the whole point of us.",false
 1400,2,"Still waiting. We're developing character through patience.",false
-1401,2,"Your evasion technique: almost admirable.",true
+1401,2,"Your evasion technique: almost admirable.",false
 1402,2,"Another check-in. Results: consistent with previous check-ins.",false
 1403,2,"We're back, as we said we'd be, as we'll continue to be.",false
 1404,2,"Still here. We've gotten attached to this particular waiting task.",false
@@ -1408,14 +1408,14 @@ id,level,text,active
 1407,2,"We persist because the task exists and persistence is our purpose.",false
 1408,2,"Still undone. We document this moment in the ongoing record.",false
 1409,2,"The reminder has earned a certain gravitas through sheer consistency.",false
-1410,2,"The task: waiting. You: busy with everything else.",true
+1410,2,"The task: waiting. You: busy with everything else.",false
 1411,2,"We're here. We'll always be here. Until you're done.",false
 1412,2,"We've stopped predicting when. We trust: eventually.",false
 1413,2,"You and this task have a relationship. We're the mediator.",false
 1414,2,"Another nudge from your most persistent, least subtle app.",false
 1415,2,"We come back because coming back is what reminders do.",false
 1416,2,"The task is patient. We are slightly less so.",false
-1417,2,"The task has developed opinions about your schedule.",true
+1417,2,"The task has developed opinions about your schedule.",false
 1418,2,"Another check-in. The task: still there. You: still over there.",false
 1419,2,"We persist with the cheerfulness of something designed to persist.",false
 1420,2,"Still undone. We've found a rhythm in the reminding.",false
@@ -1423,7 +1423,7 @@ id,level,text,active
 1422,2,"Another hour in which the task remained your responsibility.",false
 1423,2,"We're back, as ever, with the same message about the same task.",false
 1424,2,"Your delay has matured like a fine cheese.",true
-1425,2,"The task has watched you read other notifications.",true
+1425,2,"The task has watched you read other notifications.",false
 1426,2,"Another nudge. We're committed. The task is committed. You're busy.",false
 1427,2,"We keep showing up because showing up is the only option we have.",false
 1428,2,"Still here. The hours accumulate. The task does not diminish.",false
@@ -1432,13 +1432,13 @@ id,level,text,active
 1431,2,"We come back every time. Every single time. This is who we are.",false
 1432,2,"Still undone. We're here. The task is here. Together, waiting.",false
 1433,2,"The reminder and the task: a duo that outlasts your momentum.",false
-1434,2,"You've earned a reputation for ignoring nudges.",true
+1434,2,"You've earned a reputation for ignoring nudges.",false
 1435,2,"We persist. It's our whole thing. We're very committed to it.",false
 1436,2,"Still waiting. The saga has reached its comfortable middle section.",false
 1437,2,"You've cultivated an impressive ability to coexist with waiting tasks.",false
 1438,2,"Another check-in from the notification that never misses a shift.",false
 1439,2,"We're here because this task needs someone to believe in it.",false
-1440,2,"Watching the hours pass with professional patience.",true
+1440,2,"Watching the hours pass with professional patience.",false
 1441,2,"The task has begun to feel like an old friend we visit hourly.",false
 1442,2,"Another nudge. The task remains. The reminder remains. Pattern.",false
 1443,2,"We don't get tired. We don't get bored. We get more reliable.",false
@@ -1446,8 +1446,8 @@ id,level,text,active
 1445,2,"The reminder persists because reminders are supposed to persist.",false
 1446,2,"Another hour. Another nudge. Same outstanding task.",false
 1447,2,"We come back because someone has to keep this task in your attention.",false
-1448,2,"This task has reached zen-like acceptance.",true
-1449,2,"Your to-do list hired a representative. Hi.",true
+1448,2,"This task has reached zen-like acceptance.",false
+1449,2,"Your to-do list hired a representative. Hi.",false
 1450,2,"Another nudge in the long, distinguished history of these nudges.",false
 1451,2,"We're here. This is where we work now. This notification, this task.",false
 1452,2,"Still here. Growing more legendary with every passing hour.",false
@@ -1456,11 +1456,11 @@ id,level,text,active
 1455,2,"We come back because giving up is not in our job description.",false
 1456,2,"Still undone. We've accepted this is our relationship now.",false
 1457,2,"The reminder shows up for every shift. The task too. We saved you a seat.",false
-1458,2,"It comes. You consider it. Then: not yet.",true
+1458,2,"It comes. You consider it. Then: not yet.",false
 1459,2,"We persist because the task needs an advocate and we volunteered.",false
 1460,2,"Still waiting. We've settled into a comfortable rhythm of persistence.",false
 1461,2,"Waited long enough to earn a seniority bonus.",true
-1462,2,"The persistence is the feature.",true
+1462,2,"The persistence is the feature.",false
 1463,2,"We're here. We were here. We will be here. It's very us.",false
 1464,2,"Still here. The task is our north star.",false
 1465,2,"The reminder, tireless and committed, returns for another shift.",false
@@ -1468,10 +1468,10 @@ id,level,text,active
 1467,2,"We keep at it because that's what reminders are for.",false
 1468,2,"Still undone. The commitment to nudging is undiminished.",false
 1469,2,"The task has witnessed many nudges. Many nudges. This nudge.",false
-1470,2,"Findings: still waiting. Recommendation: stop that.",true
+1470,2,"Findings: still waiting. Recommendation: stop that.",false
 1471,2,"We're back. We'll be back after this. And after that.",false
 1472,2,"Still here. The task has grown comfortable with our visits.",false
-1473,2,"Your delay is legendary. People talk.",true
+1473,2,"Your delay is legendary. People talk.",false
 1474,2,"Another nudge from the most committed notification in your tray.",false
 1475,2,"We persist with a kind of professional dedication.",false
 1476,2,"Still waiting. We're here, as always, as reliably, as persistently.",false
@@ -1480,12 +1480,12 @@ id,level,text,active
 1479,2,"We come back because the task asked us to. Implicitly. By existing.",false
 1480,2,"Still undone. We're made of patience and persistence. Also: this nudge.",false
 1481,2,"The notification that never gives up gives you another chance.",false
-1482,2,"Your procrastination vs this reminder: a true rivalry.",true
+1482,2,"Your procrastination vs this reminder: a true rivalry.",false
 1483,2,"We're here. This is our place. This notification. This task.",false
 1484,2,"Still waiting. The story of this task is told one nudge at a time.",false
-1485,2,"A monument to creative avoidance. One tap topples it.",true
+1485,2,"A monument to creative avoidance. One tap topples it.",false
 1486,2,"Another check-in. The task: still here. Your attention: still elsewhere.",false
-1487,2,"Reminders that give up are just suggestions.",true
+1487,2,"Reminders that give up are just suggestions.",false
 1488,2,"Still here. Consistent. Committed. Completely here.",false
 1489,2,"The task has been here through weather and seasons and hourly nudges.",false
 1490,2,"Another nudge. We bring our best every time.",false
@@ -1499,8 +1499,8 @@ id,level,text,active
 1498,2,"Another nudge from the notification that has committed entirely to this.",false
 1499,2,"We persist because persistence is the only way to done.",false
 1500,2,"Still waiting. We've made our peace with the wait.",false
-1501,2,"The task endures. Someone should start doing.",true
-1502,2,"Report: same. Prognosis: one tap fixes it.",true
+1501,2,"The task endures. Someone should start doing.",false
+1502,2,"Report: same. Prognosis: one tap fixes it.",false
 1503,2,"We're here because we said we'd be here. Because you asked us to be here.",false
 1504,2,"Still here. The task has given us a nickname by now.",false
 1505,2,"The nudge arrives. The nudge notes. The nudge returns.",false
@@ -1508,15 +1508,15 @@ id,level,text,active
 1507,2,"We come back with the reliability of something built to come back.",false
 1508,2,"Still undone. We're the constant in your variable task life.",false
 1509,2,"This has outlasted your enthusiasm. Not your ability.",true
-1510,2,"Still this task. Still your move.",true
+1510,2,"Still this task. Still your move.",false
 1511,2,"We persist with the calm confidence of something that cannot be ignored forever.",false
 1512,2,"Still waiting. We're committed in a way that should be inspiring.",false
-1513,2,"The task is an anchor. One tap cuts it.",true
+1513,2,"The task is an anchor. One tap cuts it.",false
 1514,2,"Another hour gone to the cause of not doing this thing.",false
 1515,2,"We're here. We have nowhere else to be. This is where we are.",false
 1516,2,"Still here. The task, the nudge, the persistent hope.",false
 1517,2,"Your relationship with this task is complicated. We're the constant.",false
-1518,2,"The task nods. You swipe. It returns.",true
+1518,2,"The task nods. You swipe. It returns.",false
 1519,2,"We come back because the alternative is admitting defeat and we do not.",false
 1520,2,"Still undone. We've kept detailed records of this journey.",false
 1521,2,"The reminder persists because persistence is the only language tasks understand.",false
@@ -1530,24 +1530,24 @@ id,level,text,active
 1529,2,"The task and the reminder have a longer relationship now than most.",false
 1530,2,"Another nudge in the ongoing project of this task.",false
 1531,2,"We're here. We'll be here. We are consistently here.",false
-1532,2,"Your capacity for delay is honestly a bit impressive.",true
+1532,2,"Your capacity for delay is honestly a bit impressive.",false
 1533,2,"The reminder has found its groove and its groove is this nudge.",false
 1534,2,"Another hour. The nudge. The task. The opportunity. You.",false
 1535,2,"We come back because coming back is what turns waiting into done.",false
 1536,2,"Still here. Patient. Persistent. Present.",false
-1537,2,"Waited so long it has accumulated seniority.",true
+1537,2,"Waited so long it has accumulated seniority.",false
 1538,2,"Another check-in. You know what the findings are.",false
 1539,2,"We persist because that's the deal. You made the deal.",false
 1540,2,"Still waiting. We arrive on schedule, as we always arrive.",false
 1541,2,"The reminder and the task: till done do them part.",false
-1542,2,"This can go on as long as it takes. Can you?",true
+1542,2,"This can go on as long as it takes. Can you?",false
 1543,2,"We're here. The task is here. The nudge is here. The tap is yours.",false
 1544,2,"Still undone. We've built a life around this particular task.",false
 1545,2,"The persistent reminder persists. The task remains. The pattern holds.",false
 1546,2,"Another hour. Another nudge. Another moment to be the hero.",false
 1547,2,"We come back because the task deserves someone who doesn't give up.",false
 1548,2,"Still here. The task, the nudge, the you, the tap potential.",false
-1549,2,"You and 'later' have quite a relationship.",true
+1549,2,"You and 'later' have quite a relationship.",false
 1550,2,"Another nudge. As always. On schedule. About the task.",false
 1551,2,"We persist because the task has no other advocate.",false
 1552,2,"The reminder is committed. We hope you'll match that energy.",false
@@ -1559,35 +1559,35 @@ id,level,text,active
 1558,2,"We persist because persisting is how we close the gap between waiting and done.",false
 1559,2,"Still undone. The nudge. The task. The unshakeable commitment to reminding.",false
 1560,2,"The reminder arrives again. Because it was supposed to. Because you set it up.",false
-1561,2,"You knew this was the deal.",true
+1561,2,"You knew this was the deal.",false
 1562,2,"We're here. Still here. Going to be here. Until done.",false
 1563,2,"Still waiting. The nudge never falters. Does the task have to?",false
-1564,2,"Waited long enough to develop strong opinions.",true
+1564,2,"Waited long enough to develop strong opinions.",false
 1565,2,"Another nudge from the notification that takes its commitments seriously.",false
 1566,2,"We come back because the task needs someone in its corner.",false
 1567,2,"Still here. The most consistent presence in your notification tray.",false
-1568,2,"Your avoidance has a certain aesthetic consistency.",true
-1569,2,"The task: waiting. You: not yet.",true
+1568,2,"Your avoidance has a certain aesthetic consistency.",false
+1569,2,"The task: waiting. You: not yet.",false
 1570,2,"We persist because you built something that persists and we respect that.",false
-1571,2,"An institution in your hourly schedule.",true
+1571,2,"An institution in your hourly schedule.",false
 1572,2,"The reminder has never missed a scheduled appearance.",false
 1573,2,"Another hour. The task endures. The nudge endures.",false
 1574,2,"We're back. Not going anywhere. This is our home now.",false
-1575,2,"The task is family now. Annoying, undone family.",true
+1575,2,"The task is family now. Annoying, undone family.",false
 1576,2,"The task, the reminder, the you: a story of patience and potential.",false
-1577,2,"You could end this story. The ending is one tap.",true
+1577,2,"You could end this story. The ending is one tap.",false
 1578,2,"We persist because that's what we promised. We honour promises.",false
 1579,2,"Still waiting. The persistence of this reminder is its defining quality.",false
-1580,2,"This task has earned more nudges than most.",true
+1580,2,"This task has earned more nudges than most.",false
 1581,2,"Another check-in from your most punctual notification.",false
 1582,2,"We're here because the alternative is the task never getting done.",false
 1583,2,"Still here. Persistent. Committed. Present. Annoying to some.",false
-1584,2,"Your task has enough nudges for a highlight reel.",true
+1584,2,"Your task has enough nudges for a highlight reel.",false
 1585,2,"Another nudge. The task. The reminder. The you. The possibility.",false
-1586,2,"Reminders that don't come back are just memories.",true
+1586,2,"Reminders that don't come back are just memories.",false
 1587,2,"Still undone. The nudge rolls on.",false
 1588,2,"The reminder is not tired. The reminder is not discouraged. The reminder is here.",false
-1589,2,"One of these will be the one. Could be this one.",true
+1589,2,"One of these will be the one. Could be this one.",false
 1590,2,"We persist because we believe in the eventual done.",false
 1591,2,"Still waiting. We've been here long enough to give this task a nickname.",false
 1592,2,"The task and the reminder have history now. Deep, waiting history.",false
@@ -1606,7 +1606,7 @@ id,level,text,active
 1605,2,"Another hour. Another nudge. Another moment where done is possible.",false
 1606,2,"We come back because the task needs consistent advocacy.",false
 1607,2,"Still here. The nudge. The task. The persistent, hopeful nudge.",false
-1608,2,"More check-ins than most relationships.",true
+1608,2,"More check-ins than most relationships.",false
 1609,2,"Another nudge. We've delivered it. The rest is up to you.",false
 1610,2,"We persist because the alternative doesn't serve you or the task.",false
 1611,2,"Still undone. This is the nudge. This is always the nudge.",false
@@ -1617,10 +1617,10 @@ id,level,text,active
 1616,2,"Spoiler: this task won't do itself. We checked.",false
 1617,2,"We've been watching you not do this. Fascinating.",false
 1618,2,"Still waiting. You've achieved a masterclass in avoidance.",false
-1619,2,"The task is writing a memoir. You're the main character.",true
+1619,2,"The task is writing a memoir. You're the main character.",false
 1620,2,"We return, as we always return, with the same mission.",false
 1621,2,"Still undone. We've made peace with our role here.",false
-1622,2,"You've mastered the strategic non-response.",true
+1622,2,"You've mastered the strategic non-response.",false
 1623,2,"Another hour. Another nudge. Classic pattern.",false
 1624,2,"We're here because here is where we've always been.",false
 1625,2,"Your delay has reached artisanal quality.",true
@@ -1633,9 +1633,9 @@ id,level,text,active
 1632,2,"You're very consistent at being consistently unavailable to this task.",false
 1633,2,"Another hour, another reminder, same waiting situation.",false
 1634,2,"Still waiting. The pattern is well established at this point.",false
-1635,2,"The task has a bit of an attitude about being ignored.",true
+1635,2,"The task has a bit of an attitude about being ignored.",false
 1636,2,"Another nudge. You've gotten very practised at swiping these away.",false
-1637,2,"Not going anywhere. You could go to Done, though.",true
+1637,2,"Not going anywhere. You could go to Done, though.",false
 1638,2,"Still here. The task's patience is legendary.",false
 1639,2,"Quite a streak of not doing this.",true
 1640,2,"We persist because your procrastination is not our cue to stop.",false
@@ -1659,7 +1659,7 @@ id,level,text,active
 1658,2,"Another hour in the life of this resilient, undone task.",false
 1659,2,"We return because reminders that don't return are just thoughts.",false
 1660,2,"Still here. The most reliable thing in your notification tray.",false
-1661,2,"You and 'not yet': a sophisticated relationship.",true
+1661,2,"You and 'not yet': a sophisticated relationship.",false
 1662,2,"Another nudge. We bring fresh hope to each one.",false
 1663,2,"We're here because the task needs someone on its side.",false
 1664,2,"Still undone. Your delay has achieved a certain grandeur.",false
@@ -1678,14 +1678,14 @@ id,level,text,active
 1677,2,"Another nudge. We're determined. The task is patient.",false
 1678,2,"We keep at it because at-it-keeping is what we do.",false
 1679,2,"Still waiting. The saga continues. We continue with it.",false
-1680,2,"You've perfected the art of the indefinite deferral.",true
+1680,2,"You've perfected the art of the indefinite deferral.",false
 1681,2,"Another hour, another reminder, same opportunity waiting.",false
 1682,2,"We persist because persistence is how waiting becomes done.",false
 1683,2,"Still here. Watching the hours pass. Still nudging.",false
-1684,2,"The task collects nudges like experience points.",true
+1684,2,"The task collects nudges like experience points.",false
 1685,2,"Another nudge delivered with precision and mild exasperation.",false
 1686,2,"We come back because the task asked us to. By existing.",false
-1687,2,"Your persistent conscience, reporting for duty.",true
+1687,2,"Your persistent conscience, reporting for duty.",false
 1688,2,"The reminder persists. The task persists. So does our commitment.",false
 1689,2,"Another check-in. You know the findings. Still waiting.",false
 1690,2,"We're here. We'll always be here. Until done.",false
@@ -1693,30 +1693,30 @@ id,level,text,active
 1692,2,"Another hour of committed not-doing on your part.",false
 1693,2,"We return with the certainty of something that was built to return.",false
 1694,2,"Still here. The task is our mission. We take missions seriously.",false
-1695,2,"You've become an expert in the art of the delay.",true
+1695,2,"You've become an expert in the art of the delay.",false
 1696,2,"Another nudge. The task: still there. You: still here. Gap: one tap.",false
 1697,2,"We persist because the alternative doesn't serve either of us.",false
 1698,2,"Still undone. The nudge has never been more consistent.",false
-1699,2,"Here long enough to stake a territorial claim.",true
+1699,2,"Here long enough to stake a territorial claim.",false
 1700,2,"Another hour. Another nudge. The pattern endures.",false
-1701,2,"It comes back because you built it to. Own it.",true
+1701,2,"It comes back because you built it to. Own it.",false
 1702,2,"Still waiting. We've accepted this is where we live now.",false
 1703,2,"You've built an excellent case for the staying power of procrastination.",false
 1704,2,"Another nudge from the most consistent thing in your life right now.",false
 1705,2,"We're here. We were designed to be here. We embrace it.",false
 1706,2,"Still here. The task, the reminder, the stubborn waiting status.",false
-1707,2,"Another shift logged. Flawless attendance.",true
+1707,2,"Another shift logged. Flawless attendance.",false
 1708,2,"Another check-in. The task: still awaiting your attention.",false
 1709,2,"We persist because persistence is the only language of done.",false
 1710,2,"Still waiting. Every nudge is a vote for done.",false
 1711,2,"Another hour passed in the service of not doing this task.",false
 1712,2,"We come back because the task can't advocate for itself.",false
 1713,2,"Still here. The most committed relationship in your notification life.",false
-1714,2,"You've made 'not yet' into a philosophy.",true
+1714,2,"You've made 'not yet' into a philosophy.",false
 1715,2,"Another nudge. We've never sent one we didn't mean.",false
 1716,2,"We keep at this because at-this-keeping is our core competency.",false
 1717,2,"We're developing patience we didn't know we had.",false
-1718,2,"The task has become something of an institution.",true
+1718,2,"The task has become something of an institution.",false
 1719,2,"Another hour. Another nudge. Another missed opportunity to end this.",false
 1720,2,"We persist because your task deserves someone who doesn't give up.",false
 1721,2,"Still waiting. The reminder: unshakeable. The task: unmoved.",false
@@ -1733,7 +1733,7 @@ id,level,text,active
 1732,2,"You've become very skilled at coexisting with waiting tasks.",false
 1733,2,"Another nudge. The task isn't going anywhere. Neither are we.",false
 1734,2,"We persist because you asked us to and we keep our word.",false
-1735,2,"The gentle sarcasm has fully matured.",true
+1735,2,"The gentle sarcasm has fully matured.",false
 1736,2,"The task has been here through wind and rain and hourly nudges.",false
 1737,2,"Another hour, another reminder, another invitation to be done.",false
 1738,2,"We're back. We'll be back after this. The cycle is real.",false
@@ -1745,15 +1745,15 @@ id,level,text,active
 1744,2,"Another check-in. Findings: still waiting. Prognosis: one tap.",false
 1745,2,"We persist because we're loyal to the task and to you.",false
 1746,2,"Still here. The dedication is real. The nudge is genuine.",false
-1747,2,"Another hour of this task, uncommenced.",true
+1747,2,"Another hour of this task, uncommenced.",false
 1748,2,"We return because returning is what turns reminders into results.",false
 1749,2,"Still waiting. We approach each nudge as potentially the last needed.",false
-1750,2,"Delay as an art form. One tap ends the exhibition.",true
+1750,2,"Delay as an art form. One tap ends the exhibition.",false
 1751,2,"Another nudge. We bring our best to every one.",false
 1752,2,"We're here because the task needs someone who doesn't waver.",false
 1753,2,"Still here. Patient. Persistent. Unshakeably present.",false
 1754,2,"The task has developed a certain attachment to your waiting column.",false
-1755,2,"You know the answer already.",true
+1755,2,"You know the answer already.",false
 1756,2,"We persist because persistence is the only way through.",false
 1757,2,"Still undone. The nudges continue. The task remains.",false
 1758,2,"Another hour. Another reminder. The commitment: absolute.",false
@@ -1791,7 +1791,7 @@ id,level,text,active
 1790,2,"Another nudge in the resilient, ongoing story of this task.",false
 1791,2,"We persist because persistence is how we honour the task.",false
 1792,2,"Still here. The task. The nudge. The open possibility.",false
-1793,2,"Waiting is a very stable state. One tap ends it.",true
+1793,2,"Waiting is a very stable state. One tap ends it.",false
 1794,2,"Another hour. The reminder: punctual as ever. The task: still there.",false
 1795,2,"We come back because the task is worth coming back for.",false
 1796,2,"Still undone. We've logged more hours on this than expected.",false
@@ -1814,12 +1814,12 @@ id,level,text,active
 1813,2,"We've been at this a while. So has the task.",false
 1814,2,"We're making predictions. None involve giving up.",false
 1815,2,"Another hour. The nudge arrives. You consider. The task waits.",false
-1816,2,"You've stopped being surprised. It shows.",true
+1816,2,"You've stopped being surprised. It shows.",false
 1817,2,"Still undone. We note this with the regularity of a clock.",false
 1818,2,"The pattern is established. The task: waiting. Us: here.",false
 1819,2,"Another nudge in the long tradition of these nudges.",false
 1820,2,"We persist because persistence is the whole point.",false
-1821,2,"Your avoidance game: strong. This nudge game: stronger.",true
+1821,2,"Your avoidance game: strong. This nudge game: stronger.",false
 1822,2,"The task has been patient enough. We're saying it out loud.",false
 1823,2,"Another hour. Another reminder. Classic setup.",false
 1824,2,"We're here. We've always been here. We'll continue being here.",false
@@ -1827,7 +1827,7 @@ id,level,text,active
 1826,2,"The task and the reminder: still here, still waiting for you.",false
 1827,2,"Another nudge. We bring fresh enthusiasm to each one.",false
 1828,2,"We persist because the alternative is silence, and silence doesn't work.",false
-1829,2,"Your delay has taken on a life of its own.",true
+1829,2,"Your delay has taken on a life of its own.",false
 1830,2,"The reminder has committed to this task completely.",false
 1831,2,"Another hour in the ongoing chronicle of this task.",false
 1832,2,"We're back because we said we'd be back. We keep our word.",false
@@ -1836,7 +1836,7 @@ id,level,text,active
 1835,2,"Another nudge. Same task. Fresh opportunity.",false
 1836,2,"We come back because every return is a new chance for done.",false
 1837,2,"Still undone. The pattern holds. The tap is waiting.",false
-1838,2,"One tap and it's gone. Magic, basically.",true
+1838,2,"One tap and it's gone. Magic, basically.",false
 1839,2,"Another check-in. The findings: still waiting. The answer: one tap.",false
 1840,2,"We persist because giving up is not something we do.",false
 1841,2,"Still here. The most reliable presence in your task life.",false
@@ -1860,7 +1860,7 @@ id,level,text,active
 1859,2,"Another nudge. We never stopped believing in this task.",false
 1860,2,"We persist because done is worth persisting for.",false
 1861,2,"Still waiting. We're here. Committed. Completely.",false
-1862,2,"The task has seen this more than it's seen you.",true
+1862,2,"The task has seen this more than it's seen you.",false
 1863,2,"We return because that's the whole design.",false
 1864,2,"Still here. The most patient, most persistent notification.",false
 1865,2,"Another nudge. The task: patient. Us: reliably here.",false
@@ -1869,11 +1869,11 @@ id,level,text,active
 1868,2,"Another check-in. Same task. Same waiting. One tap still fixes it.",false
 1869,2,"We come back with the regularity of something that cares.",false
 1870,2,"Still here. Growing more legendary with each nudge.",false
-1871,2,"The task is patient. The reminder is relentless.",true
+1871,2,"The task is patient. The reminder is relentless.",false
 1872,2,"Another hour. The task endures. The reminder endures.",false
 1873,2,"We return because returning is what makes reminders reminders.",false
 1874,2,"Still waiting. We've accepted this is our calling.",false
-1875,2,"Your task filed requests. This is the delivery.",true
+1875,2,"Your task filed requests. This is the delivery.",false
 1876,2,"The notification that never calls in sick.",false
 1877,2,"Still here. The task. The nudge. The unwavering commitment.",false
 1878,2,"Another hour in which the task remained loyal to waiting.",false
@@ -1915,7 +1915,7 @@ id,level,text,active
 1914,2,"Another hour. Another nudge. The done state: attainable.",false
 1915,2,"We come back because coming back is what we were made for.",false
 1916,2,"Still here. The nudge. The task. The moment of potential.",false
-1917,2,"Waiting patiently. With some opinions.",true
+1917,2,"Waiting patiently. With some opinions.",false
 1918,2,"Another nudge. Delivered. With hope. On time.",false
 1919,2,"We persist because that's what turning waiting to done requires.",false
 1920,2,"Still waiting. We arrive, as always, with the same sincere message.",false
@@ -1940,7 +1940,7 @@ id,level,text,active
 1939,2,"Another check-in. The delay: impressive. The task: still there.",false
 1940,2,"We persist because the task hasn't done itself.",false
 1941,2,"Still undone. Another chapter in the ongoing saga.",false
-1942,2,"The task's staying power beats your avoidance.",true
+1942,2,"The task's staying power beats your avoidance.",false
 1943,2,"Another nudge. We've never been more committed.",false
 1944,2,"We come back. We always come back. You know this.",false
 1945,2,"Still waiting. The pattern endures. So do we.",false
@@ -3941,3 +3941,26 @@ id,level,text,active
 3940,3,"Waited long enough to have a favourite chair.",true
 3941,3,"This task has memorised your excuses.",true
 3942,3,"'I'll do it later' has worn thin.",true
+3943,2,"Spoiler: one tap, and this stops.",true
+3944,2,"Plot twist: you do it now.",true
+3945,2,"Back again. Like a song stuck in your head.",true
+3946,2,"Back, as promised.",true
+3947,2,"You're getting really good at 'later'.",true
+3948,2,"Your avoidance has reached expert level.",true
+3949,2,"You've ignored this with real style.",true
+3950,2,"Your dodging skills are world class.",true
+3951,2,"This task has been here so long it has a spare key.",true
+3952,2,"This task has been here so long it gets mail here.",true
+3953,2,"This task has outlived some New Year's resolutions.",true
+3954,2,"Bets are on. Most say 'next week'.",true
+3955,2,"Spoiler: future you will thank you.",true
+3956,2,"Someone has to do this. Spoiler: it's you.",true
+3957,2,"You've postponed this with great skill.",true
+3958,2,"Interesting how this keeps coming back, isn't it?",true
+3959,2,"Your procrastination deserves a trophy.",true
+3960,2,"Ignoring this is a choice. A bold one.",true
+3961,2,"This task is older than your last haircut.",true
+3962,2,"One tap and this stops haunting you.",true
+3963,2,"Doing this is faster than reading this.",true
+3964,2,"You've dodged this like a pro.",true
+3965,2,"Your delay is starting to look intentional.",true

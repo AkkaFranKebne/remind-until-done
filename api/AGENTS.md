@@ -61,6 +61,13 @@ Run in `api/`. Needs Go (version in `go.mod`).
   - silence or peace after it ("Make it a done silence.", "Then you're left in peace.");
   - lines about the nagging itself ("This is the goodbye nag.", "The nagging stops here.", "Then the nagging retires.");
   - clichés ("Go out on a high", "For real this time", "Make it count").
+- Teasing lines (level 2) tease the delay with mock praise, a plot twist or a spoiler, or say that it's back again. Like "Plot twist: it still hasn't done itself.", "You're impressively good at ignoring things.", "Your delay has achieved a certain grandeur.", "Back again. You seem surprised. Don't be." or "This task has outlived some houseplants." Never:
+  - lines about the reminder or notification itself ("The reminder remains.", "A regular in your notification tray.", "Designed not to go away.", "Soldiering on. As reminders do.");
+  - the task taking up a hobby or a mood ("wrote a poem", "started a podcast", "started a newsletter", "developing a complex", "has gotten quite philosophical");
+  - family, relationship or housemate images ("part of the family", "More commitment than most relationships.");
+  - "noted", "notes are being taken", judging or cataloguing;
+  - clipped lists ("Watching. Waiting. Judging a little.", "Task: patient. Reminder: relentless.");
+  - big or abstract images ("the elephant in the notification tray", "A constant in your variable life.", "Growing more legendary").
 - Last-call lines (level 3) are direct, or a funny exaggeration of how long the task has waited. Like "This is getting serious.", "'Later' is no longer acceptable.", "Enough delays to fill an autobiography." or "Standing in the rain, shouting your name." Never:
   - talk about phases, tone or escalation ("The gentle phase is over.", "From suggestion to strong recommendation.", "Escalated.", "Past subtle. At emphatic.");
   - "imploring", or alarm and volume images ("Sounding the alarm. Metaphorically.", "Full volume.");

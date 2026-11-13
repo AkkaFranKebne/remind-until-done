@@ -14,6 +14,7 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed --workers=1",
     "preview": "vite preview",
     "api:generate": "orval --config orval.config.ts",
     "prepare": "cd .. && husky web/.husky",

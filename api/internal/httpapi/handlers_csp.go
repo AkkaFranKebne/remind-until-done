@@ -68,8 +68,11 @@ type cspReport struct {
 	line                                          int
 }
 
-// Two formats exist. Old (report-uri, Safari and Firefox): {"csp-report": {"violated-directive": ...}}.
+// Two formats exist. Old (report-uri, Firefox): {"csp-report": {"violated-directive": ...}}.
 // New (report-to, Chrome): [{"type": "csp-violation", "body": {"effectiveDirective": ...}}].
+// Safari sends the new one as a single object, not a list: {"type": "csp-violation", "body": ...}
+// (WebKit's CSPViolationReportBody; found 2026-11-13, when an iPhone's reports got 400). With
+// report-uri only, Safari adds "type" and "url" around the old one, which the old reader ignores.
 type oldCSPReport struct {
 	Report *struct {
 		DocumentURI        string `json:"document-uri"`
@@ -111,7 +114,11 @@ func parseCSPReports(raw json.RawMessage) (reports []cspReport, ok bool) {
 	}
 	var batch []newCSPReport
 	if json.Unmarshal(raw, &batch) != nil {
-		return nil, false
+		var one newCSPReport
+		if json.Unmarshal(raw, &one) != nil || one.Type == "" {
+			return nil, false
+		}
+		batch = []newCSPReport{one}
 	}
 	for _, n := range batch {
 		if n.Type != "csp-violation" {

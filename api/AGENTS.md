@@ -61,6 +61,13 @@ Run in `api/`. Needs Go (version in `go.mod`).
   - silence or peace after it ("Make it a done silence.", "Then you're left in peace.");
   - lines about the nagging itself ("This is the goodbye nag.", "The nagging stops here.", "Then the nagging retires.");
   - clichés ("Go out on a high", "For real this time", "Make it count").
+- Gentle lines (level 1) are short, direct and friendly, or bring in your future or past self. Like "This won't take long.", "You set this for a reason.", "Do this before you forget again.", "Remember this? It remembers you.", "A note from your calmer future self.", "Make it so." or "Engage!" Never:
+  - patience lines ("The task is patient. The deadline isn't.", "Patience is vast. Not infinite.");
+  - the list, checklist or to-do list acting on its own ("The list never forgets.", "Your to-do list flagged this.", "filed a missing persons report");
+  - poetic or philosophical images ("the sound of one task waiting", "your unfinished symphony", "Soft as morning.");
+  - proverbs and clichés ("The best time to do this was earlier.", "Done feels better than almost.", "Small tap. Big payoff.");
+  - wordplay ("Still the task. Still the person.", "This exists. One tap and it doesn't.", "Set. Waiting. Done.");
+  - deadline lines ("Deadlines are real.").
 - Teasing lines (level 2) tease the delay with mock praise, a plot twist or a spoiler, or say that it's back again. Like "Plot twist: it still hasn't done itself.", "You're impressively good at ignoring things.", "Your delay has achieved a certain grandeur.", "Back again. You seem surprised. Don't be." or "This task has outlived some houseplants." Never:
   - lines about the reminder or notification itself ("The reminder remains.", "A regular in your notification tray.", "Designed not to go away.", "Soldiering on. As reminders do.");
   - the task taking up a hobby or a mood ("wrote a poem", "started a podcast", "started a newsletter", "developing a complex", "has gotten quite philosophical");

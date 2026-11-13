@@ -212,10 +212,21 @@ func TestTheSQLLoadsAndUpdates(t *testing.T) {
 	if isActive {
 		t.Errorf("id %d was deleted from the file but is still active", last)
 	}
-	if err := pool.QueryRow(ctx, `SELECT active FROM nag_messages WHERE id = 2`).Scan(&isActive); err != nil {
+	// Any other line that's active in the file must still be active (not a fixed id: the file changes).
+	other := 0
+	for _, l := range lines[1 : len(lines)-1] {
+		if l.Active {
+			other = l.ID
+			break
+		}
+	}
+	if other == 0 {
+		t.Fatal("the file has no other active line to check")
+	}
+	if err := pool.QueryRow(ctx, `SELECT active FROM nag_messages WHERE id = $1`, other).Scan(&isActive); err != nil {
 		t.Fatal(err)
 	}
 	if !isActive {
-		t.Error("deleting the last line retired another one")
+		t.Errorf("deleting the last line retired id %d too", other)
 	}
 }

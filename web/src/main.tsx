@@ -4,6 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { App } from './app/App.tsx'
+import { answerWhichWindow } from './features/pwa/answerWhichWindow'
 import { createFirebaseClients } from './lib/firebase'
 
 async function start() {
@@ -18,6 +19,7 @@ async function start() {
   // (an old browser, a private window) just means no offline shell and no pushes.
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {})
+    answerWhichWindow()
   }
 
   createRoot(document.getElementById('root')!).render(

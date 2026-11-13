@@ -9,7 +9,8 @@
  *    /__ pages (the Google sign-in round trip) always go to the network.
  * 2. Pushes: FCM delivers through the browser's standard Push API. Every push shows a
  *    notification (iOS requires one) and tells open app pages to refresh; a tap opens or
- *    focuses the app on the reminder. Its Done button tells the API directly (sw/click.ts).
+ *    focuses the app on the reminder (the installed app before a tab). Its Done button tells
+ *    the API directly (sw/click.ts).
  *    No Firebase in here: the page gets the push token with Firebase (M3 PR 4).
  */
 import { clientsClaim } from 'workbox-core'
@@ -20,6 +21,7 @@ import { pushArrived } from './sw/messages'
 import { offlinePage } from './sw/offline'
 import { toNotification } from './sw/notification'
 import { closeAllOf, showOnlyNewest } from './sw/show'
+import { isInstalledApp, pickWindow } from './sw/windows'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -113,11 +115,14 @@ self.addEventListener('notificationclick', (event) => {
   )
 })
 
-/** Focus an open app window and show the page there, or open a new one. */
+/**
+ * Show the reminder in an open window, the installed app before a rud. tab (sw/windows.ts), or
+ * open a new one.
+ */
 async function openOrFocus(path: string) {
   const url = new URL(path, self.location.origin).href
   const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-  const open = windows[0]
+  const open = await pickWindow(windows, (page) => isInstalledApp(page, () => new MessageChannel()))
   if (open) {
     try {
       const focused = await open.focus()

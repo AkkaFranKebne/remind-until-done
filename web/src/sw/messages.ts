@@ -25,3 +25,34 @@ export function readPushArrived(data: unknown): PushArrived | undefined {
     reminderId: typeof reminderId === 'string' && reminderId !== '' ? reminderId : null,
   }
 }
+
+const WHICH_WINDOW = 'rud:which-window'
+const WINDOW_KIND = 'rud:window-kind'
+
+/**
+ * The worker asks an open page whether it is the installed app or a browser tab: to the worker
+ * both are just windows of our site. The page answers on the port sent along (windowKind).
+ */
+export type WhichWindow = { type: typeof WHICH_WINDOW }
+
+export function whichWindow(): WhichWindow {
+  return { type: WHICH_WINDOW }
+}
+
+export function isWhichWindow(data: unknown): boolean {
+  return typeof data === 'object' && data !== null && 'type' in data && data.type === WHICH_WINDOW
+}
+
+/** A page's answer: installed is true in the installed app's own window. */
+export type WindowKind = { type: typeof WINDOW_KIND; installed: boolean }
+
+export function windowKind(installed: boolean): WindowKind {
+  return { type: WINDOW_KIND, installed }
+}
+
+/** An answer → whether that page is the installed app; anything else → false. */
+export function readWindowKind(data: unknown): boolean {
+  if (typeof data !== 'object' || data === null) return false
+  const { type, installed } = Object.fromEntries(Object.entries(data))
+  return type === WINDOW_KIND && installed === true
+}

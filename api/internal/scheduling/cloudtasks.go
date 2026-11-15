@@ -56,11 +56,38 @@ func (c *CloudTasks) Close() error { return c.client.Close() }
 func (c *CloudTasks) Enqueue(ctx context.Context, t Task) error {
 	ctx, cancel := context.WithTimeout(ctx, enqueueTimeout)
 	defer cancel()
-	_, err := c.client.CreateTask(ctx, c.request(t))
-	if status.Code(err) == codes.AlreadyExists {
-		return nil
+	req := c.request(t)
+	return createWithRetry(ctx, func(ctx context.Context) error {
+		_, err := c.client.CreateTask(ctx, req)
+		return err
+	}, retryWaits)
+}
+
+// retryWaits are the pauses before a second and a third try. All tries share enqueueTimeout,
+// so a request still waits at most that long.
+var retryWaits = []time.Duration{200 * time.Millisecond, 600 * time.Millisecond}
+
+// createWithRetry tries again only when Cloud Tasks was Unavailable: a dropped connection, the
+// error that left a reminder silent until the sweep on 2026-11-15. The client library doesn't
+// retry CreateTask by itself. Trying again is safe: the task name is fixed (Task.Name), so if
+// an earlier try did get through, the next one answers AlreadyExists, which counts as booked.
+func createWithRetry(ctx context.Context, create func(context.Context) error, waits []time.Duration) error {
+	for i := 0; ; i++ {
+		err := create(ctx)
+		if err == nil || status.Code(err) == codes.AlreadyExists {
+			return nil
+		}
+		if status.Code(err) != codes.Unavailable || i == len(waits) {
+			return err
+		}
+		timer := time.NewTimer(waits[i])
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return err
+		case <-timer.C:
+		}
 	}
-	return err
 }
 
 func (c *CloudTasks) request(t Task) *cloudtaskspb.CreateTaskRequest {

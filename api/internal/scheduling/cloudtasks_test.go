@@ -1,10 +1,81 @@
 package scheduling
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+// fakeCreate answers with errs in turn (nil = booked) and counts the tries.
+func fakeCreate(errs ...error) (create func(context.Context) error, tries *int) {
+	n := 0
+	return func(context.Context) error {
+		err := errs[n]
+		n++
+		return err
+	}, &n
+}
+
+var noWaits = []time.Duration{0, 0}
+
+func TestCreateRetriesADroppedConnection(t *testing.T) {
+	create, tries := fakeCreate(status.Error(codes.Unavailable, "connection reset by peer"), nil)
+	if err := createWithRetry(context.Background(), create, noWaits); err != nil {
+		t.Fatalf("err = %v, want booked on the second try", err)
+	}
+	if *tries != 2 {
+		t.Errorf("tries = %d, want 2", *tries)
+	}
+}
+
+func TestCreateCountsAlreadyExistsAfterARetryAsBooked(t *testing.T) {
+	// The first try reached Cloud Tasks, only the answer was lost.
+	create, tries := fakeCreate(status.Error(codes.Unavailable, "reset"), status.Error(codes.AlreadyExists, "exists"))
+	if err := createWithRetry(context.Background(), create, noWaits); err != nil {
+		t.Fatalf("err = %v, want nil: the task is there", err)
+	}
+	if *tries != 2 {
+		t.Errorf("tries = %d, want 2", *tries)
+	}
+}
+
+func TestCreateGivesUpAfterThreeTries(t *testing.T) {
+	unavailable := status.Error(codes.Unavailable, "reset")
+	create, tries := fakeCreate(unavailable, unavailable, unavailable)
+	if err := createWithRetry(context.Background(), create, noWaits); status.Code(err) != codes.Unavailable {
+		t.Fatalf("err = %v, want the last Unavailable", err)
+	}
+	if *tries != 3 {
+		t.Errorf("tries = %d, want 3", *tries)
+	}
+}
+
+func TestCreateDoesNotRetryOtherErrors(t *testing.T) {
+	// A refusal stays a refusal: trying again won't change it.
+	create, tries := fakeCreate(status.Error(codes.PermissionDenied, "no"))
+	if err := createWithRetry(context.Background(), create, noWaits); status.Code(err) != codes.PermissionDenied {
+		t.Fatalf("err = %v, want PermissionDenied", err)
+	}
+	if *tries != 1 {
+		t.Errorf("tries = %d, want 1", *tries)
+	}
+}
+
+func TestCreateStopsWhenTheTimeIsUp(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	create, tries := fakeCreate(status.Error(codes.Unavailable, "reset"))
+	if err := createWithRetry(ctx, create, []time.Duration{time.Hour, time.Hour}); status.Code(err) != codes.Unavailable {
+		t.Fatalf("err = %v, want Unavailable", err)
+	}
+	if *tries != 1 {
+		t.Errorf("tries = %d, want 1: no waiting past enqueueTimeout", *tries)
+	}
+}
 
 func testCloudTasks(now time.Time) *CloudTasks {
 	return &CloudTasks{

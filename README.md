@@ -3,6 +3,8 @@
 A to-do reminder that doesn't give up. You set a reminder, and it keeps sending push notifications, each one a little more insistent, until you tap **Done**.
 
 - Live app: https://rud-prod-4f7k2.web.app. It's invite-only while in testing.
+- Design doc: https://claude.ai/artifact/BXDpFvgmBqmRxs7aPtq5yH. What gets built, and why.
+- Design Inventory: https://claude.ai/artifact/Lyv8dnTRRDg6hwa3jxP2ws. Every screen, component, token and line of copy.
 - Built by one frontend developer learning fullstack, working with AI coding agents. The process is described under [How it's built](#how-its-built).
 
 ## How it works
@@ -54,7 +56,8 @@ A to-do reminder that doesn't give up. You set a reminder, and it keeps sending 
 
 ## How it's built
 
-- A design doc decides what gets built. Every decision made while building goes into it, with the reason.
+- The [design doc](https://claude.ai/artifact/BXDpFvgmBqmRxs7aPtq5yH) decides what gets built. Every decision made while building goes into it, with the reason.
+- The [Design Inventory](https://claude.ai/artifact/Lyv8dnTRRDg6hwa3jxP2ws) lists every screen, component, token, piece of copy and accessibility rule. UI changes are checked against it.
 - `AGENTS.md` files, one at the root and one per area, hold the rules for AI agents and people alike.
 - Review agents in `.claude/agents` check each PR before it's merged: one for UI and accessibility, one for security. Recipes for repeated jobs are in `.claude/skills`.
 - PR descriptions are written as study notes, in plain language and with comparisons to frontend ideas. Reading the merged PRs in order tells the whole story.

@@ -3,8 +3,6 @@
 A to-do reminder that doesn't give up. You set a reminder, and it keeps sending push notifications, each one a little more insistent, until you tap **Done**.
 
 - Live app: https://rud-prod-4f7k2.web.app. It's invite-only while in testing.
-- Design doc: https://claude.ai/artifact/BXDpFvgmBqmRxs7aPtq5yH. What gets built, and why.
-- Design Inventory: https://claude.ai/artifact/Lyv8dnTRRDg6hwa3jxP2ws. Every screen, component, token and line of copy.
 - Built by one frontend developer learning fullstack, working with AI coding agents. The process is described under [How it's built](#how-its-built).
 
 ## How it works

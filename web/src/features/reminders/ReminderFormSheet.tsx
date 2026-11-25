@@ -17,7 +17,9 @@ import {
   nextAt,
   toLocalInputValue,
 } from '../../lib/dates'
+import { showPickerOf } from '../../lib/showPicker'
 import { useNow } from '../../lib/useNow'
+import { waitsForSlideIn } from '../pwa/platform'
 import {
   addReminderSchema,
   intervalOptions,
@@ -43,15 +45,6 @@ export type ReminderFormResult = {
   note: string | null
   dueAt: Date | null
   nagIntervalMin: number
-}
-
-/** Opens a date input's picker; where showPicker() isn't there, focusing the input does it. */
-function showPickerOf(input: HTMLInputElement) {
-  try {
-    input.showPicker()
-  } catch {
-    input.focus()
-  }
 }
 
 /**
@@ -109,6 +102,7 @@ export function ReminderFormSheet({
   const [snapPoint, setSnapPoint] = useState<number | string | null>(PEEK)
   const [noteOpen, setNoteOpen] = useState(false)
   const [askDiscard, setAskDiscard] = useState(false)
+  const [waitForSlideIn] = useState(waitsForSlideIn) // Android: Sheet's focusAfterSlideIn
   // A random example first, then the next one each time the sheet closes (never twice in a row).
   const [example, setExample] = useState(() => Math.floor(Math.random() * titleExamples.length))
   const now = useNow()
@@ -248,6 +242,7 @@ export function ReminderFormSheet({
       snapPoint={snapPoint}
       onSnapPointChange={setSnapPoint}
       initialFocus={titleRef}
+      focusAfterSlideIn={waitForSlideIn}
     >
       <form noValidate onSubmit={(e) => void submit(e)} className="flex min-h-0 flex-1 flex-col">
         <SheetTitle className="px-5 pt-2 pb-2 text-lg font-bold">{heading}</SheetTitle>

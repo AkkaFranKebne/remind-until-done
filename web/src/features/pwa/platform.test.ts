@@ -1,5 +1,5 @@
 import { IPHONE_15_7, IPHONE_17 } from '../../test-utils/device'
-import { isTooOld, macBrowser, readIos } from './platform'
+import { focusesAfterSlideIn, isTooOld, macBrowser, readIos } from './platform'
 
 const IPAD =
   'Mozilla/5.0 (iPad; CPU OS 16_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Mobile/15E148 Safari/604.1'
@@ -59,5 +59,19 @@ describe('macBrowser (the name macOS lists under Notifications)', () => {
     expect(macBrowser(IPAD_AS_MAC, 0)).toBeNull()
     expect(macBrowser(MAC_CHROME, 5)).toBeNull()
     expect(macBrowser(ANDROID, 5)).toBeNull()
+  })
+})
+
+describe('focusesAfterSlideIn (a form sheet focuses its field once it is in place)', () => {
+  it('on an Android phone: Chrome would scroll to the field mid-slide', () => {
+    expect(focusesAfterSlideIn(null, true)).toBe(true)
+  })
+
+  it('not on an iPhone: Safari opens the keyboard only for a focus straight from the tap', () => {
+    expect(focusesAfterSlideIn({ device: 'iPhone', version: [17] }, true)).toBe(false)
+  })
+
+  it('not with a mouse: no on-screen keyboard', () => {
+    expect(focusesAfterSlideIn(null, false)).toBe(false)
   })
 })

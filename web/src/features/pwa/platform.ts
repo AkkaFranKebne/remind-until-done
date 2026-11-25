@@ -75,3 +75,19 @@ export function subscribeStandalone(onChange: () => void) {
   query?.addEventListener?.('change', onChange)
   return () => query?.removeEventListener?.('change', onChange)
 }
+
+/**
+ * A form sheet focuses its first field only once it has slid in (Sheet's focusAfterSlideIn): on
+ * touch screens other than iPhone and iPad. Android Chrome opens the keyboard at once and scrolls
+ * to the field while it's still sliding up from below, which pushes the sheet above the screen.
+ * iPhone Safari opens the keyboard only for a focus straight from the tap, so it keeps that.
+ */
+export function focusesAfterSlideIn(ios: Ios | null, touchScreen: boolean): boolean {
+  return touchScreen && ios === null
+}
+
+/** focusesAfterSlideIn for this device. */
+export function waitsForSlideIn(): boolean {
+  const touchScreen = window.matchMedia?.('(pointer: coarse)').matches ?? false
+  return focusesAfterSlideIn(readIos(navigator.userAgent, navigator.maxTouchPoints), touchScreen)
+}

@@ -46,3 +46,28 @@ test('edit the interval, then delete the reminder', async ({ page }) => {
   await expect(page.getByText("Gone. We'll pretend it never happened.")).toBeVisible()
   await expect(row(page, SEED.plumber.title)).toHaveCount(0)
 })
+
+test('on an Android phone the add sheet takes focus first, and the title once it has slid in', async ({
+  page,
+}) => {
+  // Chrome on Android scrolls to a focused field at once; mid-slide the field is still below
+  // the screen, and the scroll pushed the whole sheet above the top (2026-11-25).
+  await openList(page)
+  // Each focused element's role, label or tag, in order, kept on <body> for the test to read.
+  await page.evaluate(() => {
+    document.addEventListener('focusin', (e) => {
+      if (!(e.target instanceof HTMLElement)) return
+      const el = e.target
+      const name = el.getAttribute('role') ?? el.getAttribute('aria-label') ?? el.tagName
+      document.body.dataset.focusSeen = `${document.body.dataset.focusSeen ?? ''} ${name}`.trim()
+    })
+  })
+  await page.getByRole('button', { name: 'Add reminder' }).click()
+
+  const title = page
+    .getByRole('dialog', { name: 'Set the trap' })
+    .getByLabel('What are you forgetting?')
+  await expect(title).toBeFocused()
+  const seen = await page.evaluate(() => document.body.dataset.focusSeen ?? '')
+  expect(seen.split(' ').slice(-2)).toEqual(['dialog', 'INPUT'])
+})

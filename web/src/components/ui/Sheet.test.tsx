@@ -1,3 +1,5 @@
+import { Input } from '@base-ui/react/input'
+import { createRef } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Sheet, SheetDescription, SheetTitle } from './Sheet'
 
@@ -71,4 +73,25 @@ test('a tap outside asks to close, unless it is not dismissible, which also has 
   tapOutside()
   await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
   expect(onOpenChange).not.toHaveBeenCalled()
+})
+
+test('focusAfterSlideIn: the sheet has focus while it slides in, then the field gets it', async () => {
+  const focused: string[] = []
+  const track = (e: FocusEvent) => {
+    if (e.target instanceof HTMLElement) focused.push(e.target.getAttribute('aria-label') ?? '')
+  }
+  document.addEventListener('focusin', track)
+  const fieldRef = createRef<HTMLElement>()
+  render(
+    <Sheet open onOpenChange={jest.fn()} initialFocus={fieldRef} focusAfterSlideIn>
+      <SheetTitle>Set the trap</SheetTitle>
+      <Input aria-label="Title" ref={fieldRef} />
+    </Sheet>,
+  )
+
+  // No transition in jsdom: the slide-in ends at once, before Base UI's first focus, which then
+  // leaves focus where it is. In a browser the sheet gets it first (e2e/reminders.spec.ts).
+  await waitFor(() => expect(screen.getByRole('textbox', { name: 'Title' })).toHaveFocus())
+  expect(focused.at(-1)).toBe('Title')
+  document.removeEventListener('focusin', track)
 })

@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { Input } from '@base-ui/react/input'
+import { createRef } from 'react'
 import { fn } from 'storybook/test'
 import { Sheet, SheetDescription, SheetTitle } from './Sheet'
 
@@ -49,6 +51,32 @@ export const FullWithSnapPoints: Story = {
         <SheetDescription className="text-sm text-fg2">
           Drag the handle up for more room.
         </SheetDescription>
+      </div>
+    ),
+  },
+}
+
+const fieldRef = createRef<HTMLElement>()
+
+/**
+ * The field gets focus once the sheet has slid in, not during the slide: Android Chrome would
+ * scroll to the field while it's still below the screen (AddReminderSheet on Android).
+ */
+export const FullWithFieldFocusAfterSlideIn: Story = {
+  args: {
+    layout: 'full',
+    snapPoints: [0.85, 1],
+    initialFocus: fieldRef,
+    focusAfterSlideIn: true,
+    children: (
+      <div className="flex flex-col gap-3 px-5 pt-3">
+        <SheetTitle className="text-lg font-bold">A form sheet</SheetTitle>
+        <Input
+          ref={fieldRef}
+          aria-label="Title"
+          placeholder="Focused once the sheet is in place"
+          className="min-h-11 rounded-md border border-border bg-bg px-3 text-input text-fg"
+        />
       </div>
     ),
   },

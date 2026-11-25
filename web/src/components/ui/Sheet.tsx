@@ -1,6 +1,6 @@
 import { Drawer } from '@base-ui/react/drawer'
 import { cva } from 'class-variance-authority'
-import type { ReactNode, RefObject } from 'react'
+import { useRef, type ReactNode, type RefObject } from 'react'
 import { cn } from '../../lib/cn'
 
 /**
@@ -12,6 +12,8 @@ import { cn } from '../../lib/cn'
  * - card: a floating card above the bottom edge (confirmations).
  * - full: attached to the bottom edge, full width, rounded top (forms). With snapPoints it
  *   is full height (below the status bar) and rests at the first snap point (sheet-tall).
+ * - focusAfterSlideIn: initialFocus gets focus once the sheet is in place, not while it slides
+ *   in (the form sheet's title on Android).
  * Design Inventory → Components → "ConfirmSheet", Phone Screens → "AddReminderSheet".
  */
 const viewport = cva('fixed flex justify-center', {
@@ -40,6 +42,7 @@ export function Sheet({
   layout = 'card',
   role,
   initialFocus,
+  focusAfterSlideIn = false,
   snapPoints,
   snapPoint,
   onSnapPointChange,
@@ -55,6 +58,14 @@ export function Sheet({
   role?: 'dialog' | 'alertdialog'
   /** Where focus goes when it opens (default: the first focusable element). */
   initialFocus?: RefObject<HTMLElement | null>
+  /**
+   * true: the sheet itself has focus while it slides in, and initialFocus gets it once the sheet
+   * is in place. For a text field on Android: Chrome opens the keyboard at once and scrolls the
+   * screen to the field, which is still below the screen mid-slide, so the whole sheet ends up
+   * pushed above the top (seen on an Android phone, 2026-11-25). iPhone Safari needs the focus straight
+   * from the tap to open the keyboard, so it keeps the default.
+   */
+  focusAfterSlideIn?: boolean
   /** Heights it can rest at, as parts of the sheet's full height (0.85, 1 = full) or pixels; full layout only. */
   snapPoints?: Drawer.Root.SnapPoint[]
   snapPoint?: Drawer.Root.SnapPoint | null
@@ -67,6 +78,9 @@ export function Sheet({
   className?: string
   children: ReactNode
 }) {
+  const popupRef = useRef<HTMLDivElement>(null)
+  const waiting = focusAfterSlideIn && initialFocus
+  const firstFocus = waiting ? popupRef : initialFocus
   return (
     <Drawer.Root
       open={open}
@@ -76,6 +90,14 @@ export function Sheet({
       snapPoints={snapPoints}
       snapPoint={snapPoint}
       onSnapPointChange={(next) => onSnapPointChange?.(next)}
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen || !waiting) return
+        // A field tapped during the slide keeps focus. Without a slide (reduced motion) this can
+        // run before Base UI's first focus, while focus is still outside the sheet.
+        const active = document.activeElement
+        const tappedField = active !== popupRef.current && popupRef.current?.contains(active)
+        if (!tappedField) initialFocus.current?.focus()
+      }}
     >
       <Drawer.Portal>
         <Drawer.Backdrop className="fixed inset-0 bg-scrim backdrop-blur-sm backdrop-fade" />
@@ -83,10 +105,11 @@ export function Sheet({
         <Drawer.VirtualKeyboardProvider>
           <Drawer.Viewport className={viewport({ layout })}>
             <Drawer.Popup
+              ref={popupRef}
               // Only when set: an explicit undefined would remove Base UI's defaults
               // (role="dialog", focus on the first focusable element).
               {...(role ? { role } : {})}
-              {...(initialFocus ? { initialFocus } : {})}
+              {...(firstFocus ? { initialFocus: firstFocus } : {})}
               // Base UI's own switch: swipes on it don't move it at all.
               {...(dismissible ? {} : { 'data-base-ui-swipe-ignore': '' })}
               className={cn(popup({ layout }), snapPoints && 'sheet-tall', className)}
